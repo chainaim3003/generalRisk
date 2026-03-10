@@ -1,0 +1,70 @@
+# 🧪 ACTUS Testing Guide
+
+## Step 1: Restart Backend with Debug Logging
+
+I added debug logging to see exactly what's sent to ACTUS and what comes back.
+
+```bash
+# Stop current backend (Ctrl+C)
+# Then restart:
+cd C:\CHAINAIM3003\mcp-servers\StableRisk\Backend
+npm run server
+```
+
+## Step 2: Upload Test File
+
+Upload this file in your frontend:
+```
+C:\CHAINAIM3003\mcp-servers\StableRisk\Backend\config\UPLOAD-THIS-FIRST.json
+```
+
+## Step 3: Check Terminal Output
+
+You'll now see:
+```
+📤 Sample contract sent to ACTUS:
+{
+  "contractType": "PAM",
+  "contractID": "ASSET_001",
+  ... all fields ...
+}
+
+📥 ACTUS Response:
+{
+  ... what ACTUS returned ...
+}
+```
+
+## What to Look For:
+
+### ✅ If ACTUS Works:
+```
+✅ ACTUS data retrieved successfully
+   Periods: 12  <-- NOT 0!
+   Inflow arrays: 1
+   Outflow arrays: 1
+```
+
+Then you'll see **different numbers** in each period!
+
+### ❌ If Still Returns 0 Periods:
+
+Look at the "📥 ACTUS Response" in terminal. It will show what ACTUS said.
+
+Send me:
+1. The "📤 Sample contract sent to ACTUS" section
+2. The "📥 ACTUS Response" section
+
+Then I'll see exactly what ACTUS needs!
+
+## Expected Result:
+
+If working properly, your UI should show:
+```
+Period 1: 100.0% | 95.0% | 0.0% | 100.0 | ✓
+Period 2: 101.2% | 95.2% | 0.0% | 100.0 | ✓  <- DIFFERENT!
+Period 3: 102.5% | 95.5% | 0.0% | 100.0 | ✓  <- CHANGING!
+...
+```
+
+Numbers should **change** each period, not stay the same!

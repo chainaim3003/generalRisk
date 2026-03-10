@@ -1,0 +1,67 @@
+{
+  "portfolioMetadata": {
+    "portfolioId": "ULTRA_LIQUID_500K",
+    "totalNotional": 500000,
+    "currency": "USD",
+    "description": "Ultra-liquid overnight deposits and call money - maximum liquidity scenario"
+  },
+  "contracts": [
+    {
+      "contractType": "CLM",
+      "contractID": "CLM_OVERNIGHT_001",
+      "contractRole": "RPA",
+      "contractDealDate": "2025-02-01T00:00:00",
+      "initialExchangeDate": "2025-02-01T00:00:00",
+      "statusDate": "2025-02-14T00:00:00",
+      "notionalPrincipal": "300000",
+      "maturityDate": "2025-08-01T00:00:00",
+      "nominalInterestRate": "0.0285",
+      "currency": "USD",
+      "dayCountConvention": "A360",
+      "endOfMonthConvention": "SD",
+      "businessDayConvention": "SCF",
+      "cycleAnchorDateOfInterestPayment": "2025-03-01T00:00:00",
+      "cycleOfInterestPayment": "P1M",
+      "reserveType": "cash",
+      "liquidityScore": 100,
+      "creditRating": 98,
+      "maturityDays": 0
+    },
+    {
+      "contractType": "CLM",
+      "contractID": "CLM_DEMAND_002",
+      "contractRole": "RPA",
+      "contractDealDate": "2025-02-01T00:00:00",
+      "initialExchangeDate": "2025-02-01T00:00:00",
+      "statusDate": "2025-02-14T00:00:00",
+      "notionalPrincipal": "200000",
+      "maturityDate": "2025-06-01T00:00:00",
+      "nominalInterestRate": "0.0150",
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "endOfMonthConvention": "SD",
+      "businessDayConvention": "SCF",
+      "cycleAnchorDateOfInterestPayment": "2025-03-01T00:00:00",
+      "cycleOfInterestPayment": "P1M",
+      "reserveType": "cash",
+      "liquidityScore": 100,
+      "creditRating": 95,
+      "maturityDays": 0
+    },
+    {
+      "contractType": "PAM",
+      "contractID": "LIABILITY_TOKENS",
+      "contractRole": "RPL",
+      "contractDealDate": "2025-02-01T00:00:00",
+      "initialExchangeDate": "2025-02-01T00:00:00",
+      "statusDate": "2025-02-14T00:00:00",
+      "notionalPrincipal": "500000",
+      "maturityDate": "2026-02-01T00:00:00",
+      "nominalInterestRate": "0.0000",
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "endOfMonthConvention": "SD",
+      "businessDayConvention": "SCF"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "portfolioMetadata": {
+    "portfolioId": "WORKING_TEST",
+    "totalNotional": 1000000,
+    "currency": "USD",
+    "description": "Complete ACTUS fields - should show changing periods"
+  },
+  "contracts": [
+    {
+      "contractType": "PAM",
+      "contractID": "ASSET_WITH_INTEREST",
+      "contractRole": "RPA",
+      "statusDate": "2025-02-14T00:00:00",
+      "contractDealDate": "2025-02-01T00:00:00",
+      "initialExchangeDate": "2025-02-01T00:00:00",
+      "maturityDate": "2026-02-01T00:00:00",
+      "notionalPrincipal": "1000000",
+      "nominalInterestRate": "0.05",
+      "dayCountConvention": "A365",
+      "currency": "USD",
+      "endOfMonthConvention": "SD",
+      "businessDayConvention": "SCF",
+      "cycleAnchorDateOfInterestPayment": "2025-05-01T00:00:00",
+      "cycleOfInterestPayment": "P3M",
+      "reserveType": "treasury",
+      "liquidityScore": 95,
+      "creditRating": 100,
+      "maturityDays": 90
+    },
+    {
+      "contractType": "PAM",
+      "contractID": "LIABILITY_TOKENS",
+      "contractRole": "RPL",
+      "statusDate": "2025-02-14T00:00:00",
+      "contractDealDate": "2025-02-01T00:00:00",
+      "initialExchangeDate": "2025-02-01T00:00:00",
+      "maturityDate": "2026-02-01T00:00:00",
+      "notionalPrincipal": "1000000",
+      "nominalInterestRate": "0.00",
+      "dayCountConvention": "A365",
+      "currency": "USD",
+      "endOfMonthConvention": "SD",
+      "businessDayConvention": "SCF"
+    }
+  ]
+}

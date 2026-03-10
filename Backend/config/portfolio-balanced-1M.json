@@ -1,0 +1,91 @@
+{
+  "portfolioMetadata": {
+    "portfolioId": "STABLE_EXAMPLE_001",
+    "totalNotional": 1000000,
+    "currency": "USD",
+    "description": "Example stablecoin reserve portfolio"
+  },
+  "contracts": [
+    {
+      "contractType": "PAM",
+      "contractID": "CASH_001",
+      "contractRole": "RPA",
+      "contractDealDate": "2024-01-01T00:00:00",
+      "initialExchangeDate": "2024-01-02T00:00:00",
+      "statusDate": "2024-01-01T00:00:00",
+      "notionalPrincipal": "300000",
+      "maturityDate": "2025-01-01T00:00:00",
+      "nominalInterestRate": "0.0000",
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "reserveType": "cash",
+      "liquidityScore": 100,
+      "creditRating": 100,
+      "maturityDays": 0
+    },
+    {
+      "contractType": "PAM",
+      "contractID": "TREASURY_001",
+      "contractRole": "RPA",
+      "contractDealDate": "2024-01-01T00:00:00",
+      "initialExchangeDate": "2024-01-02T00:00:00",
+      "statusDate": "2024-01-01T00:00:00",
+      "notionalPrincipal": "400000",
+      "maturityDate": "2025-01-01T00:00:00",
+      "nominalInterestRate": "0.02",
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "reserveType": "treasury",
+      "liquidityScore": 95,
+      "creditRating": 99,
+      "maturityDays": 90
+    },
+    {
+      "contractType": "PAM",
+      "contractID": "CORPORATE_001",
+      "contractRole": "RPA",
+      "contractDealDate": "2024-01-01T00:00:00",
+      "initialExchangeDate": "2024-01-02T00:00:00",
+      "statusDate": "2024-01-01T00:00:00",
+      "notionalPrincipal": "200000",
+      "maturityDate": "2025-01-01T00:00:00",
+      "nominalInterestRate": "0.05",
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "reserveType": "corporate",
+      "liquidityScore": 70,
+      "creditRating": 85,
+      "maturityDays": 180
+    },
+    {
+      "contractType": "PAM",
+      "contractID": "OTHER_001",
+      "contractRole": "RPA",
+      "contractDealDate": "2024-01-01T00:00:00",
+      "initialExchangeDate": "2024-01-02T00:00:00",
+      "statusDate": "2024-01-01T00:00:00",
+      "notionalPrincipal": "100000",
+      "maturityDate": "2025-01-01T00:00:00",
+      "nominalInterestRate": "0.03",
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "reserveType": "other",
+      "liquidityScore": 50,
+      "creditRating": 70,
+      "maturityDays": 365
+    },
+    {
+      "contractType": "PAM",
+      "contractID": "LIABILITY_001",
+      "contractRole": "RPL",
+      "contractDealDate": "2024-01-01T00:00:00",
+      "initialExchangeDate": "2024-01-02T00:00:00",
+      "statusDate": "2024-01-01T00:00:00",
+      "notionalPrincipal": "1000000",
+      "maturityDate": "2025-01-01T00:00:00",
+      "nominalInterestRate": "0.0000",
+      "currency": "USD",
+      "dayCountConvention": "A365"
+    }
+  ]
+}

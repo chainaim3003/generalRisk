@@ -1,0 +1,46 @@
+{
+  "portfolioMetadata": {
+    "portfolioId": "UNDERCOLLATERALIZED_FAIL",
+    "totalNotional": 1000000,
+    "currency": "USD",
+    "description": "Intentionally under-collateralized - should fail backing ratio"
+  },
+  "contracts": [
+    {
+      "contractType": "PAM",
+      "contractID": "ASSET_ONLY_001",
+      "contractRole": "RPA",
+      "contractDealDate": "2025-02-01T00:00:00",
+      "initialExchangeDate": "2025-02-01T00:00:00",
+      "statusDate": "2025-02-14T00:00:00",
+      "notionalPrincipal": "850000",
+      "maturityDate": "2026-02-01T00:00:00",
+      "nominalInterestRate": "0.0450",
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "endOfMonthConvention": "SD",
+      "businessDayConvention": "SCF",
+      "cycleAnchorDateOfInterestPayment": "2025-05-01T00:00:00",
+      "cycleOfInterestPayment": "P3M",
+      "reserveType": "treasury",
+      "liquidityScore": 90,
+      "creditRating": 95,
+      "maturityDays": 90
+    },
+    {
+      "contractType": "PAM",
+      "contractID": "TOKENS_OVERCIRCULATION",
+      "contractRole": "RPL",
+      "contractDealDate": "2025-02-01T00:00:00",
+      "initialExchangeDate": "2025-02-01T00:00:00",
+      "statusDate": "2025-02-14T00:00:00",
+      "notionalPrincipal": "1000000",
+      "maturityDate": "2026-02-01T00:00:00",
+      "nominalInterestRate": "0.0000",
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "endOfMonthConvention": "SD",
+      "businessDayConvention": "SCF"
+    }
+  ]
+}
