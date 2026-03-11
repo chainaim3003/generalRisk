@@ -1,0 +1,239 @@
+{
+  "info": {
+    "_postman_id": "defi-im-90d-001",
+    "name": "DeFi-InvoiceMaturity-90d",
+    "description": "ACTUS DeFi Liquidation: INVOICE MATURITY MODEL (CHRONOS-SHIELD tokenized invoice collateral).\n\nSINGLE DeFi liquidation behavioral model:\n  1. InvoiceMaturityModel (8.7) — Tokenized invoice collateral degradation as maturity approaches\n\nScenario: DeFi lending with tokenized invoice as part of hybrid collateral\n  Borrower: $300K USDC loan against hybrid collateral\n  Collateral basket:\n    - 50 ETH at $2,800 = $140K (crypto-volatile)\n    - Tokenized invoice: $200K face value, matures 2026-04-30\n  The invoice represents a B2B receivable (e.g., supply chain payment)\n  As the invoice approaches maturity, its credit quality changes:\n    - If on-time: converges to face value\n    - If overdue: degrades by overdueDegradationRate per day past due\n  Payment probability tracks counterparty credit risk\n\nInvoice dynamics:\n  invoiceFaceValue: $200,000\n  invoiceMaturityDate: 2026-04-30\n  overdueDegradationRate: 0.005 (0.5% per day overdue)\n  creditDiscountRate: 0.15 (15% credit risk discount applied)\n  Payment probability (from INVOICE_PAYMENT_PROB index):\n    Mar 1: 0.95 (high confidence)\n    Mar 31: 0.88 (some concern due to market stress)\n    Apr 15: 0.80 (stress on counterparty)\n    Apr 30: 0.75 (maturity date — will they pay?)\n    May 15: 0.60 (overdue! degradation kicks in)\n    May 31: 0.50 (30 days overdue: 0.5% × 30 = 15% additional haircut)\n\nEffective collateral value of invoice:\n  Pre-maturity: faceValue × paymentProb × (1 - creditDiscount)\n  Post-maturity (overdue): faceValue × paymentProb × (1 - creditDiscount) × (1 - overdueDeg × daysOverdue)\n  At May 31: $200K × 0.50 × 0.85 × 0.85 = ~$72,250 (from $200K face)\n\nReferences:\n  - CHRONOS-SHIELD proposal — tokenized invoice as DeFi collateral\n  - Centrifuge/Goldfinch — real-world asset tokenization\n  - Trade finance credit risk modeling (Basel III)\n  - Accounts receivable aging analysis\n\nContract: ANN representing DeFi lending position\n  notionalPrincipal = 300000 ($300K USDC loan)\n  nominalInterestRate = 0.060 (lower rate, partially invoice-secured)\n  defiLiquidationModels: [im_inv01]\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1a. Add ETH_USD Reference Index (moderate stress)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_USD_04\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":2800.00},{\"time\":\"2026-03-15T00:00:00\",\"value\":2600.00},{\"time\":\"2026-03-31T00:00:00\",\"value\":2350.00},{\"time\":\"2026-04-15T00:00:00\",\"value\":2100.00},{\"time\":\"2026-04-30T00:00:00\",\"value\":2000.00},{\"time\":\"2026-05-15T00:00:00\",\"value\":2150.00},{\"time\":\"2026-05-31T00:00:00\",\"value\":2400.00}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ETH_USD reference index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ETH_USD_04: $2,800 → $2,000 → $2,400 (moderate stress)');",
+        "    console.log('   Moderate ETH decline amplified by invoice degradation');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1b. Add INVOICE_PAYMENT_PROB Reference Index",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"INV_PROB_02\",\"marketObjectCode\":\"INVOICE_PAYMENT_PROB\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.95},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.92},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.88},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.80},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.75},{\"time\":\"2026-05-07T00:00:00\",\"value\":0.68},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.60},{\"time\":\"2026-05-22T00:00:00\",\"value\":0.55},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.50}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('INVOICE_PAYMENT_PROB index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ INV_PROB_02: Payment probability 0.95 → 0.50');",
+        "    console.log('   Counterparty credit deterioration under market stress');",
+        "    console.log('   Apr 30 (maturity): 0.75 — uncertain payment');",
+        "    console.log('   May (overdue): 0.60 → 0.50 — degradation accelerates');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1c. Add AAVE_BORROW_RATE Reference Rate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"AAVE_RATE_04\",\"marketObjectCode\":\"AAVE_BORROW_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.060},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.065},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.072},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.080},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.085},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.075},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.065}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AAVE_BORROW_RATE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ AAVE_RATE_04: 6.0% → 8.5% → 6.5% (moderate rate path)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add InvoiceMaturityModel (im_inv01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addInvoiceMaturityModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addInvoiceMaturityModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"im_inv01\",\"collateralPriceMOC\":\"ETH_USD\",\"invoicePaymentProbMOC\":\"INVOICE_PAYMENT_PROB\",\"collateralQuantity\":50.0,\"invoiceFaceValue\":200000.0,\"invoiceMaturityDate\":\"2026-04-30T00:00:00\",\"overdueDegradationRate\":0.005,\"creditDiscountRate\":0.15,\"ltvThreshold\":0.75,\"liquidationThreshold\":0.83,\"ltvTarget\":0.65,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-07T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-22T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-07T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-22T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('InvoiceMaturityModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ im_inv01: InvoiceMaturityModel (13 monitoring points)');",
+        "    console.log('   Invoice face value: $200,000');",
+        "    console.log('   Invoice maturity: 2026-04-30');",
+        "    console.log('   Overdue degradation: 0.5% per day past due');",
+        "    console.log('   Credit discount: 15%');",
+        "    console.log('   ETH collateral: 50 ETH');",
+        "    console.log('');",
+        "    console.log('   Pre-maturity effective value:');",
+        "    console.log('     $200K × 0.95 × 0.85 = $161,500 (Mar 1, healthy)');",
+        "    console.log('     $200K × 0.75 × 0.85 = $127,500 (Apr 30, maturity)');",
+        "    console.log('   Post-maturity (30 days overdue):');",
+        "    console.log('     $200K × 0.50 × 0.85 × (1 - 0.005×30) = $72,250 (May 31)');",
+        "    console.log('   Ref: Centrifuge/Goldfinch tokenized RWA collateral models');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add InvoiceMaturity Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_im_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"ETH_USD_04\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"INV_PROB_02\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"AAVE_RATE_04\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"im_inv01\",\"riskFactorType\":\"InvoiceMaturityModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('InvoiceMaturity scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ defi_im_scn01: 3 indexes + 1 DeFi behavioral model');",
+        "    console.log('   ReferenceIndexes: ETH_USD, INVOICE_PAYMENT_PROB, AAVE_BORROW_RATE');",
+        "    console.log('   Behavioral: InvoiceMaturityModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Verify InvoiceMaturityModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findInvoiceMaturityModel/im_inv01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findInvoiceMaturityModel", "im_inv01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('InvoiceMaturityModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('im_inv01');",
+        "    pm.expect(data.invoiceFaceValue).to.eql(200000.0);",
+        "    pm.expect(data.invoiceMaturityDate).to.include('2026-04-30');",
+        "    console.log('✅ InvoiceMaturityModel verified');",
+        "    console.log('   Face value: $' + data.invoiceFaceValue);",
+        "    console.log('   Maturity: ' + data.invoiceMaturityDate);",
+        "    console.log('   Overdue degradation: ' + (data.overdueDegradationRate*100) + '% per day');",
+        "    console.log('   Credit discount: ' + (data.creditDiscountRate*100) + '%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Run Scenario Simulation (ANN + InvoiceMaturity)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_im_scn01\",\"contracts\":[{\"contractType\":\"ANN\",\"contractID\":\"DEFI_LOAN_IM01\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"creatorID\":\"AaveProtocol\",\"counterpartyID\":\"DeFiBorrower\",\"currency\":\"USD\",\"notionalPrincipal\":300000,\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"nominalInterestRate\":0.060,\"dayCountConvention\":\"A365\",\"endOfMonthConvention\":\"SD\",\"cycleOfPrincipalRedemption\":\"P1ML0\",\"cycleAnchorDateOfPrincipalRedemption\":\"2026-04-01T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"cycleAnchorDateOfInterestPayment\":\"2026-04-01T00:00:00\",\"cycleOfRateReset\":\"P1ML0\",\"cycleAnchorDateOfRateReset\":\"2026-04-01T00:00:00\",\"marketObjectCodeOfRateReset\":\"AAVE_BORROW_RATE\",\"rateSpread\":0.020,\"defiLiquidationModels\":[\"im_inv01\"]}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('DeFi InvoiceMaturity simulation completed', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    console.log('\\n============== INVOICE MATURITY SIMULATION ==============');",
+        "    console.log('Contract: DEFI_LOAN_IM01 (ANN, $300K, 90-day)');",
+        "    console.log('Model: InvoiceMaturityModel (im_inv01)');",
+        "    console.log('Collateral: 50 ETH + $200K tokenized invoice');",
+        "    console.log('Invoice maturity: 2026-04-30');",
+        "    console.log('');",
+        "    if (data && data.length > 0) {",
+        "        var contracts = data;",
+        "        for (var c = 0; c < contracts.length; c++) {",
+        "            var events = contracts[c].events || contracts[c];",
+        "            if (Array.isArray(events)) {",
+        "                console.log('--- Contract: ' + (contracts[c].contractId || 'DEFI_LOAN_IM01') + ' ---');",
+        "                console.log('Total events: ' + events.length);",
+        "                var ppCount = 0;",
+        "                for (var i = 0; i < events.length; i++) {",
+        "                    var ev = events[i];",
+        "                    var type = ev.type || ev.eventType || '';",
+        "                    var time = ev.time || ev.eventDate || '';",
+        "                    var payoff = ev.payoff || ev.eventValue || 0;",
+        "                    var nominal = ev.nominalValue || ev.notionalPrincipal || '';",
+        "                    if (type === 'PP') ppCount++;",
+        "                    console.log('  ' + type + ' | ' + time + ' | payoff=' + payoff + ' | nominal=' + nominal);",
+        "                }",
+        "                console.log('PP (behavioral) events: ' + ppCount);",
+        "                console.log('  PP from InvoiceMaturity = credit-adjusted collateral degradation');",
+        "            }",
+        "        }",
+        "    }",
+        "    console.log('\\n=== INTERPRETATION ===');",
+        "    console.log('Mar 1-31: Invoice pre-maturity, payProb 0.95→0.88');",
+        "    console.log('  Effective invoice value: $200K × 0.88 × 0.85 = $149,600');",
+        "    console.log('  Combined with 50 ETH → LTV still healthy');",
+        "    console.log('Apr 15-30: Invoice maturity approaches, payProb drops to 0.75');",
+        "    console.log('  ETH also declining → double pressure on LTV');",
+        "    console.log('  Model triggers defensive repayment');",
+        "    console.log('May 1-31: Invoice OVERDUE → degradation kicks in');",
+        "    console.log('  0.5%/day × 30 days = 15% additional haircut');",
+        "    console.log('  Invoice effective: $200K × 0.50 × 0.85 × 0.85 = $72,250');",
+        "    console.log('  This is the unique RWA risk: time-decay of tokenized receivables');",
+        "    console.log('=========================================================');",
+        "});"
+      ]}}]
+    }
+  ]
+}

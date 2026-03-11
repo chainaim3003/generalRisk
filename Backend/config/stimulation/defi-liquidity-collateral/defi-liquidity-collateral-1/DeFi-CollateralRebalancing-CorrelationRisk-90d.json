@@ -1,0 +1,297 @@
+{
+  "info": {
+    "_postman_id": "defi-cr-corr-90d-001",
+    "name": "DeFi-CollateralRebalancing-CorrelationRisk-90d",
+    "description": "ACTUS DeFi Liquidation: COLLATERAL REBALANCING + CORRELATION RISK (CHRONOS-SHIELD multi-asset portfolio).\n\nTWO DeFi liquidation behavioral models run simultaneously:\n  1. CollateralRebalancingModel (8.3) — ETF flow-driven collateral mix rebalancing\n  2. CorrelationRiskModel (8.4) — Cross-asset correlation breakdown + diversification haircut\n\nScenario: Multi-asset DeFi lending vault with hybrid collateral\n  Borrower: $750K USDC loan against hybrid collateral\n  Collateral basket:\n    - 120 ETH (volatile asset)\n    - 400,000 USDC (stable asset)\n    - $250K tokenized invoice\n  ETF Flow dynamics: Grayscale/BlackRock ETH ETF flows as leading indicator\n    Positive flows → institutional confidence → supports ETH price\n    Negative flows → institutional exit → accelerates ETH decline\n    etfFlowThreshold: 50M (below = concern), etfSensitivity: 0.15\n\nCorrelation Risk dynamics:\n  Normal: ETH and USDC uncorrelated (diversification benefit)\n  Stress: Correlation rises → diversification fails → haircut applied\n  correlationThreshold: 0.70 (above = stress)\n  diversificationHaircut: 0.15 (15% collateral value reduction)\n  rollingWindowSize: 10 (correlation estimation window)\n\nETH Price + ETF Flow Scenario:\n  Mar 1:  ETH=$2,800, ETF flow=+$120M (strong inflows)\n  Mar 15: ETH=$2,500, ETF flow=+$60M (slowing)\n  Mar 31: ETH=$2,100, ETF flow=-$30M (outflows begin) ⚠️\n  Apr 15: ETH=$1,850, ETF flow=-$180M (heavy outflows) 🔴\n  Apr 30: ETH=$1,700, ETF flow=-$250M (capitulation) 🔴\n  May 15: ETH=$1,900, ETF flow=+$40M (bottom-fishing)\n  May 31: ETH=$2,200, ETF flow=+$90M (recovery)\n\nReferences:\n  - Lehar & Parlour (2022) BIS Working Paper 1062\n  - Heimbach & Huang (2024) BIS Working Paper 1171\n  - BlackRock ETHA ETF flow data as leading indicator\n  - Grayscale ETHE discount/premium analysis\n  - Adrian & Brunnermeier (2016) CoVaR correlation dynamics\n\nContract: ANN representing DeFi lending position\n  notionalPrincipal = 750000 ($750K USDC loan)\n  nominalInterestRate = 0.070 (Aave variable borrow rate)\n  defiLiquidationModels: [cr_multi01, corr_eth_usdc01]\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1a. Add ETH_USD Reference Index (90-day stress)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_USD_02\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":2800.00},{\"time\":\"2026-03-08T00:00:00\",\"value\":2650.00},{\"time\":\"2026-03-15T00:00:00\",\"value\":2500.00},{\"time\":\"2026-03-22T00:00:00\",\"value\":2300.00},{\"time\":\"2026-03-31T00:00:00\",\"value\":2100.00},{\"time\":\"2026-04-07T00:00:00\",\"value\":1980.00},{\"time\":\"2026-04-15T00:00:00\",\"value\":1850.00},{\"time\":\"2026-04-22T00:00:00\",\"value\":1750.00},{\"time\":\"2026-04-30T00:00:00\",\"value\":1700.00},{\"time\":\"2026-05-07T00:00:00\",\"value\":1780.00},{\"time\":\"2026-05-15T00:00:00\",\"value\":1900.00},{\"time\":\"2026-05-22T00:00:00\",\"value\":2050.00},{\"time\":\"2026-05-31T00:00:00\",\"value\":2200.00}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ETH_USD reference index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ETH_USD_02: $2,800 → $1,700 → $2,200 (90-day stress+recovery)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1b. Add USDC_USD Reference Index (stable collateral)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"USDC_USD_02\",\"marketObjectCode\":\"USDC_USD_STABLE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":1.0000},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.9998},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.9995},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.9988},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.9985},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.9993},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.9998}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('USDC_USD stable index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ USDC_USD_02: Stable collateral peg tracking');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1c. Add ETH_ETF_FLOW Reference Index (institutional flow data)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETF_FLOW_01\",\"marketObjectCode\":\"ETH_ETF_FLOW\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":120000000},{\"time\":\"2026-03-08T00:00:00\",\"value\":85000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":60000000},{\"time\":\"2026-03-22T00:00:00\",\"value\":10000000},{\"time\":\"2026-03-31T00:00:00\",\"value\":-30000000},{\"time\":\"2026-04-07T00:00:00\",\"value\":-100000000},{\"time\":\"2026-04-15T00:00:00\",\"value\":-180000000},{\"time\":\"2026-04-22T00:00:00\",\"value\":-220000000},{\"time\":\"2026-04-30T00:00:00\",\"value\":-250000000},{\"time\":\"2026-05-07T00:00:00\",\"value\":-80000000},{\"time\":\"2026-05-15T00:00:00\",\"value\":40000000},{\"time\":\"2026-05-22T00:00:00\",\"value\":70000000},{\"time\":\"2026-05-31T00:00:00\",\"value\":90000000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ETH_ETF_FLOW index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ETF_FLOW_01: ETH ETF flows +$120M → -$250M → +$90M');",
+        "    console.log('   BlackRock ETHA + Grayscale ETHE combined flow proxy');",
+        "    console.log('   Negative = institutional exit, leading indicator for ETH price');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1d. Add AAVE_BORROW_RATE Reference Rate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"AAVE_RATE_02\",\"marketObjectCode\":\"AAVE_BORROW_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.070},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.078},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.090},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.115},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.130},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.098},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.078}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AAVE_BORROW_RATE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ AAVE_RATE_02: 7.0% → 13.0% peak → 7.8% recovery');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add CollateralRebalancingModel (cr_multi01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addCollateralRebalancingModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addCollateralRebalancingModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"cr_multi01\",\"volatileAssetMOC\":\"ETH_USD\",\"stableAssetMOC\":\"USDC_USD_STABLE\",\"etfFlowMOC\":\"ETH_ETF_FLOW\",\"volatileAssetQty\":120.0,\"stableAssetQty\":400000.0,\"invoiceValueUSD\":250000.0,\"overallLtvThreshold\":0.75,\"liquidationThreshold\":0.83,\"ltvTarget\":0.65,\"etfFlowThreshold\":50000000.0,\"etfSensitivity\":0.15,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-07T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-22T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-07T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-22T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CollateralRebalancingModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ cr_multi01: CollateralRebalancingModel (13 monitoring points)');",
+        "    console.log('   Volatile: 120 ETH, Stable: 400K USDC, Invoice: $250K');",
+        "    console.log('   ETF flow threshold: $50M (below → rebalance signal)');",
+        "    console.log('   ETF sensitivity: 0.15 (15% additional haircut on negative flow)');",
+        "    console.log('   LTV thresholds: warning=0.75, liquidation=0.83, target=0.65');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add CorrelationRiskModel (corr_eth_usdc01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addCorrelationRiskModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addCorrelationRiskModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"corr_eth_usdc01\",\"asset1MOC\":\"ETH_USD\",\"asset2MOC\":\"USDC_USD_STABLE\",\"asset1Quantity\":120.0,\"asset2Quantity\":400000.0,\"correlationThreshold\":0.70,\"diversificationHaircut\":0.15,\"baseLtvThreshold\":0.75,\"liquidationThreshold\":0.83,\"rollingWindowSize\":10,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-07T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-22T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-07T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-22T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CorrelationRiskModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ corr_eth_usdc01: CorrelationRiskModel (13 monitoring points)');",
+        "    console.log('   ETH vs USDC correlation monitoring');",
+        "    console.log('   Threshold: 0.70 (above = stress correlation)');",
+        "    console.log('   Diversification haircut: 15% when correlation breaks');",
+        "    console.log('   Rolling window: 10 observations for correlation estimation');",
+        "    console.log('   Ref: Adrian & Brunnermeier (2016) CoVaR');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add Rebalancing+Correlation Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_cr_corr_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"ETH_USD_02\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"USDC_USD_02\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ETF_FLOW_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"AAVE_RATE_02\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"cr_multi01\",\"riskFactorType\":\"CollateralRebalancingModel\"},{\"riskFactorID\":\"corr_eth_usdc01\",\"riskFactorType\":\"CorrelationRiskModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Rebalancing+Correlation scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ defi_cr_corr_scn01: 4 indexes + 2 DeFi behavioral models');",
+        "    console.log('   ReferenceIndexes: ETH_USD, USDC_USD_STABLE, ETH_ETF_FLOW, AAVE_BORROW_RATE');",
+        "    console.log('   Behavioral: CollateralRebalancingModel + CorrelationRiskModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5a. Verify CollateralRebalancingModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findCollateralRebalancingModel/cr_multi01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findCollateralRebalancingModel", "cr_multi01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CollateralRebalancingModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('cr_multi01');",
+        "    pm.expect(data.etfFlowMOC).to.eql('ETH_ETF_FLOW');",
+        "    console.log('✅ CollateralRebalancingModel verified');",
+        "    console.log('   ETF flow threshold: $' + data.etfFlowThreshold);",
+        "    console.log('   ETF sensitivity: ' + data.etfSensitivity);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5b. Verify CorrelationRiskModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findCorrelationRiskModel/corr_eth_usdc01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findCorrelationRiskModel", "corr_eth_usdc01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CorrelationRiskModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('corr_eth_usdc01');",
+        "    pm.expect(data.correlationThreshold).to.eql(0.70);",
+        "    console.log('✅ CorrelationRiskModel verified');",
+        "    console.log('   Correlation threshold: ' + data.correlationThreshold);",
+        "    console.log('   Diversification haircut: ' + (data.diversificationHaircut*100) + '%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Run Scenario Simulation (ANN + Rebalancing + Correlation)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_cr_corr_scn01\",\"contracts\":[{\"contractType\":\"ANN\",\"contractID\":\"DEFI_LOAN_CR01\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"creatorID\":\"AaveProtocol\",\"counterpartyID\":\"DeFiBorrower\",\"currency\":\"USD\",\"notionalPrincipal\":750000,\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"nominalInterestRate\":0.070,\"dayCountConvention\":\"A365\",\"endOfMonthConvention\":\"SD\",\"cycleOfPrincipalRedemption\":\"P1ML0\",\"cycleAnchorDateOfPrincipalRedemption\":\"2026-04-01T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"cycleAnchorDateOfInterestPayment\":\"2026-04-01T00:00:00\",\"cycleOfRateReset\":\"P1ML0\",\"cycleAnchorDateOfRateReset\":\"2026-04-01T00:00:00\",\"marketObjectCodeOfRateReset\":\"AAVE_BORROW_RATE\",\"rateSpread\":0.020,\"defiLiquidationModels\":[\"cr_multi01\",\"corr_eth_usdc01\"]}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('DeFi Rebalancing+Correlation simulation completed', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    console.log('\\n======= COLLATERAL REBALANCING + CORRELATION RISK SIMULATION =======');",
+        "    console.log('Contract: DEFI_LOAN_CR01 (ANN, $750K, 90-day)');",
+        "    console.log('Models: CollateralRebalancingModel + CorrelationRiskModel');",
+        "    console.log('Collateral: 120 ETH + 400K USDC + $250K invoice');",
+        "    console.log('');",
+        "    if (data && data.length > 0) {",
+        "        var contracts = data;",
+        "        for (var c = 0; c < contracts.length; c++) {",
+        "            var events = contracts[c].events || contracts[c];",
+        "            if (Array.isArray(events)) {",
+        "                console.log('--- Contract: ' + (contracts[c].contractId || 'DEFI_LOAN_CR01') + ' ---');",
+        "                console.log('Total events: ' + events.length);",
+        "                var ppCount = 0;",
+        "                for (var i = 0; i < events.length; i++) {",
+        "                    var ev = events[i];",
+        "                    var type = ev.type || ev.eventType || '';",
+        "                    var time = ev.time || ev.eventDate || '';",
+        "                    var payoff = ev.payoff || ev.eventValue || 0;",
+        "                    var nominal = ev.nominalValue || ev.notionalPrincipal || '';",
+        "                    if (type === 'PP') ppCount++;",
+        "                    console.log('  ' + type + ' | ' + time + ' | payoff=' + payoff + ' | nominal=' + nominal);",
+        "                }",
+        "                console.log('PP (behavioral) events: ' + ppCount);",
+        "                console.log('  PP from Rebalancing = ETF flow-driven + LTV-triggered repayments');",
+        "                console.log('  PP from Correlation = diversification haircut when corr > 0.70');",
+        "            }",
+        "        }",
+        "    }",
+        "    console.log('\\n=== INTERPRETATION ===');",
+        "    console.log('Mar: ETF flows positive → no rebalancing trigger');",
+        "    console.log('Late Mar-Apr: ETF outflows → rebalancing triggers defensive repay');",
+        "    console.log('Apr peak: Correlation rises + ETF capitulation → maximum haircut');",
+        "    console.log('May: Recovery in flows + decorrelation → haircuts removed');",
+        "    console.log('=====================================================================');",
+        "});"
+      ]}}]
+    }
+  ]
+}

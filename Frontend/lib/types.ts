@@ -156,7 +156,7 @@ export interface ScenarioTemplate {
 
 // ---- UI State Types ----
 
-export type DashboardMode = "upload" | "chat" | "simulation"
+export type DashboardMode = "upload" | "chat" | "simulation" | "defi-liquidation"
 
 export type Jurisdiction = "eu-mica" | "us-genius" | "custom"
 
@@ -197,6 +197,7 @@ export interface SimulationEvent {
   payoff: number
   nominalValue: number
   currency: string
+  nominalInterestRate?: number
   states?: Record<string, number>
 }
 

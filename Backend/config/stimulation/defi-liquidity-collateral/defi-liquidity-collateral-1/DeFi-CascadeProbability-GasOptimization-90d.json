@@ -1,0 +1,327 @@
+{
+  "info": {
+    "_postman_id": "defi-cp-go-90d-001",
+    "name": "DeFi-CascadeProbability-GasOptimization-90d",
+    "description": "ACTUS DeFi Liquidation: CASCADE PROBABILITY + GAS OPTIMIZATION (CHRONOS-SHIELD systemic risk).\n\nTWO DeFi liquidation behavioral models run simultaneously:\n  1. CascadeProbabilityModel (8.5) — Pool-level aggregate LTV + market depth cascade estimation\n  2. GasOptimizationModel (8.6) — Gas price-aware liquidation timing optimization\n\nScenario: Systemic DeFi risk during ETH crash with gas price spike\n  Protocol-level view: What if many positions liquidate simultaneously?\n  Borrower: $600K USDC position in crowded Aave ETH pool\n  Collateral: 150 ETH at $2,800 = $420K\n  Position represents $600K value in the overall pool\n\nCascade dynamics:\n  poolAggLtvMOC tracks the average LTV across the entire Aave ETH pool\n  When aggregate LTV > cascadeThreshold (0.78) → cascade risk materializes\n  priceImpactFactor: 0.12 (12% additional price impact from forced liquidations)\n  marketDepthMOC tracks available liquidity to absorb liquidations\n  defensiveRepayFraction: 0.10 (10% defensive prepay when cascade imminent)\n\nGas optimization dynamics:\n  Gas prices spike during liquidation cascades (everyone competes for block space)\n  Model computes: (reduction in risk × collateral value) vs (gas cost of tx)\n  Only triggers prepayment when net benefit > minBenefitUSD ($500)\n  gasUnitsPerTx: 350000 (typical Aave repay + collateral swap)\n  At peak gas (300 gwei): 350K × 300 × 10⁻⁹ × $2000 = $210 per tx\n\nETH Price + Gas + Pool LTV + Market Depth Scenario:\n  Mar 1:  ETH=$2,800, Gas=25 gwei, PoolLTV=0.55, Depth=$50M\n  Mar 15: ETH=$2,500, Gas=35 gwei, PoolLTV=0.62, Depth=$45M\n  Mar 31: ETH=$2,100, Gas=80 gwei, PoolLTV=0.72, Depth=$30M ⚠️\n  Apr 15: ETH=$1,850, Gas=200 gwei, PoolLTV=0.82, Depth=$15M 🔴 CASCADE\n  Apr 30: ETH=$1,700, Gas=300 gwei, PoolLTV=0.88, Depth=$8M 🔴 EXTREME\n  May 15: ETH=$1,900, Gas=60 gwei, PoolLTV=0.72, Depth=$25M\n  May 31: ETH=$2,200, Gas=30 gwei, PoolLTV=0.60, Depth=$42M\n\nReferences:\n  - Lehar & Parlour (2022) BIS WP 1062 — DeFi cascade taxonomy\n  - Heimbach & Huang (2024) BIS WP 1171 — liquidation spirals\n  - Sadeghi (2025) — gas price dynamics during liquidation cascades\n  - Daian et al. (2020) 'Flash Boys 2.0' — MEV and gas auctions\n  - Qin et al. (2021) — empirical liquidation cascade analysis\n\nContract: ANN representing DeFi lending position\n  notionalPrincipal = 600000 ($600K USDC loan)\n  nominalInterestRate = 0.075 (elevated rate during stress)\n  defiLiquidationModels: [cp_pool01, go_gas01]\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1a. Add ETH_USD Reference Index (crash scenario)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_USD_03\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":2800.00},{\"time\":\"2026-03-08T00:00:00\",\"value\":2650.00},{\"time\":\"2026-03-15T00:00:00\",\"value\":2500.00},{\"time\":\"2026-03-22T00:00:00\",\"value\":2300.00},{\"time\":\"2026-03-31T00:00:00\",\"value\":2100.00},{\"time\":\"2026-04-07T00:00:00\",\"value\":1980.00},{\"time\":\"2026-04-15T00:00:00\",\"value\":1850.00},{\"time\":\"2026-04-22T00:00:00\",\"value\":1750.00},{\"time\":\"2026-04-30T00:00:00\",\"value\":1700.00},{\"time\":\"2026-05-07T00:00:00\",\"value\":1780.00},{\"time\":\"2026-05-15T00:00:00\",\"value\":1900.00},{\"time\":\"2026-05-22T00:00:00\",\"value\":2050.00},{\"time\":\"2026-05-31T00:00:00\",\"value\":2200.00}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ETH_USD reference index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ETH_USD_03: $2,800 → $1,700 crash → $2,200 recovery');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1b. Add POOL_AGG_LTV Reference Index (Aave pool-level LTV)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"POOL_LTV_01\",\"marketObjectCode\":\"POOL_AGG_LTV\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.55},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.58},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.62},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.67},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.72},{\"time\":\"2026-04-07T00:00:00\",\"value\":0.77},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.82},{\"time\":\"2026-04-22T00:00:00\",\"value\":0.86},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.88},{\"time\":\"2026-05-07T00:00:00\",\"value\":0.78},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.72},{\"time\":\"2026-05-22T00:00:00\",\"value\":0.65},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.60}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('POOL_AGG_LTV index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ POOL_LTV_01: Aave ETH pool aggregate LTV 0.55 → 0.88 → 0.60');",
+        "    console.log('   Cascade threshold at 0.78 (pool-level systemic risk)');",
+        "    console.log('   Peak 0.88 = mass liquidation territory');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1c. Add MARKET_DEPTH Reference Index (DEX + CEX liquidity)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"MKT_DEPTH_01\",\"marketObjectCode\":\"MARKET_DEPTH\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":50000000},{\"time\":\"2026-03-08T00:00:00\",\"value\":48000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":45000000},{\"time\":\"2026-03-22T00:00:00\",\"value\":38000000},{\"time\":\"2026-03-31T00:00:00\",\"value\":30000000},{\"time\":\"2026-04-07T00:00:00\",\"value\":22000000},{\"time\":\"2026-04-15T00:00:00\",\"value\":15000000},{\"time\":\"2026-04-22T00:00:00\",\"value\":10000000},{\"time\":\"2026-04-30T00:00:00\",\"value\":8000000},{\"time\":\"2026-05-07T00:00:00\",\"value\":18000000},{\"time\":\"2026-05-15T00:00:00\",\"value\":25000000},{\"time\":\"2026-05-22T00:00:00\",\"value\":35000000},{\"time\":\"2026-05-31T00:00:00\",\"value\":42000000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('MARKET_DEPTH index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ MKT_DEPTH_01: Market depth $50M → $8M trough → $42M recovery');",
+        "    console.log('   Liquidity evaporates during cascade → amplifies price impact');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1d. Add GAS_PRICE_GWEI Reference Index",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"GAS_GWEI_01\",\"marketObjectCode\":\"GAS_PRICE_GWEI\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":25},{\"time\":\"2026-03-08T00:00:00\",\"value\":28},{\"time\":\"2026-03-15T00:00:00\",\"value\":35},{\"time\":\"2026-03-22T00:00:00\",\"value\":55},{\"time\":\"2026-03-31T00:00:00\",\"value\":80},{\"time\":\"2026-04-07T00:00:00\",\"value\":140},{\"time\":\"2026-04-15T00:00:00\",\"value\":200},{\"time\":\"2026-04-22T00:00:00\",\"value\":270},{\"time\":\"2026-04-30T00:00:00\",\"value\":300},{\"time\":\"2026-05-07T00:00:00\",\"value\":100},{\"time\":\"2026-05-15T00:00:00\",\"value\":60},{\"time\":\"2026-05-22T00:00:00\",\"value\":40},{\"time\":\"2026-05-31T00:00:00\",\"value\":30}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('GAS_PRICE_GWEI index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ GAS_GWEI_01: Gas price 25 → 300 gwei peak → 30 gwei recovery');",
+        "    console.log('   Peak: 300 gwei × 350K units = $210/tx at ETH=$2000');",
+        "    console.log('   Ref: Sadeghi (2025) gas dynamics during liquidation events');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1e. Add AAVE_BORROW_RATE Reference Rate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"AAVE_RATE_03\",\"marketObjectCode\":\"AAVE_BORROW_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.075},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.085},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.100},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.135},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.150},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.100},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.080}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AAVE_BORROW_RATE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ AAVE_RATE_03: 7.5% → 15.0% peak → 8.0% (cascade-driven spike)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add CascadeProbabilityModel (cp_pool01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addCascadeProbabilityModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addCascadeProbabilityModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"cp_pool01\",\"collateralPriceMOC\":\"ETH_USD\",\"poolAggLtvMOC\":\"POOL_AGG_LTV\",\"marketDepthMOC\":\"MARKET_DEPTH\",\"collateralQuantity\":150.0,\"positionValueUSD\":600000.0,\"cascadeThreshold\":0.78,\"priceImpactFactor\":0.12,\"defensiveRepayFraction\":0.10,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-07T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-22T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-07T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-22T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CascadeProbabilityModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ cp_pool01: CascadeProbabilityModel (13 monitoring points)');",
+        "    console.log('   150 ETH collateral, $600K position value');",
+        "    console.log('   Cascade threshold: poolAggLTV > 0.78');",
+        "    console.log('   Price impact: 12% additional slippage during cascade');",
+        "    console.log('   Defensive repay: 10% when cascade probability high');",
+        "    console.log('   Ref: Lehar & Parlour (2022) cascade taxonomy');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add GasOptimizationModel (go_gas01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addGasOptimizationModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addGasOptimizationModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"go_gas01\",\"collateralPriceMOC\":\"ETH_USD\",\"gasPriceMOC\":\"GAS_PRICE_GWEI\",\"collateralQuantity\":150.0,\"gasUnitsPerTx\":350000.0,\"ltvThreshold\":0.75,\"liquidationThreshold\":0.83,\"ltvTarget\":0.65,\"minBenefitUSD\":500.0,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-07T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-22T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-07T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-22T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('GasOptimizationModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ go_gas01: GasOptimizationModel (13 monitoring points)');",
+        "    console.log('   gasUnitsPerTx=350,000 (Aave repay + swap)');",
+        "    console.log('   minBenefitUSD=$500 (skip tx if gas > benefit)');",
+        "    console.log('   At 25 gwei: cost ≈ $17.50 → almost always beneficial');",
+        "    console.log('   At 300 gwei: cost ≈ $210 → still beneficial for large positions');",
+        "    console.log('   LTV thresholds: warning=0.75, liquidation=0.83, target=0.65');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add Cascade+Gas Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_cp_go_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"ETH_USD_03\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"POOL_LTV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"MKT_DEPTH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"GAS_GWEI_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"AAVE_RATE_03\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"cp_pool01\",\"riskFactorType\":\"CascadeProbabilityModel\"},{\"riskFactorID\":\"go_gas01\",\"riskFactorType\":\"GasOptimizationModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Cascade+Gas scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ defi_cp_go_scn01: 5 indexes + 2 DeFi behavioral models');",
+        "    console.log('   Indexes: ETH_USD, POOL_AGG_LTV, MARKET_DEPTH, GAS_PRICE_GWEI, AAVE_BORROW_RATE');",
+        "    console.log('   Behavioral: CascadeProbabilityModel + GasOptimizationModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5a. Verify CascadeProbabilityModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findCascadeProbabilityModel/cp_pool01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findCascadeProbabilityModel", "cp_pool01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CascadeProbabilityModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('cp_pool01');",
+        "    pm.expect(data.cascadeThreshold).to.eql(0.78);",
+        "    console.log('✅ CascadeProbabilityModel verified');",
+        "    console.log('   Cascade threshold: ' + data.cascadeThreshold);",
+        "    console.log('   Price impact: ' + (data.priceImpactFactor*100) + '%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5b. Verify GasOptimizationModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findGasOptimizationModel/go_gas01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findGasOptimizationModel", "go_gas01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('GasOptimizationModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('go_gas01');",
+        "    pm.expect(data.gasUnitsPerTx).to.eql(350000.0);",
+        "    console.log('✅ GasOptimizationModel verified');",
+        "    console.log('   Gas units: ' + data.gasUnitsPerTx);",
+        "    console.log('   Min benefit: $' + data.minBenefitUSD);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Run Scenario Simulation (ANN + Cascade + Gas)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_cp_go_scn01\",\"contracts\":[{\"contractType\":\"ANN\",\"contractID\":\"DEFI_LOAN_CP01\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"creatorID\":\"AaveProtocol\",\"counterpartyID\":\"DeFiBorrower\",\"currency\":\"USD\",\"notionalPrincipal\":600000,\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"nominalInterestRate\":0.075,\"dayCountConvention\":\"A365\",\"endOfMonthConvention\":\"SD\",\"cycleOfPrincipalRedemption\":\"P1ML0\",\"cycleAnchorDateOfPrincipalRedemption\":\"2026-04-01T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"cycleAnchorDateOfInterestPayment\":\"2026-04-01T00:00:00\",\"cycleOfRateReset\":\"P1ML0\",\"cycleAnchorDateOfRateReset\":\"2026-04-01T00:00:00\",\"marketObjectCodeOfRateReset\":\"AAVE_BORROW_RATE\",\"rateSpread\":0.020,\"defiLiquidationModels\":[\"cp_pool01\",\"go_gas01\"]}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('DeFi Cascade+Gas simulation completed', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    console.log('\\n========== CASCADE PROBABILITY + GAS OPTIMIZATION SIMULATION ==========');",
+        "    console.log('Contract: DEFI_LOAN_CP01 (ANN, $600K, 90-day)');",
+        "    console.log('Models: CascadeProbabilityModel (cp_pool01) + GasOptimizationModel (go_gas01)');",
+        "    console.log('Collateral: 150 ETH');",
+        "    console.log('');",
+        "    if (data && data.length > 0) {",
+        "        var contracts = data;",
+        "        for (var c = 0; c < contracts.length; c++) {",
+        "            var events = contracts[c].events || contracts[c];",
+        "            if (Array.isArray(events)) {",
+        "                console.log('--- Contract: ' + (contracts[c].contractId || 'DEFI_LOAN_CP01') + ' ---');",
+        "                console.log('Total events: ' + events.length);",
+        "                var ppCount = 0;",
+        "                for (var i = 0; i < events.length; i++) {",
+        "                    var ev = events[i];",
+        "                    var type = ev.type || ev.eventType || '';",
+        "                    var time = ev.time || ev.eventDate || '';",
+        "                    var payoff = ev.payoff || ev.eventValue || 0;",
+        "                    var nominal = ev.nominalValue || ev.notionalPrincipal || '';",
+        "                    if (type === 'PP') ppCount++;",
+        "                    console.log('  ' + type + ' | ' + time + ' | payoff=' + payoff + ' | nominal=' + nominal);",
+        "                }",
+        "                console.log('PP (behavioral) events: ' + ppCount);",
+        "                console.log('  PP from Cascade = pool LTV > 0.78 defensive prepay');",
+        "                console.log('  PP from Gas = repay only when net benefit > $500');",
+        "            }",
+        "        }",
+        "    }",
+        "    console.log('\\n=== INTERPRETATION ===');",
+        "    console.log('Mar: Pool LTV below cascade threshold, gas cheap → proactive repay');",
+        "    console.log('Apr: Pool LTV 0.82-0.88 = CASCADE ZONE, gas 200-300 gwei');",
+        "    console.log('  Cascade model triggers 10% defensive repay');",
+        "    console.log('  Gas model gates: only repay if risk-reduction > gas cost');",
+        "    console.log('  At 300 gwei + low depth → some tx skipped (gas > benefit)');",
+        "    console.log('May: Pool LTV normalizes, gas drops → efficient repayment resumes');",
+        "    console.log('=====================================================================');",
+        "});"
+      ]}}]
+    }
+  ]
+}

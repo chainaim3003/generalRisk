@@ -13,20 +13,27 @@ import {
   Settings,
   Download,
   HelpCircle,
+  FlameKindling,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { ModeUpload } from "./mode-upload"
 import { ModeChat } from "./mode-chat"
 import { ModeSimulation } from "./mode-simulation"
+import { ModeDefiLiquidation } from "./mode-defi-liquidation"
 import type { DashboardMode, HealthStatus } from "@/lib/types"
 import { checkHealth, getActusEnvironment } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
 const modeDescriptions: Record<DashboardMode, string> = {
-  upload: "Upload contract portfolios for full ACTUS verification analysis",
-  chat: "Describe scenarios in natural language for AI-powered analysis",
-  simulation: "Run behavioral risk stress simulations via ACTUS risk service",
+  upload:
+    "Upload contract portfolios for full ACTUS verification analysis",
+  chat:
+    "Describe scenarios in natural language for AI-powered analysis",
+  simulation:
+    "Run stablecoin behavioral risk stress simulations via ACTUS risk service",
+  "defi-liquidation":
+    "DeFi liquidation risk — HealthFactor, CollateralVelocity & ETH price stress simulations",
 }
 
 export function DashboardShell() {
@@ -46,7 +53,7 @@ export function DashboardShell() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
+      {/* ── Header ── */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
@@ -124,7 +131,7 @@ export function DashboardShell() {
               </button>
             </div>
 
-            {/* Time */}
+            {/* Live Clock */}
             <div className="hidden items-center gap-1.5 text-xs text-muted-foreground lg:flex">
               <Clock className="h-3.5 w-3.5" />
               <LiveClock />
@@ -133,7 +140,7 @@ export function DashboardShell() {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* ── Main Content ── */}
       <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-6">
         <Tabs
           value={mode}
@@ -142,6 +149,7 @@ export function DashboardShell() {
         >
           <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <TabsList className="bg-secondary">
+              {/* ── File Upload ── */}
               <TabsTrigger
                 value="upload"
                 className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground"
@@ -150,6 +158,8 @@ export function DashboardShell() {
                 <span className="hidden sm:inline">File Upload</span>
                 <span className="sm:hidden">Upload</span>
               </TabsTrigger>
+
+              {/* ── AI Assistant ── */}
               <TabsTrigger
                 value="chat"
                 className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground"
@@ -158,6 +168,8 @@ export function DashboardShell() {
                 <span className="hidden sm:inline">AI Assistant</span>
                 <span className="sm:hidden">AI Chat</span>
               </TabsTrigger>
+
+              {/* ── Simulation (StableCoin) ── */}
               <TabsTrigger
                 value="simulation"
                 className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground"
@@ -166,6 +178,16 @@ export function DashboardShell() {
                 <span className="hidden sm:inline">Simulation</span>
                 <span className="sm:hidden">Sim</span>
               </TabsTrigger>
+
+              {/* ── DeFi Liquidation ── (NEW) */}
+              <TabsTrigger
+                value="defi-liquidation"
+                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-amber-400"
+              >
+                <FlameKindling className="h-4 w-4" />
+                <span className="hidden sm:inline">DeFi Liquidation</span>
+                <span className="sm:hidden">DeFi</span>
+              </TabsTrigger>
             </TabsList>
 
             <p className="hidden text-xs text-muted-foreground lg:block">
@@ -173,6 +195,7 @@ export function DashboardShell() {
             </p>
           </div>
 
+          {/* ── Upload Tab ── */}
           <TabsContent value="upload" className="mt-0">
             {mode === "upload" && (
               <motion.div
@@ -187,6 +210,7 @@ export function DashboardShell() {
             )}
           </TabsContent>
 
+          {/* ── Chat Tab ── */}
           <TabsContent value="chat" className="mt-0">
             {mode === "chat" && (
               <motion.div
@@ -201,6 +225,7 @@ export function DashboardShell() {
             )}
           </TabsContent>
 
+          {/* ── Simulation (StableCoin) Tab ── */}
           <TabsContent value="simulation" className="mt-0">
             {mode === "simulation" && (
               <motion.div
@@ -214,18 +239,32 @@ export function DashboardShell() {
               </motion.div>
             )}
           </TabsContent>
+
+          {/* ── DeFi Liquidation Tab ── (NEW) */}
+          <TabsContent value="defi-liquidation" className="mt-0">
+            {mode === "defi-liquidation" && (
+              <motion.div
+                key="defi-liquidation-content"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <ModeDefiLiquidation />
+              </motion.div>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
 
-      {/* Footer */}
+      {/* ── Footer ── */}
       <footer className="border-t border-border bg-card/50 px-6 py-3">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between text-xs text-muted-foreground">
           <span>
-            StableRisk AI v1.0 - Stablecoin Reserve Verification Engine
+            StableRisk AI v1.0 — Stablecoin Reserve &amp; DeFi Liquidation Risk Engine
           </span>
           <span className="hidden sm:inline">
-            ACTUS Financial Contracts - Algorithmic Contract Types Unified
-            Standards
+            ACTUS Financial Contracts — Algorithmic Contract Types Unified Standards
           </span>
         </div>
       </footer>
