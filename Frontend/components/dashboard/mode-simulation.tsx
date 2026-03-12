@@ -879,6 +879,14 @@ function IssuerPanel() {
                 <IssuerMaturityTimeline assetContracts={assetContracts} />
               )}
 
+              {/* Parameter Trend Charts */}
+              {(result.riskFactorData || (result.simulation && result.simulation.length > 0)) && (
+                <IssuerParameterCharts
+                  simulation={result.simulation}
+                  riskFactorData={result.riskFactorData}
+                />
+              )}
+
               {/* Pipeline Steps */}
               <PipelineSteps
                 steps={result.steps}
@@ -1253,6 +1261,248 @@ function IssuerMaturityTimeline({
         })}
       </div>
     </motion.div>
+  )
+}
+
+// ---- Issuer: Parameter Charts ----
+// Renders individual line charts for: Backing Ratio, WAM (days),
+// Liquidity Ratio, Max Concentration, HQLA Score, Attestation Age, Mar.
+// X-axis is Epoch (time index). Handles both data formats:
+//   (a) contract-events: [{contractId, events: [{type, time, states: {...}}]}]
+//   (b) epoch-history:   [{epoch, backingRatio, wamDays, ...}]
+
+/** Parameter display config: label shown in chart title, color for the line */
+const PARAM_CONFIG: Record<string, { label: string; color: string }> = {
+  backingRatio:     { label: "Backing Ratio",     color: "hsl(142, 71%, 45%)" },
+  wamDays:          { label: "WAM (days)",        color: "hsl(38, 92%, 50%)" },
+  liquidityRatio:   { label: "Liquidity Ratio",   color: "hsl(199, 89%, 48%)" },
+  maxConcentration: { label: "Max Concentration", color: "hsl(280, 67%, 55%)" },
+  hqlaScore:        { label: "HQLA Score",        color: "hsl(348, 83%, 47%)" },
+  attestationAge:   { label: "Attestation Age",   color: "hsl(25, 95%, 53%)" },
+  mar:              { label: "Mar",               color: "hsl(180, 60%, 45%)" },
+  totalReserves:    { label: "Total Reserves",    color: "hsl(210, 70%, 50%)" },
+  cashReserve:      { label: "Cash Reserve",      color: "hsl(160, 60%, 45%)" },
+  pegDeviation:     { label: "Peg Deviation",     color: "hsl(0, 70%, 55%)" },
+}
+
+/**
+ * Map ACTUS marketObjectCode names (e.g. SC_BACKING_RATIO) and other
+ * key formats to canonical camelCase names used by PARAM_CONFIG.
+ */
+function normalizeStateKey(raw: string): string {
+  const lower = raw.toLowerCase().replace(/[^a-z0-9]/g, "")
+  const MAP: Record<string, string> = {
+    backingratio: "backingRatio",
+    scbackingratio: "backingRatio",
+    wamdays: "wamDays",
+    wam: "wamDays",
+    scwamdays: "wamDays",
+    liquidityratio: "liquidityRatio",
+    scliquidityratio: "liquidityRatio",
+    maxconcentration: "maxConcentration",
+    concentrationrisk: "maxConcentration",
+    scmaxconcentration: "maxConcentration",
+    hqlascore: "hqlaScore",
+    schqlascore: "hqlaScore",
+    attestationage: "attestationAge",
+    scattestationage: "attestationAge",
+    mar: "mar",
+    totalreserves: "totalReserves",
+    sctotalreserves: "totalReserves",
+    cashreserve: "cashReserve",
+    sccashreserve: "cashReserve",
+    pegdeviation: "pegDeviation",
+    stablecoinpegdev: "pegDeviation",
+  }
+  return MAP[lower] ?? raw
+}
+
+interface ParamDataPoint {
+  epoch: number
+  date: string
+  value: number
+}
+
+/**
+ * Extract parameter time-series from all available data sources.
+ * Priority: riskFactorData (input time-series from collection) > simulation events/epochs.
+ */
+function extractParameterData(
+  simulation: any,
+  riskFactorData: Record<string, Array<{ time: string; value: number }>> | null | undefined,
+): Record<string, ParamDataPoint[]> {
+  const series: Record<string, ParamDataPoint[]> = {}
+
+  // Source 1: riskFactorData from backend (extracted from addReferenceIndex steps)
+  if (riskFactorData && typeof riskFactorData === "object") {
+    for (const [moc, points] of Object.entries(riskFactorData)) {
+      if (!Array.isArray(points) || points.length === 0) continue
+      const canonical = normalizeStateKey(moc)
+      series[canonical] = points.map((pt, idx) => ({
+        epoch: idx + 1,
+        date: pt.time && pt.time.includes("T") ? formatDate(pt.time) : `Epoch ${idx + 1}`,
+        value: Number(pt.value),
+      }))
+    }
+  }
+
+  // Source 2: simulation data (epoch-history or contract-events with states)
+  if (simulation && Array.isArray(simulation) && simulation.length > 0) {
+    const first = simulation[0]
+    const isEpochHistory =
+      first && typeof first === "object" && !Array.isArray(first.events)
+
+    // Track which keys came from riskFactorData so we don't override them
+    const fromRiskFactors = new Set(Object.keys(series))
+
+    if (isEpochHistory) {
+      simulation.forEach((entry: any, idx: number) => {
+        const epoch = typeof entry.epoch === "number" ? entry.epoch : idx + 1
+        const date =
+          entry.time || entry.date || entry.timestamp || `Epoch ${epoch}`
+        const dateLabel =
+          typeof date === "string" && date.includes("T")
+            ? formatDate(date)
+            : String(date)
+
+        for (const [rawKey, rawVal] of Object.entries(entry)) {
+          if (["epoch", "time", "date", "timestamp"].includes(rawKey)) continue
+          const numVal = Number(rawVal)
+          if (Number.isNaN(numVal)) continue
+          const canonical = normalizeStateKey(rawKey)
+          if (fromRiskFactors.has(canonical)) continue
+          if (!series[canonical]) series[canonical] = []
+          series[canonical].push({ epoch, date: dateLabel, value: numVal })
+        }
+      })
+    } else {
+      // contract-events with states
+      const allEvents: Array<{ time: string; states: Record<string, number> }> = []
+      for (const contract of simulation) {
+        if (!Array.isArray(contract.events)) continue
+        for (const ev of contract.events) {
+          if (ev.states && typeof ev.states === "object") {
+            allEvents.push({ time: ev.time, states: ev.states })
+          }
+        }
+      }
+      allEvents.sort((a, b) => a.time.localeCompare(b.time))
+      allEvents.forEach((ev, idx) => {
+        const epoch = idx + 1
+        const dateLabel = formatDate(ev.time)
+        for (const [rawKey, rawVal] of Object.entries(ev.states)) {
+          const numVal = Number(rawVal)
+          if (Number.isNaN(numVal)) continue
+          const canonical = normalizeStateKey(rawKey)
+          if (fromRiskFactors.has(canonical)) continue
+          if (!series[canonical]) series[canonical] = []
+          series[canonical].push({ epoch, date: dateLabel, value: numVal })
+        }
+      })
+    }
+  }
+
+  return series
+}
+
+function IssuerParameterCharts({
+  simulation,
+  riskFactorData,
+}: {
+  simulation: StimulationResult["simulation"]
+  riskFactorData: StimulationResult["riskFactorData"]
+}) {
+  const series = extractParameterData(simulation, riskFactorData)
+  const paramKeys = Object.keys(series)
+
+  if (paramKeys.length === 0) return null
+
+  // Determine render order: known params first (in PARAM_CONFIG order), then any extras
+  const knownOrder = Object.keys(PARAM_CONFIG)
+  const ordered = [
+    ...knownOrder.filter((k) => series[k]),
+    ...paramKeys.filter((k) => !knownOrder.includes(k)),
+  ]
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center gap-2">
+        <Activity className="h-4 w-4 text-primary" />
+        <span className="text-sm font-semibold text-foreground">
+          Parameter Trends ({ordered.length} metrics)
+        </span>
+      </div>
+      {ordered.map((paramKey, chartIdx) => {
+        const data = series[paramKey]
+        const config = PARAM_CONFIG[paramKey]
+        const label = config?.label ?? paramKey
+        const color = config?.color ?? "hsl(215, 70%, 55%)"
+
+        return (
+          <motion.div
+            key={paramKey}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + chartIdx * 0.08 }}
+            className="rounded-lg border border-border bg-card p-5"
+          >
+            <h4 className="mb-1 text-sm font-semibold text-foreground">
+              {label}
+            </h4>
+            <p className="mb-4 text-xs text-muted-foreground">
+              {data.length} data points
+            </p>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(222, 20%, 16%)"
+                  />
+                  <XAxis
+                    dataKey="date"
+                    stroke="hsl(215, 20%, 55%)"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    stroke="hsl(215, 20%, 55%)"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    width={60}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(222, 44%, 8%)",
+                      border: "1px solid hsl(222, 20%, 16%)",
+                      borderRadius: "8px",
+                      color: "hsl(210, 40%, 96%)",
+                      fontSize: "12px",
+                    }}
+                    formatter={(value: any) => [
+                      Number(value).toFixed(4),
+                      label,
+                    ]}
+                    labelFormatter={(l: any) => String(l)}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={color}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4, fill: color }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        )
+      })}
+    </div>
   )
 }
 

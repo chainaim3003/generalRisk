@@ -1,5 +1,5 @@
 // /**
-//  * StimulationRunner
+//  * SimulationRunner
 //  * ================
 //  * Parses Postman collection JSONs from config/stimulation/ and executes
 //  * the full ACTUS pipeline: load risk factors (8082) → run simulation (8083).
@@ -107,7 +107,7 @@
 //   let simulation: any = null;
 //   let allSuccess = true;
 
-//   console.log(`\n🚀 StimulationRunner: ${info.name || 'Unknown'}`);
+//   console.log(`\n🚀 SimulationRunner: ${info.name || 'Unknown'}`);
 //   console.log(`   Environment: ${envName}`);
 //   console.log(`   Risk Service: ${env.riskServiceBase}`);
 //   console.log(`   ACTUS Server: ${env.actusServerBase}`);
@@ -216,7 +216,7 @@
 
 
 /**
- * StimulationRunner
+ * SimulationRunner
  * =================
  * Executes Postman collection JSONs against the ACTUS pipeline.
  *
@@ -233,8 +233,8 @@
  *              • postman.setNextRequest() for loop control (epoch evaluator)
  *              Triggered when: collection has folders or event scripts
  *
- * Only StimulationRunner.ts changes. server.ts, types, and all other files
- * are untouched. The returned StimulationResult shape is identical for both modes.
+ * Only SimulationRunner.ts changes. server.ts, types, and all other files
+ * are untouched. The returned SimulationResult shape is identical for both modes.
  */
 
 import { runInNewContext } from 'vm';
@@ -255,6 +255,12 @@ export interface StepResult {
   durationMs: number;
 }
 
+/** A single time-series data point for a risk factor input */
+export interface RiskFactorPoint {
+  time: string;
+  value: number;
+}
+
 /** Final result returned to the UI */
 export interface StimulationResult {
   success: boolean;
@@ -265,6 +271,8 @@ export interface StimulationResult {
   actusServerUrl: string;
   steps: StepResult[];
   simulation: any | null;
+  /** Risk factor input time-series extracted from addReferenceIndex steps */
+  riskFactorData: Record<string, RiskFactorPoint[]> | null;
   totalDurationMs: number;
   timestamp: string;
 }
@@ -333,6 +341,53 @@ function extractPathFromPostmanUrl(urlObj: any): { port: string; path: string } 
  */
 function resolveBaseUrl(port: string, env: EnvironmentConfig): string {
   return port === '8083' ? env.actusServerBase : env.riskServiceBase;
+}
+
+/**
+ * Extract risk factor input time-series from collection request bodies.
+ * Scans all items (recursively for folders) for POST requests to /addReferenceIndex
+ * and parses the body to get marketObjectCode and data array.
+ */
+function extractRiskFactorInputs(
+  collectionJson: any,
+): Record<string, RiskFactorPoint[]> {
+  const result: Record<string, RiskFactorPoint[]> = {};
+
+  function scanItems(items: any[]): void {
+    for (const item of items) {
+      // Recurse into folders
+      if (item.item && Array.isArray(item.item)) {
+        scanItems(item.item);
+        continue;
+      }
+      const req = item.request;
+      if (!req || String(req.method || '').toUpperCase() !== 'POST') continue;
+
+      // Check if this is an addReferenceIndex call
+      const rawUrl: string =
+        typeof req.url === 'string' ? req.url : String(req.url?.raw || '');
+      if (!rawUrl.includes('addReferenceIndex')) continue;
+
+      // Parse the request body
+      if (!req.body?.raw) continue;
+      try {
+        const body = JSON.parse(String(req.body.raw));
+        const moc: string = body.marketObjectCode;
+        const data: Array<{ time: string; value: number }> = body.data;
+        if (moc && Array.isArray(data) && data.length > 0) {
+          result[moc] = data.map((d) => ({
+            time: String(d.time),
+            value: Number(d.value),
+          }));
+        }
+      } catch {
+        // Skip unparseable bodies
+      }
+    }
+  }
+
+  scanItems(collectionJson.item || []);
+  return result;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -678,7 +733,7 @@ async function runScriptedCollection(
     if (item.name) nameToIndex[String(item.name)] = i;
   });
 
-  console.log(`\n🚀 StimulationRunner [SCRIPTED]: ${info.name || 'Unknown'}`);
+  console.log(`\n🚀 SimulationRunner [SCRIPTED]: ${info.name || 'Unknown'}`);
   console.log(`   Environment : ${envName}`);
   console.log(`   ACTUS server: ${env.actusServerBase}`);
   console.log(`   Flat items  : ${flatItems.length} (from ${(collectionJson.item || []).length} top-level)`);
@@ -846,6 +901,9 @@ async function runScriptedCollection(
   );
   console.log('');
 
+  // Extract risk factor input time-series from collection
+  const riskFactorData = extractRiskFactorInputs(collectionJson);
+
   return {
     success: allStepsOk && simulationData !== null,
     scenarioName: String(info.name || 'Unknown'),
@@ -855,6 +913,7 @@ async function runScriptedCollection(
     actusServerUrl: env.actusServerBase,
     steps,
     simulation: simulationData,
+    riskFactorData: Object.keys(riskFactorData).length > 0 ? riskFactorData : null,
     totalDurationMs,
     timestamp: new Date().toISOString(),
   };
@@ -876,7 +935,7 @@ async function runSimpleCollection(
   let simulation: any = null;
   let allSuccess = true;
 
-  console.log(`\n🚀 StimulationRunner [SIMPLE]: ${info.name || 'Unknown'}`);
+  console.log(`\n🚀 SimulationRunner [SIMPLE]: ${info.name || 'Unknown'}`);
   console.log(`   Environment: ${envName}`);
   console.log(`   Risk Service: ${env.riskServiceBase}`);
   console.log(`   ACTUS Server: ${env.actusServerBase}`);
@@ -966,6 +1025,9 @@ async function runSimpleCollection(
   }
   console.log('');
 
+  // Extract risk factor input time-series from collection
+  const riskFactorData = extractRiskFactorInputs(collectionJson);
+
   return {
     success: allSuccess && simulation !== null,
     scenarioName: info.name || 'Unknown',
@@ -975,6 +1037,7 @@ async function runSimpleCollection(
     actusServerUrl: env.actusServerBase,
     steps,
     simulation,
+    riskFactorData: Object.keys(riskFactorData).length > 0 ? riskFactorData : null,
     totalDurationMs,
     timestamp: new Date().toISOString(),
   };

@@ -8,8 +8,8 @@ import express from 'express';
 import cors from 'cors';
 import { StableCoinVerifier } from './verifier/StableCoinVerifier.js';
 import type { VerificationParams, PortfolioConfig } from './types/index.js';
-import { runStimulation, ENVIRONMENTS } from './api/StimulationRunner.js';
-import type { EnvironmentConfig } from './api/StimulationRunner.js';
+import { runStimulation, ENVIRONMENTS } from './api/SimulationRunner.js';
+import type { EnvironmentConfig } from './api/SimulationRunner.js';
 
 const app = express();
 const PORT = 4000;

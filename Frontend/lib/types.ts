@@ -201,6 +201,11 @@ export interface SimulationEvent {
   states?: Record<string, number>
 }
 
+export interface RiskFactorPoint {
+  time: string
+  value: number
+}
+
 export interface StimulationResult {
   success: boolean
   scenarioName: string
@@ -213,6 +218,8 @@ export interface StimulationResult {
     contractId: string
     events: SimulationEvent[]
   }> | null
+  /** Risk factor input time-series extracted from addReferenceIndex steps */
+  riskFactorData: Record<string, RiskFactorPoint[]> | null
   totalDurationMs: number
   timestamp: string
 }
