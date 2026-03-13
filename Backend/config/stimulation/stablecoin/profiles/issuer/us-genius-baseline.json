@@ -1,0 +1,30 @@
+{
+  "config_metadata": {
+    "config_id": "ISS_US_GENIUS_BASELINE",
+    "description": "US GENIUS Act - Baseline normal market conditions",
+    "version": "1.0.0",
+    "collection_file": "Stables-HT-ISS-time-daily-5.json"
+  },
+
+  "jurisdiction": {
+    "source": "file",
+    "file": "jurisdictions/us-genius.json"
+  },
+
+  "market_scenario": {
+    "source": "file",
+    "file": "market-scenarios/baseline-normal.json"
+  },
+
+  "compliance_scenario": {
+    "source": "file",
+    "file": "compliance-scenarios/current-ops.json"
+  },
+
+  "simulation_timeframe": {
+    "status_date": "2026-02-28T00:00:00",
+    "start_date": "2026-03-01T00:00:00",
+    "end_date": "2026-04-14T00:00:00",
+    "frequency": "daily"
+  }
+}

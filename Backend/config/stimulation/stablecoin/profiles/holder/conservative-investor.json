@@ -1,0 +1,28 @@
+{
+  "config_metadata": {
+    "config_id": "HOL_CONSERVATIVE",
+    "description": "Conservative holder - High risk aversion",
+    "version": "1.0.0",
+    "collection_file": "Stables-HT-HOL-ONLY-3RD-SOURCE-time-daily-5.json"
+  },
+
+  "user_thresholds": {
+    "source": "inline",
+    "inline": {
+      "min_backing_ratio": 1.1,
+      "max_wam_days": 60.0,
+      "min_hqla_score": 100.0,
+      "max_attestation_age_days": 14.0,
+      "max_single_asset_concentration": 0.3,
+      "max_peg_deviation": 0.02,
+      "alert_on_bank_stress_above": 0.3
+    }
+  },
+
+  "simulation_timeframe": {
+    "status_date": "2026-02-28T00:00:00",
+    "start_date": "2026-03-01T00:00:00",
+    "end_date": "2026-04-14T00:00:00",
+    "frequency": "daily"
+  }
+}
