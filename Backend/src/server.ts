@@ -10,6 +10,7 @@ import { StableCoinVerifier } from './verifier/StableCoinVerifier.js';
 import type { VerificationParams, PortfolioConfig } from './types/index.js';
 import { runStimulation, ENVIRONMENTS } from './api/SimulationRunner.js';
 import type { EnvironmentConfig } from './api/SimulationRunner.js';
+import simulationRoutes from './routes/simulation.routes.js';
 
 const app = express();
 const PORT = 4000;
@@ -17,6 +18,9 @@ const DEFAULT_ACTUS_URL = 'http://34.203.247.32:8083/eventsBatch';
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// Register config-based simulation routes
+app.use('/api', simulationRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (_req, res) => {
@@ -482,5 +486,7 @@ app.listen(PORT, () => {
   console.log(`   Stimulations:  http://localhost:${PORT}/api/stimulations`);
   console.log(`   Run:           POST http://localhost:${PORT}/api/stimulation/run`);
   console.log(`   Health (full): http://localhost:${PORT}/api/health/risk-service?environment=localhost`);
+  console.log('  ─────────────── Config-Based Simulation ─────────────────────');
+  console.log(`   Simulate:      POST http://localhost:${PORT}/api/simulate`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 });

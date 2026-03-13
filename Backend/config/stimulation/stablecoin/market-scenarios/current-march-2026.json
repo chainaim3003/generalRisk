@@ -1,0 +1,9 @@
+{
+  "scenario_name": "Current March 2026 Scenario",
+  "description": "Market data from existing Stables-HT-ISS-time-daily-5.json collection - moderate stress scenario",
+  "scenario_date": "2026-03",
+  "comment": "TO BE EXTRACTED: Need to parse collection item array for addReferenceIndex operations with riskFactorIDs: ISS_PEG_DEV_01, ISS_PEG_RISK_01, ISS_CURVE_01, ISS_ORDERBOOK_01, ISS_CEX_01, ISS_SENT_01, ISS_BANK_01, ISS_SOV_01",
+  
+  "extraction_pending": true,
+  "note": "This file will be populated via extraction script from the 131KB collection file"
+}

@@ -1,0 +1,18 @@
+{
+  "jurisdiction_code": "EU-MICA",
+  "jurisdiction_name": "European Union - Markets in Crypto-Assets Regulation",
+  "effective_date": "2024-12-30",
+  "description": "EU MiCA regulatory framework - stricter requirements than US GENIUS",
+  
+  "backing_threshold": 1.0,
+  "liquidity_threshold": 0.3,
+  "wam_max_days": 60.0,
+  "hqla_min_score": 100.0,
+  "attestation_max_days": 14.0,
+  "max_single_asset_share": 0.3,
+  "hhi_warning_threshold": 0.25,
+  "bank_stress_threshold": 0.4,
+  "base_quality": 100.0,
+  "quality_floor": 60.0,
+  "sovereign_max_degradation": 0.2
+}

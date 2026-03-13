@@ -1,0 +1,8 @@
+{
+  "scenario_name": "Current Operations Scenario",
+  "description": "Compliance data from existing Stables-HT-ISS-time-daily-5.json collection",
+  "comment": "TO BE EXTRACTED: Need to parse collection for addReferenceIndex operations with riskFactorIDs: ISS_BRISK_01, ISS_LRISK_01, ISS_QRISK_01, ISS_CRISK_01, ISS_CPRISK_01, ISS_EWRISK_01",
+  
+  "extraction_pending": true,
+  "note": "This file will be populated via extraction script from the collection file"
+}

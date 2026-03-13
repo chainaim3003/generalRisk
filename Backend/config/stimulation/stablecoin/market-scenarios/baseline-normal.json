@@ -1,0 +1,8 @@
+{
+  "scenario_name": "Baseline - Normal Markets",
+  "description": "Calm market conditions - all external stress indicators at zero or normal levels",
+  "scenario_date": "2026-03",
+  "comment": "Placeholder - will be populated with 45 timestamps × 8 indexes when extracted from collection",
+  
+  "note": "This is a simplified version. Full extraction from collection pending."
+}
