@@ -1,0 +1,103 @@
+{
+  "info": {
+    "_postman_id": "d5e8f3g4-1b2c-5d6e-9f7g-8h9i0j1k2l3m",
+    "name": "ETH-Liq-COLL-PROT-30day-CORRECTED",
+    "description": "FIXED: Proper cycle specifications matching ACTUS requirements\n\nKEY FIXES:\n1. Currency: 'USD' (not USDC)\n2. dayCountConvention: 'AA365S' (Actual/Actual for prepayment compatibility)\n3. Rate reset cycle: Daily 'P1DL0' with proper rate index\n4. Interest cycle: End of period 'P1ML0'\n\nCollateral Preservation with Velocity Detection - 30 days",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add DeFi Rate Index (Daily)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"DEFI_RAT_30D_DAILY\",\"marketObjectCode\":\"DEFI_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2025-01-01T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-02T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-03T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-04T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-05T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-06T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-07T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-08T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-09T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-10T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-11T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-12T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-13T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-14T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-15T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-16T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-17T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-18T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-19T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-20T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-21T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-22T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-23T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-24T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-25T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-26T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-27T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-28T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-29T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-30T00:00:00\",\"value\":0.05},{\"time\":\"2025-01-31T00:00:00\",\"value\":0.05}]}"
+        },
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addReferenceIndex"]}
+      }
+    },
+    {
+      "name": "2. Add ETH Price Index",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_PRICE_30D\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2025-01-01T00:00:00\",\"value\":3000},{\"time\":\"2025-01-02T00:00:00\",\"value\":3010},{\"time\":\"2025-01-04T00:00:00\",\"value\":2980},{\"time\":\"2025-01-08T00:00:00\",\"value\":3020},{\"time\":\"2025-01-11T00:00:00\",\"value\":2890},{\"time\":\"2025-01-12T06:00:00\",\"value\":2810},{\"time\":\"2025-01-12T12:00:00\",\"value\":2810},{\"time\":\"2025-01-15T00:00:00\",\"value\":2650},{\"time\":\"2025-01-17T00:00:00\",\"value\":2480},{\"time\":\"2025-01-17T18:00:00\",\"value\":2480},{\"time\":\"2025-01-22T00:00:00\",\"value\":2520},{\"time\":\"2025-01-26T00:00:00\",\"value\":2680},{\"time\":\"2025-01-31T00:00:00\",\"value\":2750}]}"
+        },
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addReferenceIndex"]}
+      }
+    },
+    {
+      "name": "3. Add Prepayment Model",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"riskFactorId\": \"defi_pp_30d_fixed\",\n    \"referenceRateId\": \"DEFI_RATE\",\n    \"prepaymentEventTimes\": [\n        \"2025-01-12T12:00:00\",\n        \"2025-01-17T18:00:00\"\n    ],\n    \"surface\": {\n        \"interpolationMethod\": \"linear\",\n        \"extrapolationMethod\": \"constant\",\n        \"margins\": [\n            {\"dimension\": 1, \"values\": [0.03, 0.02, 0.01, 0.0, -0.01, -0.02, -0.03]},\n            {\"dimension\": 2, \"values\": [0, 0.0109589, 0.0328767, 0.0821918]}\n        ],\n        \"data\": [\n            [0.15, 0.13, 0.11, 0.09],\n            [0.10, 0.08, 0.07, 0.05],\n            [0.05, 0.04, 0.03, 0.02],\n            [0.02, 0.01, 0.005, 0],\n            [0, 0, 0, 0],\n            [0, 0, 0, 0],\n            [0, 0, 0, 0]\n        ]\n    }\n}"
+        },
+        "url": {"raw": "http://localhost:8082/addTwoDimensionalPrepaymentModel", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addTwoDimensionalPrepaymentModel"]}
+      }
+    },
+    {
+      "name": "4. Add CollateralLTV Model",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"riskFactorId\": \"ltv_30d_fixed\",\n    \"collateralPriceMarketObjectCode\": \"ETH_USD\",\n    \"collateralQuantity\": 5.0,\n    \"ltvThreshold\": 0.75,\n    \"ltvTarget\": 0.65,\n    \"liquidationThreshold\": 0.825,\n    \"monitoringEventTimes\": [\n        \"2025-01-01T00:00:00\",\"2025-01-02T00:00:00\",\"2025-01-04T00:00:00\",\"2025-01-08T00:00:00\",\n        \"2025-01-11T00:00:00\",\"2025-01-12T06:00:00\",\"2025-01-12T12:00:00\",\"2025-01-15T00:00:00\",\n        \"2025-01-17T00:00:00\",\"2025-01-17T18:00:00\",\"2025-01-22T00:00:00\",\"2025-01-26T00:00:00\",\n        \"2025-01-31T00:00:00\"\n    ]\n}"
+        },
+        "url": {"raw": "http://localhost:8082/addCollateralLTVModel", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addCollateralLTVModel"]}
+      }
+    },
+    {
+      "name": "5. Add Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"scenarioID\": \"velocity_preservation_fixed\",\n    \"riskFactorDescriptors\": [\n        {\"riskFactorID\": \"DEFI_RAT_30D_DAILY\", \"riskFactorType\": \"ReferenceIndex\"},\n        {\"riskFactorID\": \"ETH_PRICE_30D\", \"riskFactorType\": \"ReferenceIndex\"},\n        {\"riskFactorID\": \"defi_pp_30d_fixed\", \"riskFactorType\": \"TwoDimensionalPrepaymentModel\"},\n        {\"riskFactorID\": \"ltv_30d_fixed\", \"riskFactorType\": \"CollateralLTVModel\"}\n    ]\n}"
+        },
+        "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addScenario"]}
+      }
+    },
+    {
+      "name": "6. Run Simulation",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Simulation executed', function(){",
+            "  pm.response.to.have.status(200);",
+            "  var data = pm.response.json();",
+            "  console.log('Status: '+data[0].status);",
+            "  if(data[0].status === 'Success'){",
+            "    var events = data[0].events;",
+            "    console.log('✅ Total events: '+events.length);",
+            "    var pps = events.filter(e => e.type === 'PP');",
+            "    console.log('✅ PP events: '+pps.length);",
+            "    pps.forEach((pp,i) => console.log('  PP#'+(i+1)+' at '+pp.time+': payoff=$'+pp.payoff+', notional=$'+pp.nominalValue));",
+            "  } else {",
+            "    console.log('❌ Error: '+data[0].message);",
+            "  }",
+            "});"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"contracts\": [{\n        \"calendar\": \"NC\",\n        \"businessDayConvention\": \"SCF\",\n        \"contractType\": \"PAM\",\n        \"statusDate\": \"2024-12-31T23:59:00\",\n        \"contractRole\": \"RPA\",\n        \"contractID\": \"ETH-COLL-PROT-FIXED\",\n        \"cycleAnchorDateOfInterestPayment\": \"2025-01-31T00:00:00\",\n        \"cycleOfInterestPayment\": \"P1ML0\",\n        \"nominalInterestRate\": 0.05,\n        \"dayCountConvention\": \"AA365S\",\n        \"currency\": \"USD\",\n        \"contractDealDate\": \"2024-12-31T23:59:00\",\n        \"initialExchangeDate\": \"2025-01-01T00:00:00\",\n        \"maturityDate\": \"2025-01-31T00:00:00\",\n        \"notionalPrincipal\": 9000,\n        \"premiumDiscountAtIED\": 0,\n        \"cycleAnchorDateOfRateReset\": \"2025-01-01T00:00:00\",\n        \"cycleOfRateReset\": \"P1DL0\",\n        \"rateSpread\": 0.0,\n        \"marketObjectCodeOfRateReset\": \"DEFI_RATE\",\n        \"prepaymentModels\": [\"defi_pp_30d_fixed\", \"ltv_30d_fixed\"]\n    }],\n    \"scenarioDescriptor\": {\"scenarioID\": \"velocity_preservation_fixed\", \"scenarioType\": \"scenario\"},\n    \"simulateTo\": \"2025-02-01T00:00:00\",\n    \"monitoringTimes\": []\n}"
+        },
+        "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost"], "port": "8083", "path": ["rf2", "scenarioSimulation"]}
+      }
+    }
+  ]
+}

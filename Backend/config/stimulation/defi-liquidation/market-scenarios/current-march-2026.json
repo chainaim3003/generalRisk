@@ -1,0 +1,42 @@
+{
+  "scenario_name": "Current March 2026 Scenario",
+  "description": "Live market conditions as of March 2026. ETH in moderate correction from Feb highs. DeFi borrow rates elevated. Gas moderate. Extracted from DeFi-HealthFactor-CollateralVelocity-90d.json collection.",
+  "scenario_date": "2026-03",
+  "collateral_stress": "moderate",
+
+  "extraction_source": "DeFi-HealthFactor-CollateralVelocity-90d.json",
+  "risk_factor_ids": [
+    "ETH_USD_01",
+    "USDC_USD_01",
+    "INV_PROB_01",
+    "DEFI_RAT_HR_01",
+    "GAS_PRICE_01",
+    "CASCADE_PROB_01",
+    "COLLAT_REBAL_01",
+    "CORR_RISK_01"
+  ],
+
+  "ETH_USD": {
+    "start_value": 2800.0,
+    "trough_value": 1700.0,
+    "recovery_value": 2200.0,
+    "trough_date": "2026-04-30",
+    "peak_drawdown_pct": -39.3,
+    "note": "Current 90-day stress scenario from collection"
+  },
+  "USDC_USD": {
+    "start_value": 1.0000,
+    "trough_value": 0.9990,
+    "end_value": 0.9998,
+    "note": "Minor peg stress during ETH decline"
+  },
+  "INVOICE_PAYMENT_PROB": {
+    "start_value": 0.95,
+    "trough_value": 0.82,
+    "end_value": 0.92,
+    "note": "Invoice credit quality under moderate stress"
+  },
+
+  "extraction_pending": false,
+  "note": "Risk factor time-series are embedded directly in collection items. Config loader reads from collection via SimulationRunner - no separate extraction needed."
+}

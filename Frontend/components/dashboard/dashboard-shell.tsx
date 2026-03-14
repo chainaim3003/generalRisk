@@ -14,6 +14,8 @@ import {
   Download,
   HelpCircle,
   FlameKindling,
+  Settings2,
+  Layers,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -21,6 +23,9 @@ import { ModeUpload } from "./mode-upload"
 import { ModeChat } from "./mode-chat"
 import { ModeSimulation } from "./mode-simulation"
 import { ModeDefiLiquidation } from "./mode-defi-liquidation"
+import { ConfigSimulationMode } from "./mode-config"
+import { ModeDefiConfig } from "./mode-defi-config"
+import { BufferDashboardShell } from "./defi-newdashboard1"
 import type { DashboardMode, HealthStatus } from "@/lib/types"
 import { checkHealth, getActusEnvironment } from "@/lib/api"
 import { cn } from "@/lib/utils"
@@ -32,12 +37,18 @@ const modeDescriptions: Record<DashboardMode, string> = {
     "Describe scenarios in natural language for AI-powered analysis",
   simulation:
     "Run stablecoin behavioral risk stress simulations via ACTUS risk service",
+  config:
+    "Config-based simulation - test different regulatory frameworks and market scenarios",
+  "defi-config":
+    "DeFi liquidation config simulation — protocol, borrower profile, market stress, cascade risk",
   "defi-liquidation":
     "DeFi liquidation risk — HealthFactor, CollateralVelocity & ETH price stress simulations",
+  "buffer-v5":
+    "Buffer-First V5 — ETH collateral defense with BufferLTVModel, configurable sliders, 4-tab ACTUS dashboard",
 }
 
 export function DashboardShell() {
-  const [mode, setMode] = useState<DashboardMode>("upload")
+  const [mode, setMode] = useState<DashboardMode>("buffer-v5")
   const [health, setHealth] = useState<HealthStatus>({
     status: "checking",
     actusConnected: false,
@@ -169,6 +180,16 @@ export function DashboardShell() {
                 <span className="sm:hidden">AI Chat</span>
               </TabsTrigger>
 
+              {/* ── Config Simulation ── */}
+              <TabsTrigger
+                value="config"
+                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground"
+              >
+                <Settings2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Config Sim</span>
+                <span className="sm:hidden">Config</span>
+              </TabsTrigger>
+
               {/* ── Simulation (StableCoin) ── */}
               <TabsTrigger
                 value="simulation"
@@ -179,7 +200,17 @@ export function DashboardShell() {
                 <span className="sm:hidden">Sim</span>
               </TabsTrigger>
 
-              {/* ── DeFi Liquidation ── (NEW) */}
+              {/* ── DeFi Config Simulation ── */}
+              <TabsTrigger
+                value="defi-config"
+                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-amber-400"
+              >
+                <FlameKindling className="h-4 w-4" />
+                <span className="hidden sm:inline">DeFi Config</span>
+                <span className="sm:hidden">DeFi Cfg</span>
+              </TabsTrigger>
+
+              {/* ── DeFi Liquidation ── */}
               <TabsTrigger
                 value="defi-liquidation"
                 className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-amber-400"
@@ -187,6 +218,16 @@ export function DashboardShell() {
                 <FlameKindling className="h-4 w-4" />
                 <span className="hidden sm:inline">DeFi Liquidation</span>
                 <span className="sm:hidden">DeFi</span>
+              </TabsTrigger>
+
+              {/* ── Buffer V5 (NEW) ── */}
+              <TabsTrigger
+                value="buffer-v5"
+                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-primary"
+              >
+                <Layers className="h-4 w-4" />
+                <span className="hidden sm:inline">Buffer V5</span>
+                <span className="sm:hidden">V5</span>
               </TabsTrigger>
             </TabsList>
 
@@ -225,6 +266,21 @@ export function DashboardShell() {
             )}
           </TabsContent>
 
+          {/* ── Config Simulation Tab ── */}
+          <TabsContent value="config" className="mt-0">
+            {mode === "config" && (
+              <motion.div
+                key="config-content"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <ConfigSimulationMode />
+              </motion.div>
+            )}
+          </TabsContent>
+
           {/* ── Simulation (StableCoin) Tab ── */}
           <TabsContent value="simulation" className="mt-0">
             {mode === "simulation" && (
@@ -240,7 +296,22 @@ export function DashboardShell() {
             )}
           </TabsContent>
 
-          {/* ── DeFi Liquidation Tab ── (NEW) */}
+          {/* ── DeFi Config Tab ── */}
+          <TabsContent value="defi-config" className="mt-0">
+            {mode === "defi-config" && (
+              <motion.div
+                key="defi-config-content"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <ModeDefiConfig />
+              </motion.div>
+            )}
+          </TabsContent>
+
+          {/* ── DeFi Liquidation Tab ── */}
           <TabsContent value="defi-liquidation" className="mt-0">
             {mode === "defi-liquidation" && (
               <motion.div
@@ -251,6 +322,21 @@ export function DashboardShell() {
                 transition={{ duration: 0.25 }}
               >
                 <ModeDefiLiquidation />
+              </motion.div>
+            )}
+          </TabsContent>
+
+          {/* ── Buffer V5 Tab (NEW) ── */}
+          <TabsContent value="buffer-v5" className="mt-0">
+            {mode === "buffer-v5" && (
+              <motion.div
+                key="buffer-v5-content"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <BufferDashboardShell />
               </motion.div>
             )}
           </TabsContent>

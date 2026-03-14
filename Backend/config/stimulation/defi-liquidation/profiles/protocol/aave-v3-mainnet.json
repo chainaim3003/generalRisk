@@ -1,0 +1,46 @@
+{
+  "config_metadata": {
+    "config_id": "DEFI_PROT_AAVE_V3_MAINNET",
+    "description": "Aave V3 Mainnet protocol profile - baseline market conditions, standard risk parameters",
+    "version": "1.0.0",
+    "collection_file": "DeFi-HealthFactor-CollateralVelocity-90d.json"
+  },
+
+  "protocol": {
+    "source": "file",
+    "file": "protocols/aave-v3.json"
+  },
+
+  "protocol_thresholds": {
+    "source": "inline",
+    "inline": {
+      "min_health_factor_trigger": 1.0,
+      "healthy_health_factor": 1.5,
+      "target_health_factor": 2.0,
+      "max_liquidation_bonus": 0.05,
+      "max_cascade_depth": 3,
+      "min_collateral_ratio": 1.25,
+      "gas_price_gwei_limit": 150,
+      "max_slippage_tolerance": 0.02,
+      "liquidation_close_factor": 0.5,
+      "protocol_fee_bps": 9
+    }
+  },
+
+  "market_scenario": {
+    "source": "file",
+    "file": "market-scenarios/current-march-2026.json"
+  },
+
+  "liquidation_scenario": {
+    "source": "file",
+    "file": "liquidation-scenarios/current-position.json"
+  },
+
+  "simulation_timeframe": {
+    "status_date": "2026-02-28T00:00:00",
+    "start_date": "2026-03-01T00:00:00",
+    "end_date": "2026-05-31T00:00:00",
+    "frequency": "daily"
+  }
+}

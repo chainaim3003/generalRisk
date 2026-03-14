@@ -1,0 +1,829 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+
+  .app { min-height: 600px; }
+
+  .nav { display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 0; background: var(--color-background-primary); position: sticky; top: 0; z-index: 10; }
+  .nav-tab { padding: 12px 18px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap; border: none; background: none; }
+  .nav-tab:hover { color: var(--color-text-primary); background: var(--color-background-secondary); }
+  .nav-tab.active { color: var(--color-text-primary); border-bottom: 2px solid var(--color-text-primary); }
+  .tab-num { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--color-background-tertiary); font-size: 10px; text-align: center; line-height: 18px; margin-right: 6px; }
+  .nav-tab.active .tab-num { background: var(--color-text-primary); color: var(--color-background-primary); }
+
+  .module { display: none; padding: 20px; }
+  .module.active { display: block; }
+
+  .row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .col { flex: 1; min-width: 220px; }
+  .col-2 { flex: 2; min-width: 300px; }
+
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 16px; }
+  .card-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; }
+  .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .metric-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .metric-val.green { color: var(--color-text-success); }
+  .metric-val.red { color: var(--color-text-danger); }
+  .metric-val.amber { color: var(--color-text-warning); }
+
+  label { font-size: 12px; color: var(--color-text-secondary); display: block; margin-bottom: 4px; margin-top: 10px; }
+  input[type=range] { width: 100%; }
+  .slider-row { display: flex; align-items: center; gap: 8px; }
+  .slider-row input { flex: 1; }
+  .slider-val { font-size: 12px; font-weight: 500; min-width: 40px; text-align: right; color: var(--color-text-primary); }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge-green { background: var(--color-background-success); color: var(--color-text-success); }
+  .badge-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .badge-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
+
+  .chart-wrap { position: relative; width: 100%; }
+  .h200 { height: 200px; }
+  .h160 { height: 160px; }
+  .h240 { height: 240px; }
+
+  .event-timeline { overflow-y: auto; max-height: 180px; }
+  .evt { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+  .evt:last-child { border-bottom: none; }
+  .evt-type { font-weight: 500; min-width: 32px; }
+  .evt-date { color: var(--color-text-secondary); min-width: 80px; }
+  .evt-val { font-weight: 500; margin-left: auto; }
+
+  /* Module 2 granularity tabs */
+  .gran-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .gran-tab { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); background: none; transition: all .15s; }
+  .gran-tab:hover { background: var(--color-background-secondary); }
+  .gran-tab.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+
+  .comparison-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .gran-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; }
+  .gran-card-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; }
+
+  /* Module 3 crisis */
+  .gauge-wrap { display: flex; flex-direction: column; align-items: center; padding: 12px 0; }
+  .gauge-label { font-size: 11px; color: var(--color-text-secondary); margin-top: 6px; }
+  .gauge-val { font-size: 28px; font-weight: 500; }
+
+  .strategy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .strategy-card { border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 12px; cursor: pointer; transition: all .2s; }
+  .strategy-card:hover { border-color: var(--color-border-primary); background: var(--color-background-secondary); }
+  .strategy-card.selected { border: 2px solid var(--color-text-primary); background: var(--color-background-secondary); }
+  .strategy-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .strategy-sub { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; }
+
+  .sim-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .btn { padding: 7px 16px; border-radius: var(--border-radius-md); font-size: 12px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: none; color: var(--color-text-primary); transition: all .15s; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn-primary { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+  .btn-primary:hover { opacity: .85; }
+  .btn-danger { border-color: var(--color-border-danger); color: var(--color-text-danger); }
+  .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .status-safe { background: var(--color-background-success); color: var(--color-text-success); }
+  .status-warn { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .status-danger { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .status-paused { background: var(--color-background-info); color: var(--color-text-info); }
+
+  /* Module 4 outcomes */
+  .outcome-matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .outcome-matrix th { padding: 8px 10px; text-align: left; font-weight: 500; font-size: 11px; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .outcome-matrix td { padding: 8px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .outcome-matrix tr:last-child td { border-bottom: none; }
+  .outcome-cell { display: flex; flex-direction: column; gap: 2px; }
+  .outcome-pnl { font-weight: 500; }
+  .outcome-note { font-size: 10px; color: var(--color-text-secondary); }
+
+  .path-selector { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .path-btn { padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: none; color: var(--color-text-secondary); transition: all .15s; }
+  .path-btn:hover { background: var(--color-background-secondary); }
+  .path-btn.active { border-color: var(--color-border-primary); color: var(--color-text-primary); font-weight: 500; }
+
+  .learn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .learn-card { flex: 1; min-width: 120px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; }
+  .learn-score { font-size: 22px; font-weight: 500; margin-bottom: 2px; }
+  .learn-lbl { font-size: 11px; color: var(--color-text-secondary); }
+
+  .mapping-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+  .mapping-row:last-child { border-bottom: none; }
+  .map-left { font-weight: 500; min-width: 80px; }
+  .map-arrow { color: var(--color-text-tertiary); }
+  .map-right { color: var(--color-text-secondary); }
+
+  .info-box { background: var(--color-background-info); border: 0.5px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 12px; color: var(--color-text-info); margin-bottom: 12px; line-height: 1.5; }
+
+  .section-head { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+</style>
+
+<div class="app">
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-tab active" onclick="showModule(0)"><span class="tab-num">1</span>ACTUS Standard</button>
+    <button class="nav-tab" onclick="showModule(1)"><span class="tab-num">2</span>Granularity</button>
+    <button class="nav-tab" onclick="showModule(2)"><span class="tab-num">3</span>Crisis Scenario</button>
+    <button class="nav-tab" onclick="showModule(3)"><span class="tab-num">4</span>Strategy Outcomes</button>
+  </div>
+
+  <!-- ═══════════════ MODULE 1 ═══════════════ -->
+  <div class="module active" id="m0">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-title">Loan parameters</div>
+          <label>Loan amount (USDC)</label>
+          <div class="slider-row"><input type="range" id="m1-loan" min="1000" max="20000" step="500" value="5000" oninput="m1Update()"><span class="slider-val" id="m1-loan-v">$5,000</span></div>
+          <label>Collateral (ETH)</label>
+          <div class="slider-row"><input type="range" id="m1-eth" min="1" max="10" step="0.5" value="3" oninput="m1Update()"><span class="slider-val" id="m1-eth-v">3.0</span></div>
+          <label>ETH start price ($)</label>
+          <div class="slider-row"><input type="range" id="m1-p0" min="1000" max="5000" step="50" value="2800" oninput="m1Update()"><span class="slider-val" id="m1-p0-v">$2,800</span></div>
+          <label>ETH end price ($)</label>
+          <div class="slider-row"><input type="range" id="m1-p1" min="500" max="4000" step="50" value="1870" oninput="m1Update()"><span class="slider-val" id="m1-p1-v">$1,870</span></div>
+          <label>LTV warning threshold (%)</label>
+          <div class="slider-row"><input type="range" id="m1-ltv" min="50" max="90" step="1" value="75" oninput="m1Update()"><span class="slider-val" id="m1-ltv-v">75%</span></div>
+          <label>Interest rate start (%)</label>
+          <div class="slider-row"><input type="range" id="m1-rate" min="1" max="20" step="0.5" value="5" oninput="m1Update()"><span class="slider-val" id="m1-rate-v">5.0%</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">ACTUS contract mapping</div>
+          <div class="mapping-row"><span class="map-left">PAM</span><span class="map-arrow">↔</span><span class="map-right">Loan smart contract</span></div>
+          <div class="mapping-row"><span class="map-left">COM</span><span class="map-arrow">↔</span><span class="map-right">Collateral vault (ETH)</span></div>
+          <div class="mapping-row"><span class="map-left">RR event</span><span class="map-arrow">↔</span><span class="map-right">Oracle rate feed</span></div>
+          <div class="mapping-row"><span class="map-left">PP event</span><span class="map-arrow">↔</span><span class="map-right">Forced deleveraging</span></div>
+          <div class="mapping-row"><span class="map-left">MD event</span><span class="map-arrow">↔</span><span class="map-right">Loan settlement</span></div>
+          <div class="mapping-row"><span class="map-left">LTV model</span><span class="map-arrow">↔</span><span class="map-right">Liquidation engine</span></div>
+        </div>
+      </div>
+
+      <div class="col-2">
+        <div class="metric-grid" id="m1-metrics">
+          <div class="metric"><div class="metric-label">Initial LTV</div><div class="metric-val" id="m1-iltv">59.5%</div></div>
+          <div class="metric"><div class="metric-label">Final LTV</div><div class="metric-val amber" id="m1-fltv">66.0%</div></div>
+          <div class="metric"><div class="metric-label">Liquidated</div><div class="metric-val green" id="m1-liq">NO ✓</div></div>
+          <div class="metric"><div class="metric-label">Interest paid</div><div class="metric-val" id="m1-int">$25.73</div></div>
+          <div class="metric"><div class="metric-label">Deleveraged</div><div class="metric-val amber" id="m1-dlv">$1,295</div></div>
+          <div class="metric"><div class="metric-label">Final balance</div><div class="metric-val" id="m1-bal">$3,705</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">ETH price & LTV over 30 days</div>
+          <div class="chart-wrap h200"><canvas id="m1-chart"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Loan balance waterfall — forced repayments</div>
+          <div class="chart-wrap h160"><canvas id="m1-waterfall"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Cash flow events (PAM contract)</div>
+          <div class="event-timeline" id="m1-events">
+            <div class="evt"><span class="evt-type"><span class="badge badge-blue">IED</span></span><span class="evt-date">Feb 18</span><span>Loan disbursed</span><span class="evt-val" style="color:var(--color-text-danger)">-$5,000</span></div>
+            <div class="evt"><span class="evt-type"><span class="badge badge-amber">PP</span></span><span class="evt-date">Mar 4</span><span>LTV breach →</span><span class="evt-val">$50</span></div>
+            <div class="evt"><span class="evt-type"><span class="badge badge-amber">PP</span></span><span class="evt-date">Mar 9</span><span>LTV breach →</span><span class="evt-val">$660</span></div>
+            <div class="evt"><span class="evt-type"><span class="badge badge-amber">PP</span></span><span class="evt-date">Mar 19</span><span>LTV breach →</span><span class="evt-val">$585</span></div>
+            <div class="evt"><span class="evt-type"><span class="badge badge-green">IP</span></span><span class="evt-date">Mar 20</span><span>Interest payment</span><span class="evt-val">$25.73</span></div>
+            <div class="evt"><span class="evt-type"><span class="badge badge-blue">MD</span></span><span class="evt-date">Mar 20</span><span>Principal returned</span><span class="evt-val">$3,705</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODULE 2 ═══════════════ -->
+  <div class="module" id="m1">
+    <div class="info-box">Innovation: ACTUS was designed for daily granularity. This project extends it to hourly, minutely, and secondly — matching real DeFi block times (~12s on Ethereum). A loan safe at daily resolution may already be liquidated intraday.</div>
+
+    <div class="gran-tabs">
+      <button class="gran-tab active" onclick="setGran('daily')">Daily</button>
+      <button class="gran-tab" onclick="setGran('hourly')">Hourly</button>
+      <button class="gran-tab" onclick="setGran('minutely')">Minutely</button>
+      <button class="gran-tab" onclick="setGran('secondly')">Secondly (~12s)</button>
+    </div>
+
+    <div class="row">
+      <div class="col-2">
+        <div class="card">
+          <div class="card-title" id="gran-label">Daily granularity — LTV over 30 days</div>
+          <div class="chart-wrap h240"><canvas id="m2-main"></canvas></div>
+        </div>
+
+        <div class="comparison-grid">
+          <div class="gran-card">
+            <div class="gran-card-title">Daily</div>
+            <div class="chart-wrap h160"><canvas id="m2-d"></canvas></div>
+          </div>
+          <div class="gran-card">
+            <div class="gran-card-title">Hourly</div>
+            <div class="chart-wrap h160"><canvas id="m2-h"></canvas></div>
+          </div>
+          <div class="gran-card">
+            <div class="gran-card-title">Minutely</div>
+            <div class="chart-wrap h160"><canvas id="m2-m"></canvas></div>
+          </div>
+          <div class="gran-card">
+            <div class="gran-card-title">Secondly (~12s blocks)</div>
+            <div class="chart-wrap h160"><canvas id="m2-s"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card">
+          <div class="card-title">Event density by granularity</div>
+          <div class="chart-wrap h200"><canvas id="m2-density"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Comparison table</div>
+          <table class="outcome-matrix">
+            <tr><th>Feature</th><th>Daily</th><th>Secondly</th></tr>
+            <tr><td>Rate resets/day</td><td>1</td><td>7,200</td></tr>
+            <tr><td>LTV checks/day</td><td>1</td><td>7,200</td></tr>
+            <tr><td>Flash crash detection</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Liquidation precision</td><td>Day-level</td><td>Second-level</td></tr>
+            <tr><td>Events (30 days)</td><td>~66</td><td>~432,000</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Liquidation timing precision</div>
+          <div style="font-size:12px; line-height:1.7; color:var(--color-text-secondary)">
+            <div style="margin-bottom:8px"><span class="badge badge-amber">Daily</span> &nbsp;Liquidation recorded: <strong style="color:var(--color-text-primary)">Mar 9</strong></div>
+            <div style="margin-bottom:8px"><span class="badge badge-green">Secondly</span> &nbsp;Liquidation recorded: <strong style="color:var(--color-text-primary)">Mar 9 · 14:32:07</strong></div>
+            <div style="margin-top:10px; padding-top:10px; border-top:0.5px solid var(--color-border-tertiary)">At block-level granularity, protocols can differentiate between a position that <em>briefly</em> crossed the threshold vs one that held above it for multiple blocks — enabling fairer liquidation policies.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODULE 3 ═══════════════ -->
+  <div class="module" id="m2">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="card-title">Scenario: ETH sharp drop event</div>
+          <div style="font-size:12px; color:var(--color-text-secondary); line-height:1.6; margin-bottom:12px">
+            Loan: $5,000 USDC · Collateral: 3.0 ETH<br>
+            ETH drops 18% in 6 hours ($2,400 → $1,970)<br>
+            Decision window opens when LTV = 79%
+          </div>
+
+          <label>Granularity</label>
+          <select id="m3-gran" style="width:100%;margin-bottom:8px" onchange="">
+            <option>Hourly</option><option>Minutely</option><option>Secondly</option>
+          </select>
+
+          <label>Drop speed</label>
+          <select id="m3-speed" style="width:100%;margin-bottom:8px">
+            <option>Gradual</option><option selected>Sharp</option><option>Flash crash</option>
+          </select>
+
+          <label>Drop magnitude</label>
+          <div class="slider-row"><input type="range" id="m3-drop" min="5" max="40" step="1" value="18" oninput="document.getElementById('m3-drop-v').textContent=this.value+'%'"><span class="slider-val" id="m3-drop-v">18%</span></div>
+
+          <div class="sim-controls" style="margin-top:14px">
+            <button class="btn btn-primary" id="m3-start-btn" onclick="m3Start()">Run simulation</button>
+            <button class="btn" onclick="m3Reset()">Reset</button>
+            <span class="status-pill status-safe" id="m3-status">Ready</span>
+          </div>
+
+          <div id="m3-pause-panel" style="display:none;margin-top:12px">
+            <div class="info-box" style="background:var(--color-background-warning);border-color:var(--color-border-warning);color:var(--color-text-warning)">
+              ⏸ Simulation paused — LTV crossed 79% warning zone. Choose a strategy.
+            </div>
+            <div class="section-head">Choose your strategy</div>
+            <div class="strategy-grid">
+              <div class="strategy-card" id="strat-A" onclick="m3SelectStrategy('A')">
+                <div class="strategy-title">A — Let it ride</div>
+                <div class="strategy-sub">Bet on V-shape recovery. No action.</div>
+              </div>
+              <div class="strategy-card" id="strat-B" onclick="m3SelectStrategy('B')">
+                <div class="strategy-title">B — Add collateral</div>
+                <div class="strategy-sub">Top up 1.0 ETH to bring LTV to 62%.</div>
+              </div>
+              <div class="strategy-card" id="strat-C" onclick="m3SelectStrategy('C')">
+                <div class="strategy-title">C — Circuit breaker</div>
+                <div class="strategy-sub">Voluntary early liquidation. Exit clean.</div>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="m3-confirm-btn" onclick="m3Confirm()" style="margin-top:10px;display:none">Confirm strategy ↗</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">LTV gauge</div>
+          <div class="gauge-wrap">
+            <svg width="160" height="90" viewBox="0 0 160 90">
+              <defs>
+                <clipPath id="gcl"><rect x="0" y="0" width="160" height="90"/></clipPath>
+              </defs>
+              <path d="M15 80 A65 65 0 0 1 145 80" fill="none" stroke="#e5e5e0" stroke-width="14" stroke-linecap="round"/>
+              <path d="M15 80 A65 65 0 0 1 72 17" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round" opacity="0.8"/>
+              <path d="M72 17 A65 65 0 0 1 110 19" fill="none" stroke="#f59e0b" stroke-width="14" stroke-linecap="round" opacity="0.8"/>
+              <path d="M110 19 A65 65 0 0 1 130 32" fill="none" stroke="#ef4444" stroke-width="14" stroke-linecap="round" opacity="0.8"/>
+              <path d="M130 32 A65 65 0 0 1 145 80" fill="none" stroke="#dc2626" stroke-width="14" stroke-linecap="round" opacity="0.8"/>
+              <line id="gauge-needle" x1="80" y1="80" x2="80" y2="22" stroke="var(--color-text-primary)" stroke-width="2.5" stroke-linecap="round" transform="rotate(-78 80 80)"/>
+              <circle cx="80" cy="80" r="4" fill="var(--color-text-primary)"/>
+              <text x="80" y="72" text-anchor="middle" font-size="14" font-weight="500" fill="var(--color-text-primary)" id="gauge-pct">59.5%</text>
+            </svg>
+            <div class="gauge-label">LTV ratio  ·  <span style="color:var(--color-text-success)">65% target</span> · <span style="color:var(--color-text-warning)">75% warn</span> · <span style="color:var(--color-text-danger)">82.5% liq</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-2">
+        <div class="card">
+          <div class="card-title">ETH price & LTV — live simulation</div>
+          <div class="chart-wrap h240"><canvas id="m3-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Collateral value vs loan balance</div>
+          <div class="chart-wrap h200"><canvas id="m3-cover-chart"></canvas></div>
+        </div>
+        <div class="metric-grid" style="margin-top:4px">
+          <div class="metric"><div class="metric-label">Current LTV</div><div class="metric-val" id="m3-ltv-v">59.5%</div></div>
+          <div class="metric"><div class="metric-label">ETH price</div><div class="metric-val" id="m3-price-v">$2,400</div></div>
+          <div class="metric"><div class="metric-label">Loan balance</div><div class="metric-val" id="m3-bal-v">$5,000</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODULE 4 ═══════════════ -->
+  <div class="module" id="m3">
+    <div class="info-box">Outcomes depend entirely on what ETH does after your decision. There is no universally correct strategy — only context-appropriate ones. Your process score and outcome score are tracked separately.</div>
+
+    <div class="row" style="margin-bottom:12px; align-items:center">
+      <div style="font-size:13px; font-weight:500; color:var(--color-text-primary); margin-right:8px">Post-crisis ETH path:</div>
+      <div class="path-selector">
+        <button class="path-btn active" id="path-v" onclick="setPath('v')">V-shape recovery</button>
+        <button class="path-btn" id="path-b" onclick="setPath('b')">Continued bear</button>
+        <button class="path-btn" id="path-s" onclick="setPath('s')">Sideways bleed</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-2">
+        <div class="card">
+          <div class="card-title">Post-crisis ETH price — all 3 paths</div>
+          <div class="chart-wrap h240"><canvas id="m4-paths"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Net P&L by strategy × path</div>
+          <div class="chart-wrap h200"><canvas id="m4-pnl"></canvas></div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card">
+          <div class="card-title">Outcome matrix</div>
+          <table class="outcome-matrix">
+            <thead><tr><th>Strategy</th><th>V-shape</th><th>Bear</th><th>Sideways</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>A — Let ride</strong></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-success)">+$840</div><div class="outcome-note">Best — kept all collateral</div></div></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-danger)">-$2,100</div><div class="outcome-note">Worst — full liquidation</div></div></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-warning)">-$180</div><div class="outcome-note">Near-liquidation stress</div></div></td>
+              </tr>
+              <tr>
+                <td><strong>B — Add collateral</strong></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-success)">+$420</div><div class="outcome-note">Good, extra ETH "wasted"</div></div></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-danger)">-$3,200</div><div class="outcome-note">Catastrophic — knife catch</div></div></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-warning)">-$240</div><div class="outcome-note">Stabilized, used capital</div></div></td>
+              </tr>
+              <tr>
+                <td><strong>C — Circuit breaker</strong></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-warning)">-$310</div><div class="outcome-note">Tough luck — sold bottom</div></div></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-success)">+$680</div><div class="outcome-note">Best — preserved capital</div></div></td>
+                <td><div class="outcome-cell"><div class="outcome-pnl" style="color:var(--color-text-success)">+$200</div><div class="outcome-note">Clean exit</div></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Adaptive learning score</div>
+          <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:10px">Based on simulated runs across all paths</div>
+          <div class="learn-row">
+            <div class="learn-card"><div class="learn-score" style="color:var(--color-text-success)">7.2</div><div class="learn-lbl">Process score</div></div>
+            <div class="learn-card"><div class="learn-score" style="color:var(--color-text-warning)">5.8</div><div class="learn-lbl">Outcome score</div></div>
+            <div class="learn-card"><div class="learn-score">3</div><div class="learn-lbl">Runs logged</div></div>
+          </div>
+          <div style="margin-top:12px; font-size:12px; line-height:1.6; color:var(--color-text-secondary)">
+            <strong style="color:var(--color-text-primary)">Insight:</strong> Circuit breaker before a V-shape recovery is a correct process decision with a poor outcome. This is not a mistake — it is rational risk management under uncertainty. Your process score reflects this.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" id="m4-verdict-title">Current path verdict</div>
+          <div id="m4-verdict" style="font-size:12px; line-height:1.6; color:var(--color-text-secondary)">
+            Select a path above to see which strategy wins — and why.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const DAYS = Array.from({length:31},(_,i)=>{
+  const d = new Date(2026,1,18+i);
+  return (d.getMonth()+1)+'/'+(d.getDate());
+});
+
+const ETH_PRICES = [2800,2775,2750,2710,2690,2665,2640,2600,2560,2530,2490,2460,2430,2410,2380,2350,2310,2280,2240,2200,2170,2140,2110,2080,2050,2020,1990,1960,1930,1900,1870];
+const DEFI_RATES = [5.0,5.27,5.46,5.50,5.42,5.29,5.22,5.27,5.45,5.73,6.00,6.18,6.22,6.14,6.01,5.94,5.99,6.17,6.45,6.72,6.90,6.93,6.85,6.73,6.65,6.71,6.90,7.18,7.44,7.62,7.65];
+
+let m1Charts={}, m2Charts={}, m3Charts={}, m4Charts={};
+let m3State={running:false,step:0,paused:false,strategy:null,timer:null};
+let currentGran='daily';
+let currentPath='v';
+
+function showModule(i){
+  document.querySelectorAll('.module').forEach((m,j)=>m.classList.toggle('active',i===j));
+  document.querySelectorAll('.nav-tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  if(i===0) initM1();
+  if(i===1) initM2();
+  if(i===2) initM3();
+  if(i===3) initM4();
+}
+
+function destroyChart(c){ if(c&&c.destroy) c.destroy(); }
+
+// ─── MODULE 1 ─────────────────────────────
+function m1Update(){
+  const loan=+document.getElementById('m1-loan').value;
+  const eth=+document.getElementById('m1-eth').value;
+  const p0=+document.getElementById('m1-p0').value;
+  const p1=+document.getElementById('m1-p1').value;
+  const ltv=+document.getElementById('m1-ltv').value/100;
+
+  document.getElementById('m1-loan-v').textContent='$'+loan.toLocaleString();
+  document.getElementById('m1-eth-v').textContent=eth.toFixed(1);
+  document.getElementById('m1-p0-v').textContent='$'+p0.toLocaleString();
+  document.getElementById('m1-p1-v').textContent='$'+p1.toLocaleString();
+  document.getElementById('m1-ltv-v').textContent=(ltv*100).toFixed(0)+'%';
+  document.getElementById('m1-rate-v').textContent=document.getElementById('m1-rate').value+'%';
+
+  const iltv = (loan/(eth*p0)*100).toFixed(1);
+  const fltv = (loan/(eth*p1)*100).toFixed(1);
+  const liquidated = parseFloat(fltv) > 82.5;
+
+  document.getElementById('m1-iltv').textContent=iltv+'%';
+  document.getElementById('m1-fltv').textContent=fltv+'%';
+  document.getElementById('m1-fltv').className='metric-val '+(parseFloat(fltv)>75?'red':'green');
+  document.getElementById('m1-liq').textContent=liquidated?'YES ✗':'NO ✓';
+  document.getElementById('m1-liq').className='metric-val '+(liquidated?'red':'green');
+
+  rebuildM1Charts(loan, eth, p0, p1, ltv);
+}
+
+function computeLTVs(loan,eth,p0,p1){
+  return ETH_PRICES.map(p=>{
+    const scaled = p0 + (p-ETH_PRICES[0])*(p1-p0)/(ETH_PRICES[ETH_PRICES.length-1]-ETH_PRICES[0]);
+    return parseFloat((loan/(eth*scaled)*100).toFixed(1));
+  });
+}
+
+function rebuildM1Charts(loan,eth,p0,p1,ltvThresh){
+  const prices = ETH_PRICES.map(p=>p0+(p-ETH_PRICES[0])*(p1-p0)/(ETH_PRICES[ETH_PRICES.length-1]-ETH_PRICES[0]));
+  const ltvs = prices.map(p=>(loan/(eth*p)*100));
+
+  destroyChart(m1Charts.main);
+  const ctx1=document.getElementById('m1-chart').getContext('2d');
+  m1Charts.main=new Chart(ctx1,{
+    data:{
+      labels:DAYS,
+      datasets:[
+        {type:'line',label:'ETH price',data:prices.map(v=>+v.toFixed(0)),borderColor:'#378ADD',backgroundColor:'transparent',yAxisID:'y1',tension:.3,pointRadius:0,borderWidth:2},
+        {type:'line',label:'LTV %',data:ltvs.map(v=>+v.toFixed(1)),borderColor:'#D85A30',backgroundColor:'rgba(216,90,48,0.08)',yAxisID:'y2',tension:.3,pointRadius:0,borderWidth:2,fill:true}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},
+        annotation:{}
+      },
+      scales:{
+        x:{ticks:{font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8},grid:{color:'rgba(128,128,128,0.08)'}},
+        y1:{position:'left',ticks:{font:{size:10},callback:v=>'$'+Math.round(v)},grid:{color:'rgba(128,128,128,0.08)'}},
+        y2:{position:'right',ticks:{font:{size:10},callback:v=>v.toFixed(0)+'%'},grid:{display:false},min:0,max:100,
+          afterBuild(ax){
+            ax.chart.options._ltvThresh=ltvThresh*100;
+          }
+        }
+      }
+    }
+  });
+
+  destroyChart(m1Charts.wf);
+  const ctx2=document.getElementById('m1-waterfall').getContext('2d');
+  const wfLabels=['Start','Mar 4','Mar 9','Mar 19','End'];
+  const wfData=[loan, loan*0.99, loan*0.858, loan*0.741, loan*0.741];
+  m1Charts.wf=new Chart(ctx2,{
+    type:'bar',
+    data:{labels:wfLabels,datasets:[{label:'Loan balance',data:wfData.map(v=>+v.toFixed(0)),backgroundColor:['#378ADD','#EF9F27','#EF9F27','#EF9F27','#22c55e'],borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:'rgba(128,128,128,0.08)'}},x:{ticks:{font:{size:10}}}}}
+  });
+}
+
+function initM1(){
+  setTimeout(()=>m1Update(),50);
+}
+
+// ─── MODULE 2 ─────────────────────────────
+function setGran(g){
+  currentGran=g;
+  document.querySelectorAll('.gran-tab').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase().startsWith(g)));
+  const labels={'daily':'Daily granularity — LTV over 30 days','hourly':'Hourly granularity — LTV over 1 week','minutely':'Minutely granularity — LTV over 6 hours','secondly':'Secondly (~12s blocks) — LTV over 1 hour'};
+  document.getElementById('gran-label').textContent=labels[g];
+  rebuildM2MainChart(g);
+}
+
+function makeLTVData(n, base, noise, dropAt, dropAmt){
+  const d=[]; let v=base;
+  for(let i=0;i<n;i++){
+    if(i===dropAt) v+=dropAmt;
+    v+=noise*(Math.random()-.5);
+    d.push(Math.max(30,Math.min(95,+v.toFixed(1))));
+  }
+  return d;
+}
+
+function rebuildM2MainChart(g){
+  const configs={
+    daily:{n:31,labels:DAYS,data:ETH_PRICES.map(p=>(5000/(3*p)*100)),noise:0},
+    hourly:{n:168,labels:Array.from({length:168},(_,i)=>{const h=i%24;return i%24===0?'D'+(Math.floor(i/24)+1):'';}),data:makeLTVData(168,59.5,1.2,72,12),noise:1.2},
+    minutely:{n:360,labels:Array.from({length:360},(_,i)=>i%60===0?'H'+Math.floor(i/60):''),data:makeLTVData(360,59.5,2.5,120,14),noise:2.5},
+    secondly:{n:300,labels:Array.from({length:300},(_,i)=>i%60===0?'M'+Math.floor(i/60):''),data:makeLTVData(300,59.5,3.5,80,16),noise:3.5}
+  };
+  const c=configs[g];
+  destroyChart(m2Charts.main);
+  const ctx=document.getElementById('m2-main').getContext('2d');
+  m2Charts.main=new Chart(ctx,{
+    type:'line',
+    data:{labels:c.labels,datasets:[
+      {label:'LTV %',data:c.data,borderColor:'#D85A30',backgroundColor:'rgba(216,90,48,0.07)',tension:.3,pointRadius:0,borderWidth:1.5,fill:true},
+      {label:'75% threshold',data:Array(c.n).fill(75),borderColor:'#f59e0b',borderDash:[4,3],borderWidth:1,pointRadius:0},
+      {label:'82.5% liquidation',data:Array(c.n).fill(82.5),borderColor:'#ef4444',borderDash:[4,3],borderWidth:1,pointRadius:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},autoSkip:true,maxTicksLimit:10},grid:{color:'rgba(128,128,128,0.06)'}},y:{min:40,max:100,ticks:{font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(128,128,128,0.08)'}}}}
+  });
+}
+
+function initM2(){
+  const smallConfigs=[
+    {id:'m2-d',n:31,noise:0,drop:14,at:14,col:'#378ADD'},
+    {id:'m2-h',n:168,noise:1.2,drop:12,at:72,col:'#5DCAA5'},
+    {id:'m2-m',n:360,noise:2.5,drop:14,at:120,col:'#EF9F27'},
+    {id:'m2-s',n:300,noise:3.5,drop:16,at:80,col:'#D85A30'}
+  ];
+  smallConfigs.forEach(sc=>{
+    const key=sc.id;
+    destroyChart(m2Charts[key]);
+    const d=sc.id==='m2-d'?ETH_PRICES.map(p=>(5000/(3*p)*100)):makeLTVData(sc.n,59.5,sc.noise,sc.at,sc.drop);
+    const ctx=document.getElementById(sc.id).getContext('2d');
+    m2Charts[key]=new Chart(ctx,{
+      type:'line',
+      data:{labels:Array(sc.n).fill(''),datasets:[
+        {data:d,borderColor:sc.col,backgroundColor:sc.col+'18',tension:.3,pointRadius:0,borderWidth:1.5,fill:true},
+        {data:Array(sc.n).fill(75),borderColor:'#f59e0b',borderDash:[3,3],borderWidth:1,pointRadius:0},
+        {data:Array(sc.n).fill(82.5),borderColor:'#ef4444',borderDash:[3,3],borderWidth:1,pointRadius:0}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{min:40,max:100,ticks:{font:{size:9},callback:v=>v+'%'},grid:{color:'rgba(128,128,128,0.06)'}}}}
+    });
+  });
+
+  destroyChart(m2Charts.density);
+  const ctx=document.getElementById('m2-density').getContext('2d');
+  m2Charts.density=new Chart(ctx,{
+    type:'bar',
+    data:{labels:['Daily','Hourly','Minutely','Secondly'],datasets:[{label:'Events',data:[66,1584,95040,432000],backgroundColor:['#378ADD','#5DCAA5','#EF9F27','#D85A30'],borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{type:'logarithmic',ticks:{font:{size:10},callback:v=>{if([100,1000,10000,100000,1000000].includes(v))return v.toLocaleString();return '';}},grid:{color:'rgba(128,128,128,0.08)'}},x:{ticks:{font:{size:11}}}}}
+  });
+
+  rebuildM2MainChart('daily');
+}
+
+// ─── MODULE 3 ─────────────────────────────
+let m3PriceData=[], m3LTVData=[], m3CoverData=[];
+
+function initM3(){
+  m3Reset();
+}
+
+function m3Reset(){
+  clearInterval(m3State.timer);
+  m3State={running:false,step:0,paused:false,strategy:null,timer:null};
+  document.getElementById('m3-status').textContent='Ready';
+  document.getElementById('m3-status').className='status-pill status-safe';
+  document.getElementById('m3-pause-panel').style.display='none';
+  document.getElementById('m3-start-btn').textContent='Run simulation';
+  document.getElementById('m3-start-btn').disabled=false;
+  document.querySelectorAll('.strategy-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('m3-confirm-btn').style.display='none';
+  m3PriceData=[2400]; m3LTVData=[59.5]; m3CoverData=[7200];
+  document.getElementById('m3-ltv-v').textContent='59.5%';
+  document.getElementById('m3-price-v').textContent='$2,400';
+  document.getElementById('m3-bal-v').textContent='$5,000';
+  updateGauge(59.5);
+  buildM3Charts();
+}
+
+function buildM3Charts(){
+  destroyChart(m3Charts.main);
+  const ctx=document.getElementById('m3-chart').getContext('2d');
+  m3Charts.main=new Chart(ctx,{
+    type:'line',
+    data:{labels:m3PriceData.map((_,i)=>'T+'+i+'h'),datasets:[
+      {label:'ETH price',data:[...m3PriceData],borderColor:'#378ADD',tension:.3,pointRadius:0,borderWidth:2,yAxisID:'y1'},
+      {label:'LTV %',data:[...m3LTVData],borderColor:'#D85A30',tension:.3,pointRadius:0,borderWidth:2,yAxisID:'y2'},
+      {label:'75% warn',data:Array(m3PriceData.length).fill(75),borderColor:'#f59e0b',borderDash:[4,3],borderWidth:1,pointRadius:0,yAxisID:'y2'},
+      {label:'82.5% liq',data:Array(m3PriceData.length).fill(82.5),borderColor:'#ef4444',borderDash:[4,3],borderWidth:1,pointRadius:0,yAxisID:'y2'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:10},autoSkip:true,maxTicksLimit:10},grid:{color:'rgba(128,128,128,0.08)'}},
+        y1:{position:'left',ticks:{font:{size:10},callback:v=>'$'+Math.round(v)},grid:{color:'rgba(128,128,128,0.08)'}},
+        y2:{position:'right',min:40,max:100,ticks:{font:{size:10},callback:v=>v+'%'},grid:{display:false}}
+      }
+    }
+  });
+
+  destroyChart(m3Charts.cover);
+  const ctx2=document.getElementById('m3-cover-chart').getContext('2d');
+  m3Charts.cover=new Chart(ctx2,{
+    type:'line',
+    data:{labels:m3CoverData.map((_,i)=>'T+'+i+'h'),datasets:[
+      {label:'Collateral value',data:[...m3CoverData],borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.08)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+      {label:'Loan balance',data:Array(m3CoverData.length).fill(5000),borderColor:'#D85A30',tension:.3,pointRadius:0,borderWidth:2}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:10},autoSkip:true,maxTicksLimit:10},grid:{color:'rgba(128,128,128,0.08)'}},
+        y:{ticks:{font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:'rgba(128,128,128,0.08)'}}
+      }
+    }
+  });
+}
+
+function m3Start(){
+  if(m3State.running) return;
+  m3State.running=true;
+  document.getElementById('m3-start-btn').disabled=true;
+  document.getElementById('m3-status').textContent='Running...';
+  document.getElementById('m3-status').className='status-pill status-safe';
+  const drop=+document.getElementById('m3-drop').value/100;
+  const totalHours=12;
+  let h=0;
+  m3State.timer=setInterval(()=>{
+    if(m3State.paused) return;
+    h++;
+    const progress=h/totalHours;
+    const newPrice=2400*(1-drop*Math.pow(progress,0.7)*(1+.08*(Math.random()-.5)));
+    const loan=5000;
+    const ltv=(loan/(3*newPrice)*100);
+    m3PriceData.push(+newPrice.toFixed(0));
+    m3LTVData.push(+ltv.toFixed(1));
+    m3CoverData.push(+(3*newPrice).toFixed(0));
+    updateM3Charts();
+    document.getElementById('m3-ltv-v').textContent=ltv.toFixed(1)+'%';
+    document.getElementById('m3-price-v').textContent='$'+newPrice.toFixed(0);
+    updateGauge(ltv);
+    const ltvCls = ltv<65?'green':ltv<75?'amber':'red';
+    document.getElementById('m3-ltv-v').className='metric-val '+ltvCls;
+
+    if(ltv>=79&&ltv<82.5&&!m3State.paused){
+      m3State.paused=true;
+      document.getElementById('m3-status').textContent='PAUSED — Decision required';
+      document.getElementById('m3-status').className='status-pill status-paused';
+      document.getElementById('m3-pause-panel').style.display='block';
+    }
+    if(ltv>=82.5){
+      clearInterval(m3State.timer);
+      document.getElementById('m3-status').textContent='LIQUIDATED';
+      document.getElementById('m3-status').className='status-pill status-danger';
+    }
+    if(h>=totalHours){
+      clearInterval(m3State.timer);
+      if(document.getElementById('m3-status').textContent==='Running...'){
+        document.getElementById('m3-status').textContent='Complete';
+        document.getElementById('m3-status').className='status-pill status-safe';
+      }
+    }
+  },400);
+}
+
+function updateM3Charts(){
+  const labels=m3PriceData.map((_,i)=>'T+'+i+'h');
+  m3Charts.main.data.labels=labels;
+  m3Charts.main.data.datasets[0].data=[...m3PriceData];
+  m3Charts.main.data.datasets[1].data=[...m3LTVData];
+  m3Charts.main.data.datasets[2].data=Array(m3PriceData.length).fill(75);
+  m3Charts.main.data.datasets[3].data=Array(m3PriceData.length).fill(82.5);
+  m3Charts.main.update('none');
+  m3Charts.cover.data.labels=labels;
+  m3Charts.cover.data.datasets[0].data=[...m3CoverData];
+  m3Charts.cover.data.datasets[1].data=Array(m3PriceData.length).fill(5000);
+  m3Charts.cover.update('none');
+}
+
+function updateGauge(ltv){
+  const needle=document.getElementById('gauge-needle');
+  const pctEl=document.getElementById('gauge-pct');
+  const deg=-90+(ltv/100)*160;
+  needle.setAttribute('transform',`rotate(${Math.min(deg,80)} 80 80)`);
+  pctEl.textContent=ltv.toFixed(1)+'%';
+  pctEl.setAttribute('fill',ltv<65?'#22c55e':ltv<75?'#f59e0b':ltv<82.5?'#ef4444':'#dc2626');
+}
+
+function m3SelectStrategy(s){
+  m3State.strategy=s;
+  document.querySelectorAll('.strategy-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('strat-'+s).classList.add('selected');
+  document.getElementById('m3-confirm-btn').style.display='inline-block';
+}
+
+function m3Confirm(){
+  document.getElementById('m3-pause-panel').style.display='none';
+  m3State.paused=false;
+  const s=m3State.strategy;
+  const statusEl=document.getElementById('m3-status');
+  if(s==='A'){statusEl.textContent='Running — letting it ride';statusEl.className='status-pill status-warn';}
+  if(s==='B'){statusEl.textContent='Running — collateral added';statusEl.className='status-pill status-safe';m3CoverData=m3CoverData.map(v=>v+m3PriceData[m3PriceData.length-1]);}
+  if(s==='C'){
+    clearInterval(m3State.timer);
+    statusEl.textContent='Circuit breaker triggered';statusEl.className='status-pill status-safe';
+    document.getElementById('m3-ltv-v').textContent='0% — Exited';
+    document.getElementById('m3-bal-v').textContent='$0 — Repaid';
+  }
+}
+
+// ─── MODULE 4 ─────────────────────────────
+function setPath(p){
+  currentPath=p;
+  document.querySelectorAll('.path-btn').forEach(b=>b.classList.toggle('active',b.id==='path-'+p));
+  buildM4Charts(p);
+  const verdicts={
+    v:'<strong style="color:var(--color-text-primary)">V-shape recovery.</strong><br>Strategy A (let it ride) is the winner — ETH rebounded and you kept all collateral. Strategy C (circuit breaker) is "tough luck" — correct process, poor outcome. You avoided catastrophe with rational risk management, but missed the recovery. Strategy B used extra capital unnecessarily.',
+    b:'<strong style="color:var(--color-text-primary)">Continued bear market.</strong><br>Strategy C (circuit breaker) is the winner — you exited early and preserved capital. Strategy A results in full liquidation at the bottom. Strategy B is catastrophic: you added collateral while ETH continued falling ("catching the knife") and still got liquidated.',
+    s:'<strong style="color:var(--color-text-primary)">Sideways / slow bleed.</strong><br>Strategy C edges out with a small positive outcome — clean exit, no stress. Strategy B stabilized but consumed extra capital for minimal benefit. Strategy A was borderline — the loan survived but the stress and near-liquidation made it the least comfortable path.'
+  };
+  document.getElementById('m4-verdict').innerHTML=verdicts[p];
+}
+
+function buildM4Charts(p){
+  const hours=Array.from({length:25},(_,i)=>'D+'+(i>0?i:'0'));
+  const paths={
+    v:[1970,1950,1920,1900,1890,1900,1930,1970,2020,2080,2140,2190,2230,2260,2280,2290,2285,2275,2270,2280,2295,2310,2330,2350,2370],
+    b:[1970,1950,1920,1890,1860,1830,1800,1770,1740,1720,1700,1690,1680,1670,1660,1650,1640,1630,1620,1610,1600,1590,1580,1570,1560],
+    s:[1970,1980,1960,1990,1975,1960,1980,1970,1965,1985,1990,1975,1960,1980,1970,1975,1990,1975,1980,1970,1975,1985,1975,1970,1975]
+  };
+
+  destroyChart(m4Charts.paths);
+  const ctx=document.getElementById('m4-paths').getContext('2d');
+  m4Charts.paths=new Chart(ctx,{
+    type:'line',
+    data:{labels:hours,datasets:[
+      {label:'V-shape',data:paths.v,borderColor:'#22c55e',tension:.4,pointRadius:0,borderWidth:p==='v'?2.5:1,borderDash:p==='v'?[]:[4,3],opacity:p==='v'?1:.4},
+      {label:'Continued bear',data:paths.b,borderColor:'#ef4444',tension:.4,pointRadius:0,borderWidth:p==='b'?2.5:1,borderDash:p==='b'?[]:[4,3]},
+      {label:'Sideways',data:paths.s,borderColor:'#f59e0b',tension:.4,pointRadius:0,borderWidth:p==='s'?2.5:1,borderDash:p==='s'?[]:[4,3]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},autoSkip:true,maxTicksLimit:12},grid:{color:'rgba(128,128,128,0.08)'}},y:{ticks:{font:{size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:'rgba(128,128,128,0.08)'}}}}
+  });
+
+  const pnlData={
+    v:{A:840,B:420,C:-310},
+    b:{A:-2100,B:-3200,C:680},
+    s:{A:-180,B:-240,C:200}
+  };
+  const d=pnlData[p];
+  const colors=v=>v>=0?'#22c55e':'#ef4444';
+
+  destroyChart(m4Charts.pnl);
+  const ctx2=document.getElementById('m4-pnl').getContext('2d');
+  m4Charts.pnl=new Chart(ctx2,{
+    type:'bar',
+    data:{labels:['A — Let ride','B — Add collateral','C — Circuit breaker'],datasets:[{label:'Net P&L',data:[d.A,d.B,d.C],backgroundColor:[colors(d.A),colors(d.B),colors(d.C)],borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},callback:v=>(v>=0?'':'')+('$'+(Math.abs(v).toLocaleString()))},grid:{color:'rgba(128,128,128,0.08)'}},y:{ticks:{font:{size:11}}}}}
+  });
+}
+
+function initM4(){
+  buildM4Charts('v');
+}
+
+// Boot
+setTimeout(()=>{
+  initM1();
+},100);
+</script>

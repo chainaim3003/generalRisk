@@ -1,0 +1,43 @@
+{
+  "scenario_name": "Cascade Liquidation Event",
+  "description": "Health factor breached 1.0. Forced liquidation initiated. MEV bot competition for liquidation bonus. Gas wars. Secondary liquidation of other positions triggered by price impact. Protocol bad debt risk if collateral falls below liquidation bonus floor.",
+  "position_stress": "critical",
+
+  "initial_health_factor": 0.92,
+  "collateral_basket": {
+    "ETH_units": 100,
+    "USDC_amount": 500000,
+    "invoice_amount": 200000
+  },
+  "outstanding_loan_usdc": 500000,
+  "ltv_current": 0.89,
+  "time_to_liquidation_days": 0,
+
+  "liquidation_event": {
+    "triggered": true,
+    "liquidation_type": "partial",
+    "close_factor": 0.50,
+    "amount_to_liquidate_usd": 250000,
+    "liquidation_bonus_pct": 5.0,
+    "liquidator_profit_usd": 12500,
+    "bad_debt_risk": false,
+    "gas_cost_gwei": 180
+  },
+
+  "cascade_metrics": {
+    "cascade_probability": 0.72,
+    "cascade_depth_expected": 2,
+    "correlated_positions_at_risk": 3,
+    "estimated_cascade_volume_usd": 1500000,
+    "protocol_insurance_fund_draw": false
+  },
+
+  "borrower_behavior": {
+    "repay_trigger_health_factor": 1.5,
+    "aggressive_repay_fraction": 0.15,
+    "moderate_repay_fraction": 0.05,
+    "safe_horizon_days": 30,
+    "urgent_days": 7,
+    "note": "Repay actions failed to prevent liquidation due to gas congestion + price velocity"
+  }
+}

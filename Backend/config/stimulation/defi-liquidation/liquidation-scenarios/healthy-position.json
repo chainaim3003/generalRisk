@@ -1,0 +1,29 @@
+{
+  "scenario_name": "Healthy Position",
+  "description": "Well-collateralized position. Health factor comfortably above 1.5. No liquidation risk. Borrower has ample buffer and regular repayment cadence.",
+  "position_stress": "none",
+
+  "initial_health_factor": 2.50,
+  "collateral_basket": {
+    "ETH_units": 150,
+    "USDC_amount": 600000,
+    "invoice_amount": 250000
+  },
+  "outstanding_loan_usdc": 500000,
+  "ltv_current": 0.42,
+  "time_to_liquidation_days": 999,
+
+  "borrower_behavior": {
+    "repay_trigger_health_factor": 1.8,
+    "aggressive_repay_fraction": 0.10,
+    "moderate_repay_fraction": 0.03,
+    "safe_horizon_days": 60,
+    "urgent_days": 14
+  },
+
+  "liquidation_risk_metrics": {
+    "cascade_probability": 0.02,
+    "collateral_velocity_alert": false,
+    "early_warning_active": false
+  }
+}

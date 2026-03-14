@@ -1,0 +1,36 @@
+{
+  "scenario_name": "Baseline - Bull Market",
+  "description": "Healthy bull market conditions. ETH trending upward, low gas, stable borrow rates. Health factors remain elevated with no liquidation risk.",
+  "scenario_date": "2026-03",
+  "collateral_stress": "none",
+
+  "ETH_USD": {
+    "trend": "upward",
+    "start_value": 2800.0,
+    "end_value": 3400.0,
+    "volatility_daily_pct": 0.015,
+    "note": "Bull run, no stress drawdowns"
+  },
+  "DEFI_RATE": {
+    "trend": "stable",
+    "start_value": 0.0550,
+    "end_value": 0.0600,
+    "note": "Modest rate rise from demand"
+  },
+  "GAS_GWEI": {
+    "trend": "low",
+    "start_value": 15.0,
+    "end_value": 20.0,
+    "note": "Low gas environment, no congestion"
+  },
+  "INVOICE_PAYMENT_PROB": {
+    "start_value": 0.97,
+    "end_value": 0.98,
+    "note": "Healthy credit environment"
+  },
+  "USDC_USD": {
+    "start_value": 1.0000,
+    "end_value": 1.0000,
+    "note": "Stable peg maintained"
+  }
+}

@@ -1,12 +1,13 @@
 /**
  * Simulation Routes
- * New config-based simulation endpoint
+ * Config-based simulation endpoint that runs full ACTUS simulation
  */
 
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { loadConfig, loadCollection } from '../config/config-loader.js';
 import type { IssuerConfig, HolderConfig } from '../config/config.types.js';
+import { runStimulation, ENVIRONMENTS } from '../api/SimulationRunner.js';
 
 const router = Router();
 
@@ -14,13 +15,11 @@ const router = Router();
  * POST /api/simulate
  * Run simulation with config-based parameters
  * 
- * This is a SIMPLIFIED FIRST VERSION that:
- * 1. Loads the config
- * 2. Resolves file references  
- * 3. Loads the base collection (as-is, no overlay yet)
- * 4. Returns the collection for now
- * 
- * TODO: Add JSONPath overlay in next iteration
+ * This endpoint:
+ * 1. Loads the config and resolves file references  
+ * 2. Loads the base collection
+ * 3. Runs the full ACTUS simulation using the existing SimulationRunner
+ * 4. Returns the complete simulation result (steps, contracts, risk factors)
  */
 router.post('/simulate', async (req: Request, res: Response) => {
   try {
@@ -49,21 +48,34 @@ router.post('/simulate', async (req: Request, res: Response) => {
     console.log('   Collection name:', baseCollection.info?.name);
     console.log('   Operations:', baseCollection.item?.length || 0);
     
-    // Step 3: For now, return the loaded data (overlay to be implemented)
+    // Step 3: Run the simulation using the existing SimulationRunner
+    console.log('   🚀 Running ACTUS simulation...');
+    const envConfig = ENVIRONMENTS.localhost; // Use localhost environment
+    const simulationResult = await runStimulation(baseCollection, envConfig, 'localhost');
+    
+    if (!simulationResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Simulation failed',
+        details: simulationResult
+      });
+    }
+    
+    console.log('   ✅ Simulation complete');
+    console.log('   Steps executed:', simulationResult.steps?.length || 0);
+    console.log('   Contracts:', simulationResult.simulation?.length || 0);
+    
+    // Step 4: Return the complete simulation result
+    // Add config metadata to the response
     return res.json({
-      success: true,
-      message: 'Config loaded successfully. Overlay implementation pending.',
-      config: {
-        id: resolvedConfig.config_metadata.config_id,
-        collection_file: resolvedConfig.config_metadata.collection_file,
+      ...simulationResult,
+      configMetadata: {
+        entity_type: configData.config_metadata.collection_file.includes('ISS') ? 'issuer' : 'holder',
         jurisdiction: resolvedConfig.jurisdiction_data.jurisdiction_code,
-        monitoring_times_count: resolvedConfig.generated.monitoring_times.length
-      },
-      collection: {
-        name: baseCollection.info?.name,
-        operations_count: baseCollection.item?.length || 0
-      },
-      note: 'Phase 1 implementation: Config loading works. JSONPath overlay coming in Phase 2.'
+        monitoring_times_count: resolvedConfig.generated.monitoring_times.length,
+        config_id: resolvedConfig.config_metadata.config_id,
+        collection_file: resolvedConfig.config_metadata.collection_file
+      }
     });
     
   } catch (error: any) {

@@ -1,0 +1,326 @@
+{
+  "info": {
+    "_postman_id": "eth-portfolio-3contract-buffer-sell-100y",
+    "name": "ETH-Liq-LTV-TPP-COM-COL-BUF-SELL-1mon-30-100Y1Y-daily",
+    "description": "ACTUS DeFi ETH Portfolio: OPTION B - BUFFER-FIRST LIQUIDATION DEFENSE\n\n═══════════════════════════════════════════════════════════════════════════\nOPTION B: SOPHISTICATED BUFFER-FIRST STRATEGY (vs Option A: Protocol Liquidation)\n  ✅ Sells from 4.0 ETH BUFFER (not collateral)\n  ✅ Preserves 3.0 ETH collateral quantity CONSTANT\n  ✅ LTV always calculated using original 3.0 ETH\n  ✅ Circuit breaker: max 3 interventions, min 1.0 ETH reserve\n  ✅ Falling knife detection: stops if price drops >20% in 48hr\n  ✅ 24-hour cooldown between interventions\n  ✅ DeFi correctness: matches keeper bot / DeFi Saver behavior\n═══════════════════════════════════════════════════════════════════════════\n\nKEY DIFFERENCE FROM OPTION A:\n  Option A: Protocol liquidates collateral → LTV = loan / (depleting collateral)\n  Option B: User defends via buffer → LTV = loan / (CONSTANT 3.0 ETH)\n  \n  Example after $660 intervention:\n    Option A: LTV = $3,548 / (2.34 ETH × $2,200) = 68.9% ❌ Still stressed\n    Option B: LTV = $3,548 / (3.00 ETH × $2,200) = 53.8% ✅ Much healthier\n\nPORTFOLIO STRUCTURE:\n═══════════════════════════════════════════════════\nTotal ETH: 7.0 ETH\n  - Collateral ETH: 3.0 ETH (pledged to loan, NEVER CHANGES)\n  - Buffer ETH: 4.0 ETH (defense fund, depletes on intervention)\n\nContracts:\n1. COM (ETH-Collateral-CompetingRisk-01): 3.0 ETH collateral\n2. COM (ETH-Buffer-Portfolio-01): 4.0 ETH buffer\n3. PAM (DeFi-ETH-CompetingRisk-01): $5,000 loan with behavioral models\n\nBEHAVIORAL MODELS:\n  1. TwoDimensionalPrepaymentModel — voluntary rate-driven deleveraging\n  2. BufferLTVModel — keeper bot LTV defense (NEW for Option B)\n\nCIRCUIT BREAKER PARAMETERS:\n  maxInterventions: 3\n  minBufferReserve: 1.0 ETH (never touch last 1.0 ETH)\n  maxBufferUsagePerIntervention: 33% (max 1.32 ETH per use)\n  cooldownMillis: 86400000 (24 hours)\n  fallingKnifePriceDropThreshold: 0.20 (20%)\n  fallingKnifeTimeWindowMillis: 172800000 (48 hours)\n\nScenario: ETH: $2,800 → $1,870 (-33%), Rate: 5.0% → 7.65%\nPeriod: 100-year perpetual, simulating first year\n\nOpen Postman Console (Ctrl+Alt+C) before running to see detailed intervention logs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add DeFi Rate Index (DEFI_RAT_MON_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 1: DeFi rate index added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('✅ DEFI_RAT_MON_01 loaded: 31 daily rates, 5.0% → 7.65%');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"DEFI_RAT_MON_01\",\"marketObjectCode\":\"DEFI_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-02-18T00:00:00\",\"value\":0.05},{\"time\":\"2026-02-19T00:00:00\",\"value\":0.052733},{\"time\":\"2026-02-20T00:00:00\",\"value\":0.054556},{\"time\":\"2026-02-21T00:00:00\",\"value\":0.05499},{\"time\":\"2026-02-22T00:00:00\",\"value\":0.054205},{\"time\":\"2026-02-23T00:00:00\",\"value\":0.052948},{\"time\":\"2026-02-24T00:00:00\",\"value\":0.052185},{\"time\":\"2026-02-25T00:00:00\",\"value\":0.052653},{\"time\":\"2026-02-26T00:00:00\",\"value\":0.054506},{\"time\":\"2026-02-27T00:00:00\",\"value\":0.05725},{\"time\":\"2026-02-28T00:00:00\",\"value\":0.059971},{\"time\":\"2026-03-01T00:00:00\",\"value\":0.061765},{\"time\":\"2026-03-02T00:00:00\",\"value\":0.062164},{\"time\":\"2026-03-03T00:00:00\",\"value\":0.061357},{\"time\":\"2026-03-04T00:00:00\",\"value\":0.060101},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.059361},{\"time\":\"2026-03-06T00:00:00\",\"value\":0.059862},{\"time\":\"2026-03-07T00:00:00\",\"value\":0.061746},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.064501},{\"time\":\"2026-03-09T00:00:00\",\"value\":0.067209},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.068972},{\"time\":\"2026-03-11T00:00:00\",\"value\":0.069337},{\"time\":\"2026-03-12T00:00:00\",\"value\":0.068509},{\"time\":\"2026-03-13T00:00:00\",\"value\":0.067254},{\"time\":\"2026-03-14T00:00:00\",\"value\":0.066537},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.067073},{\"time\":\"2026-03-16T00:00:00\",\"value\":0.068986},{\"time\":\"2026-03-17T00:00:00\",\"value\":0.071751},{\"time\":\"2026-03-18T00:00:00\",\"value\":0.074446},{\"time\":\"2026-03-19T00:00:00\",\"value\":0.076178},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.07651}]}"
+        },
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addReferenceIndex"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Add ETH Price Index (ETH_PRICE_MON_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 2: ETH price index added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('✅ ETH_PRICE_MON_01 loaded: 31 daily prices, $2800 → $1870 (-33%)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_PRICE_MON_01\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-02-18T00:00:00\",\"value\":2800},{\"time\":\"2026-02-19T00:00:00\",\"value\":2775},{\"time\":\"2026-02-20T00:00:00\",\"value\":2750},{\"time\":\"2026-02-21T00:00:00\",\"value\":2710},{\"time\":\"2026-02-22T00:00:00\",\"value\":2690},{\"time\":\"2026-02-23T00:00:00\",\"value\":2665},{\"time\":\"2026-02-24T00:00:00\",\"value\":2640},{\"time\":\"2026-02-25T00:00:00\",\"value\":2600},{\"time\":\"2026-02-26T00:00:00\",\"value\":2560},{\"time\":\"2026-02-27T00:00:00\",\"value\":2530},{\"time\":\"2026-02-28T00:00:00\",\"value\":2490},{\"time\":\"2026-03-01T00:00:00\",\"value\":2460},{\"time\":\"2026-03-02T00:00:00\",\"value\":2430},{\"time\":\"2026-03-03T00:00:00\",\"value\":2410},{\"time\":\"2026-03-04T00:00:00\",\"value\":2380},{\"time\":\"2026-03-05T00:00:00\",\"value\":2350},{\"time\":\"2026-03-06T00:00:00\",\"value\":2310},{\"time\":\"2026-03-07T00:00:00\",\"value\":2280},{\"time\":\"2026-03-08T00:00:00\",\"value\":2240},{\"time\":\"2026-03-09T00:00:00\",\"value\":2200},{\"time\":\"2026-03-10T00:00:00\",\"value\":2170},{\"time\":\"2026-03-11T00:00:00\",\"value\":2140},{\"time\":\"2026-03-12T00:00:00\",\"value\":2110},{\"time\":\"2026-03-13T00:00:00\",\"value\":2080},{\"time\":\"2026-03-14T00:00:00\",\"value\":2050},{\"time\":\"2026-03-15T00:00:00\",\"value\":2020},{\"time\":\"2026-03-16T00:00:00\",\"value\":1990},{\"time\":\"2026-03-17T00:00:00\",\"value\":1960},{\"time\":\"2026-03-18T00:00:00\",\"value\":1930},{\"time\":\"2026-03-19T00:00:00\",\"value\":1900},{\"time\":\"2026-03-20T00:00:00\",\"value\":1870}]}"
+        },
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addReferenceIndex"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Add Prepayment Model (defi_pp_mon_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 3: Prepayment model added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('added successfully');",
+              "    console.log('✅ defi_pp_mon_01: TwoDimensionalPrepayment (voluntary deleveraging)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"defi_pp_mon_01\",\"referenceRateId\":\"DEFI_RATE\",\"prepaymentEventTimes\":[\"2026-02-25T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-18T00:00:00\"],\"surface\":{\"interpolationMethod\":\"linear\",\"extrapolationMethod\":\"constant\",\"margins\":[{\"dimension\":1,\"values\":[0.03,0.02,0.01,0.0,-0.01,-0.02,-0.03]},{\"dimension\":2,\"values\":[0,0.025,0.05,0.083]}],\"data\":[[0.15,0.12,0.1,0.08],[0.1,0.08,0.06,0.05],[0.05,0.04,0.03,0.02],[0.02,0.01,0.005,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]}}"
+        },
+        "url": {
+          "raw": "http://localhost:8082/addTwoDimensionalPrepaymentModel",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addTwoDimensionalPrepaymentModel"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Add BufferLTV Model (buffer_ltv_mon_01) - OPTION B",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 4: BufferLTV model added (Option B)', function(){",
+              "    pm.response.to.have.status(200);",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "    console.log('✅ buffer_ltv_mon_01: BufferLTVModel (OPTION B)');",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "    console.log('STRATEGY: Buffer-First Liquidation Defense');",
+              "    console.log('  → Monitors LTV using CONSTANT 3.0 ETH collateral');",
+              "    console.log('  → Sells from 4.0 ETH BUFFER (not collateral)');",
+              "    console.log('  → Preserves collateral quantity throughout');",
+              "    console.log('');",
+              "    console.log('CIRCUIT BREAKER:');",
+              "    console.log('  → Max interventions: 3');",
+              "    console.log('  → Min reserve: 1.0 ETH (never touched)');",
+              "    console.log('  → Max usage per intervention: 33% (1.32 ETH)');",
+              "    console.log('  → Cooldown: 24 hours between interventions');",
+              "    console.log('  → Falling knife: stops if price drops >20% in 48hr');",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"buffer_ltv_mon_01\",\"collateralPriceMarketObjectCode\":\"ETH_USD\",\"collateralQuantity\":3.0,\"bufferContractId\":\"ETH-Buffer-Portfolio-01\",\"initialBufferQuantity\":4.0,\"ltvThreshold\":0.75,\"ltvTarget\":0.65,\"liquidationThreshold\":0.825,\"maxInterventions\":3,\"minBufferReserve\":1.0,\"maxBufferUsagePerIntervention\":0.33,\"cooldownMillis\":86400000,\"fallingKnifePriceDropThreshold\":0.20,\"fallingKnifeTimeWindowMillis\":172800000,\"monitoringEventTimes\":[\"2026-02-19T00:00:00\",\"2026-02-20T00:00:00\",\"2026-02-21T00:00:00\",\"2026-02-22T00:00:00\",\"2026-02-23T00:00:00\",\"2026-02-24T00:00:00\",\"2026-02-25T00:00:00\",\"2026-02-26T00:00:00\",\"2026-02-27T00:00:00\",\"2026-02-28T00:00:00\",\"2026-03-01T00:00:00\",\"2026-03-02T00:00:00\",\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\"]}"
+        },
+        "url": {
+          "raw": "http://localhost:8082/addBufferLTVModel",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addBufferLTVModel"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Add Scenario (with BufferLTVModel)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 5: Scenario created with BufferLTVModel', function(){",
+              "    pm.response.to.have.status(200);",
+              "    console.log('✅ defi_buffer_first_scn01 created');",
+              "    console.log('   → Uses BufferLTVModel (Option B)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_buffer_first_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"DEFI_RAT_MON_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ETH_PRICE_MON_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"defi_pp_mon_01\",\"riskFactorType\":\"TwoDimensionalPrepaymentModel\"},{\"riskFactorID\":\"buffer_ltv_mon_01\",\"riskFactorType\":\"BufferLTVModel\"}]}"
+        },
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addScenario"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Verify Setup",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6: Setup verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    var scenario = data.find(function(s){return s.scenarioID === 'defi_buffer_first_scn01';});",
+              "    pm.expect(scenario).to.not.be.undefined;",
+              "    console.log('✅ All components verified');",
+              "    console.log('   Scenario: defi_buffer_first_scn01');",
+              "    console.log('   Risk factors: 4 (2 indices, 1 prepayment, 1 BufferLTV)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findAllScenarios",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["findAllScenarios"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Run Portfolio Simulation - OPTION B (Buffer-First)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 7: OPTION B Buffer-First simulation', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "    console.log('OPTION B: BUFFER-FIRST LIQUIDATION DEFENSE');",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "    console.log('Total contracts simulated: ' + data.length);",
+              "    console.log('');",
+              "    ",
+              "    var collateralCOM = data.find(function(c){return (c.contractId||c.contractID||'').includes('Collateral');});",
+              "    var bufferCOM = data.find(function(c){return (c.contractId||c.contractID||'').includes('Buffer');});",
+              "    var pamLoan = data.find(function(c){return (c.contractId||c.contractID||'').includes('DeFi-ETH');});",
+              "    ",
+              "    console.log('══ PORTFOLIO BREAKDOWN ══');",
+              "    if(collateralCOM){",
+              "        console.log('1. Collateral ETH (COM): 3.0 ETH - ' + (collateralCOM.events||[]).length + ' events');",
+              "        console.log('   → Quantity NEVER changes (Option B characteristic)');",
+              "    }",
+              "    if(bufferCOM){",
+              "        console.log('2. Buffer ETH (COM): 4.0 ETH - ' + (bufferCOM.events||[]).length + ' events');",
+              "        console.log('   → Defense fund (depletes on interventions)');",
+              "    }",
+              "    if(pamLoan){",
+              "        var events = pamLoan.events || [];",
+              "        console.log('3. Loan (PAM): $5,000 - ' + events.length + ' events');",
+              "        var rrCount = events.filter(function(e){return e.type==='RR';}).length;",
+              "        var ipCount = events.filter(function(e){return e.type==='IP';}).length;",
+              "        var ppCount = events.filter(function(e){return e.type==='PP';}).length;",
+              "        console.log('   → RR (Rate Reset): ' + rrCount);",
+              "        console.log('   → IP (Interest): ' + ipCount);",
+              "        console.log('   → PP (Prepayment): ' + ppCount);",
+              "    }",
+              "    console.log('');",
+              "    ",
+              "    if(pamLoan && pamLoan.events){",
+              "        var events = pamLoan.events;",
+              "        var pps = events.filter(function(e){return e.type==='PP' && e.payoff > 0;});",
+              "        if(pps.length > 0){",
+              "            console.log('══ BUFFER INTERVENTIONS DETECTED ══');",
+              "            console.log('Look for BufferLTVModel intervention logs in Java console:');",
+              "            console.log('  → \"**** BufferLTVModel INTERVENTION ****\"');",
+              "            console.log('  → Shows: ETH sold, USDC raised, buffer before/after');",
+              "            console.log('  → Circuit breaker status after each intervention');",
+              "            console.log('');",
+              "            console.log('Total PP events: ' + pps.length);",
+              "            pps.slice(0,3).forEach(function(pp){",
+              "                console.log('  ' + pp.time + ': $' + pp.payoff.toFixed(2) + ' → loan=$' + pp.nominalValue.toFixed(2));",
+              "            });",
+              "            if(pps.length > 3) console.log('  ... and ' + (pps.length-3) + ' more');",
+              "        }",
+              "        console.log('');",
+              "        ",
+              "        var lastEvent = events[events.length - 1];",
+              "        if(lastEvent){",
+              "            console.log('══ FINAL STATE (Day 30) ══');",
+              "            console.log('  Final notional: $' + (lastEvent.nominalValue || 0).toFixed(2));",
+              "            console.log('  Contract status: OPEN (100-year perpetual)');",
+              "            console.log('');",
+              "            console.log('══ OPTION B KEY ADVANTAGE ══');",
+              "            console.log('  Collateral: PRESERVED at 3.0 ETH (never liquidated)');",
+              "            console.log('  LTV calculation: Always uses original 3.0 ETH');",
+              "            console.log('  Result: Much healthier LTV after each defense');",
+              "            console.log('');",
+              "            console.log('  Compare to Option A:');",
+              "            console.log('    Option A: Liquidates collateral → depleting quantity');",
+              "            console.log('    Option B: Uses buffer → constant collateral ✅');",
+              "        }",
+              "    }",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"COM\",\"contractID\":\"ETH-Collateral-CompetingRisk-01\",\"contractRole\":\"RPA\",\"statusDate\":\"2026-02-17T00:00:00\",\"contractDealDate\":\"2026-02-17T00:00:00\",\"initialExchangeDate\":\"2026-02-18T00:00:00\",\"maturityDate\":\"2126-02-18T00:00:00\",\"currency\":\"USD\",\"marketObjectCode\":\"ETH_USD\",\"quantity\":3.0,\"unit\":\"ETH\"},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"COM\",\"contractID\":\"ETH-Buffer-Portfolio-01\",\"contractRole\":\"RPA\",\"statusDate\":\"2026-02-17T00:00:00\",\"contractDealDate\":\"2026-02-17T00:00:00\",\"initialExchangeDate\":\"2026-02-18T00:00:00\",\"maturityDate\":\"2126-02-18T00:00:00\",\"currency\":\"USD\",\"marketObjectCode\":\"ETH_USD\",\"quantity\":4.0,\"unit\":\"ETH\"},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-17T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"DeFi-ETH-CompetingRisk-01\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-20T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.05,\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-17T00:00:00\",\"initialExchangeDate\":\"2026-02-18T00:00:00\",\"maturityDate\":\"2126-02-18T00:00:00\",\"notionalPrincipal\":5000,\"premiumDiscountAtIED\":0,\"cycleAnchorDateOfRateReset\":\"2026-02-19T00:00:00\",\"cycleOfRateReset\":\"P1DL1\",\"rateSpread\":0.0,\"marketObjectCodeOfRateReset\":\"DEFI_RATE\",\"prepaymentModels\":[\"defi_pp_mon_01\",\"buffer_ltv_mon_01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"defi_buffer_first_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2027-02-18T00:00:00\",\"monitoringTimes\":[]}"
+        },
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8083",
+          "path": ["rf2", "scenarioSimulation"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

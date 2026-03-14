@@ -1,0 +1,73 @@
+{
+  "protocol_code": "AAVE-V3",
+  "protocol_name": "Aave V3 - Mainnet Ethereum",
+  "version": "3.0.0",
+  "effective_date": "2023-01-01",
+  "description": "Aave V3 protocol risk parameters for Ethereum mainnet. Multi-asset collateral pools with eMode (efficiency mode) and isolation mode support.",
+
+  "liquidation_threshold": 0.825,
+  "loan_to_value": 0.80,
+  "liquidation_bonus": 0.05,
+  "liquidation_close_factor": 0.50,
+
+  "health_factor_trigger": 1.0,
+  "healthy_health_factor": 1.5,
+  "target_health_factor_recovery": 2.0,
+
+  "reserve_factor": 0.10,
+  "protocol_fee_bps": 9,
+  "max_utilization_rate": 0.90,
+
+  "collateral_assets": {
+    "ETH": {
+      "liquidation_threshold": 0.825,
+      "loan_to_value": 0.80,
+      "liquidation_bonus": 0.05,
+      "decimals": 18
+    },
+    "WBTC": {
+      "liquidation_threshold": 0.75,
+      "loan_to_value": 0.70,
+      "liquidation_bonus": 0.10,
+      "decimals": 8
+    },
+    "USDC": {
+      "liquidation_threshold": 0.95,
+      "loan_to_value": 0.90,
+      "liquidation_bonus": 0.045,
+      "decimals": 6
+    },
+    "DAI": {
+      "liquidation_threshold": 0.95,
+      "loan_to_value": 0.90,
+      "liquidation_bonus": 0.045,
+      "decimals": 18
+    },
+    "TOKENIZED_INVOICE": {
+      "liquidation_threshold": 0.70,
+      "loan_to_value": 0.60,
+      "liquidation_bonus": 0.10,
+      "decimals": 6
+    }
+  },
+
+  "borrow_rate_model": {
+    "base_rate": 0.0,
+    "slope1": 0.04,
+    "slope2": 0.75,
+    "optimal_utilization": 0.80
+  },
+
+  "cascade_risk": {
+    "hhi_warning_threshold": 0.30,
+    "max_single_collateral_share": 0.60,
+    "correlation_penalty_threshold": 0.70
+  },
+
+  "gas_parameters": {
+    "liquidation_gas_units": 350000,
+    "flash_loan_gas_units": 500000,
+    "base_fee_gwei_reference": 25,
+    "priority_fee_gwei": 2
+  }
+}

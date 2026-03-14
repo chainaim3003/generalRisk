@@ -1,0 +1,331 @@
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 56035
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.52.0",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "8e4112b3-1e35-400c-ae2c-3352a134ebc3",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "4439"
+  },
+  "Request Body": "{\"riskFactorID\":\"DEFI_RAT_MON_01\",\"marketObjectCode\":\"DEFI_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-02-18T00:00:00\",\"value\":0.05},{\"time\":\"2026-02-19T00:00:00\",\"value\":0.050273},{\"time\":\"2026-02-20T00:00:00\",\"value\":0.050556},{\"time\":\"2026-02-21T00:00:00\",\"value\":0.050849},{\"time\":\"2026-02-22T00:00:00\",\"value\":0.051152},{\"time\":\"2026-02-23T00:00:00\",\"value\":0.051465},{\"time\":\"2026-02-24T00:00:00\",\"value\":0.051788},{\"time\":\"2026-02-25T00:00:00\",\"value\":0.052121},{\"time\":\"2026-02-26T00:00:00\",\"value\":0.052464},{\"time\":\"2026-02-27T00:00:00\",\"value\":0.052817},{\"time\":\"2026-02-28T00:00:00\",\"value\":0.05318},{\"time\":\"2026-03-01T00:00:00\",\"value\":0.053553},{\"time\":\"2026-03-02T00:00:00\",\"value\":0.053936},{\"time\":\"2026-03-03T00:00:00\",\"value\":0.054329},{\"time\":\"2026-03-04T00:00:00\",\"value\":0.054732},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.055145},{\"time\":\"2026-03-06T00:00:00\",\"value\":0.055568},{\"time\":\"2026-03-07T00:00:00\",\"value\":0.056001},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.056444},{\"time\":\"2026-03-09T00:00:00\",\"value\":0.056897},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.05736},{\"time\":\"2026-03-11T00:00:00\",\"value\":0.057833},{\"time\":\"2026-03-12T00:00:00\",\"value\":0.058316},{\"time\":\"2026-03-13T00:00:00\",\"value\":0.058809},{\"time\":\"2026-03-14T00:00:00\",\"value\":0.059312},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.059825},{\"time\":\"2026-03-16T00:00:00\",\"value\":0.060348},{\"time\":\"2026-03-17T00:00:00\",\"value\":0.060881},{\"time\":\"2026-03-18T00:00:00\",\"value\":0.061424},{\"time\":\"2026-03-19T00:00:00\",\"value\":0.061977},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.06254},{\"time\":\"2026-03-21T00:00:00\",\"value\":0.063113},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.063696},{\"time\":\"2026-03-23T00:00:00\",\"value\":0.064289},{\"time\":\"2026-03-24T00:00:00\",\"value\":0.064892},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.065505},{\"time\":\"2026-03-26T00:00:00\",\"value\":0.066128},{\"time\":\"2026-03-27T00:00:00\",\"value\":0.066761},{\"time\":\"2026-03-28T00:00:00\",\"value\":0.067404},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.068057},{\"time\":\"2026-03-30T00:00:00\",\"value\":0.06872},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.069393},{\"time\":\"2026-04-01T00:00:00\",\"value\":0.070076},{\"time\":\"2026-04-02T00:00:00\",\"value\":0.070769},{\"time\":\"2026-04-03T00:00:00\",\"value\":0.071472},{\"time\":\"2026-04-04T00:00:00\",\"value\":0.072185},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.072908},{\"time\":\"2026-04-06T00:00:00\",\"value\":0.073641},{\"time\":\"2026-04-07T00:00:00\",\"value\":0.074384},{\"time\":\"2026-04-08T00:00:00\",\"value\":0.075137},{\"time\":\"2026-04-09T00:00:00\",\"value\":0.0759},{\"time\":\"2026-04-10T00:00:00\",\"value\":0.076673},{\"time\":\"2026-04-11T00:00:00\",\"value\":0.077456},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.078249},{\"time\":\"2026-04-13T00:00:00\",\"value\":0.079052},{\"time\":\"2026-04-14T00:00:00\",\"value\":0.079865},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.080688},{\"time\":\"2026-04-16T00:00:00\",\"value\":0.081521},{\"time\":\"2026-04-17T00:00:00\",\"value\":0.082364},{\"time\":\"2026-04-18T00:00:00\",\"value\":0.083217},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.08408},{\"time\":\"2026-04-20T00:00:00\",\"value\":0.084953},{\"time\":\"2026-04-21T00:00:00\",\"value\":0.085836},{\"time\":\"2026-04-22T00:00:00\",\"value\":0.086729},{\"time\":\"2026-04-23T00:00:00\",\"value\":0.087632},{\"time\":\"2026-04-24T00:00:00\",\"value\":0.088545},{\"time\":\"2026-04-25T00:00:00\",\"value\":0.089468},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.090401},{\"time\":\"2026-04-27T00:00:00\",\"value\":0.091344},{\"time\":\"2026-04-28T00:00:00\",\"value\":0.092297},{\"time\":\"2026-04-29T00:00:00\",\"value\":0.09326},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.094233},{\"time\":\"2026-05-01T00:00:00\",\"value\":0.095216},{\"time\":\"2026-05-02T00:00:00\",\"value\":0.096209},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.097212},{\"time\":\"2026-05-04T00:00:00\",\"value\":0.098225},{\"time\":\"2026-05-05T00:00:00\",\"value\":0.099248},{\"time\":\"2026-05-06T00:00:00\",\"value\":0.100281},{\"time\":\"2026-05-07T00:00:00\",\"value\":0.101324},{\"time\":\"2026-05-08T00:00:00\",\"value\":0.102377},{\"time\":\"2026-05-09T00:00:00\",\"value\":0.10344},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.104513},{\"time\":\"2026-05-11T00:00:00\",\"value\":0.105596},{\"time\":\"2026-05-12T00:00:00\",\"value\":0.106689},{\"time\":\"2026-05-13T00:00:00\",\"value\":0.107792},{\"time\":\"2026-05-14T00:00:00\",\"value\":0.108905},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.110028},{\"time\":\"2026-05-16T00:00:00\",\"value\":0.111161},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.112304},{\"time\":\"2026-05-18T00:00:00\",\"value\":0.113457},{\"time\":\"2026-05-19T00:00:00\",\"value\":0.11462}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Sat, 14 Mar 2026 07:15:37 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ DEFI_RAT_MON_01: 90 data points loaded'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 56035
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.52.0",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "7e6aa976-c8ee-4c26-9edc-a79143c730a4",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "4268"
+  },
+  "Request Body": "{\"riskFactorID\":\"ETH_PRICE_MON_01\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-02-18T00:00:00\",\"value\":2800},{\"time\":\"2026-02-19T00:00:00\",\"value\":2789.67},{\"time\":\"2026-02-20T00:00:00\",\"value\":2779.33},{\"time\":\"2026-02-21T00:00:00\",\"value\":2769},{\"time\":\"2026-02-22T00:00:00\",\"value\":2758.67},{\"time\":\"2026-02-23T00:00:00\",\"value\":2748.33},{\"time\":\"2026-02-24T00:00:00\",\"value\":2738},{\"time\":\"2026-02-25T00:00:00\",\"value\":2727.67},{\"time\":\"2026-02-26T00:00:00\",\"value\":2717.33},{\"time\":\"2026-02-27T00:00:00\",\"value\":2707},{\"time\":\"2026-02-28T00:00:00\",\"value\":2696.67},{\"time\":\"2026-03-01T00:00:00\",\"value\":2686.33},{\"time\":\"2026-03-02T00:00:00\",\"value\":2676},{\"time\":\"2026-03-03T00:00:00\",\"value\":2665.67},{\"time\":\"2026-03-04T00:00:00\",\"value\":2655.33},{\"time\":\"2026-03-05T00:00:00\",\"value\":2645},{\"time\":\"2026-03-06T00:00:00\",\"value\":2634.67},{\"time\":\"2026-03-07T00:00:00\",\"value\":2624.33},{\"time\":\"2026-03-08T00:00:00\",\"value\":2614},{\"time\":\"2026-03-09T00:00:00\",\"value\":2603.67},{\"time\":\"2026-03-10T00:00:00\",\"value\":2593.33},{\"time\":\"2026-03-11T00:00:00\",\"value\":2583},{\"time\":\"2026-03-12T00:00:00\",\"value\":2572.67},{\"time\":\"2026-03-13T00:00:00\",\"value\":2562.33},{\"time\":\"2026-03-14T00:00:00\",\"value\":2552},{\"time\":\"2026-03-15T00:00:00\",\"value\":2541.67},{\"time\":\"2026-03-16T00:00:00\",\"value\":2531.33},{\"time\":\"2026-03-17T00:00:00\",\"value\":2521},{\"time\":\"2026-03-18T00:00:00\",\"value\":2510.67},{\"time\":\"2026-03-19T00:00:00\",\"value\":2500.33},{\"time\":\"2026-03-20T00:00:00\",\"value\":2490},{\"time\":\"2026-03-21T00:00:00\",\"value\":2479.67},{\"time\":\"2026-03-22T00:00:00\",\"value\":2469.33},{\"time\":\"2026-03-23T00:00:00\",\"value\":2459},{\"time\":\"2026-03-24T00:00:00\",\"value\":2448.67},{\"time\":\"2026-03-25T00:00:00\",\"value\":2438.33},{\"time\":\"2026-03-26T00:00:00\",\"value\":2428},{\"time\":\"2026-03-27T00:00:00\",\"value\":2417.67},{\"time\":\"2026-03-28T00:00:00\",\"value\":2407.33},{\"time\":\"2026-03-29T00:00:00\",\"value\":2397},{\"time\":\"2026-03-30T00:00:00\",\"value\":2386.67},{\"time\":\"2026-03-31T00:00:00\",\"value\":2376.33},{\"time\":\"2026-04-01T00:00:00\",\"value\":2366},{\"time\":\"2026-04-02T00:00:00\",\"value\":2355.67},{\"time\":\"2026-04-03T00:00:00\",\"value\":2345.33},{\"time\":\"2026-04-04T00:00:00\",\"value\":2335},{\"time\":\"2026-04-05T00:00:00\",\"value\":2324.67},{\"time\":\"2026-04-06T00:00:00\",\"value\":2314.33},{\"time\":\"2026-04-07T00:00:00\",\"value\":2304},{\"time\":\"2026-04-08T00:00:00\",\"value\":2293.67},{\"time\":\"2026-04-09T00:00:00\",\"value\":2283.33},{\"time\":\"2026-04-10T00:00:00\",\"value\":2273},{\"time\":\"2026-04-11T00:00:00\",\"value\":2262.67},{\"time\":\"2026-04-12T00:00:00\",\"value\":2252.33},{\"time\":\"2026-04-13T00:00:00\",\"value\":2242},{\"time\":\"2026-04-14T00:00:00\",\"value\":2231.67},{\"time\":\"2026-04-15T00:00:00\",\"value\":2221.33},{\"time\":\"2026-04-16T00:00:00\",\"value\":2211},{\"time\":\"2026-04-17T00:00:00\",\"value\":2200.67},{\"time\":\"2026-04-18T00:00:00\",\"value\":2190.33},{\"time\":\"2026-04-19T00:00:00\",\"value\":2180},{\"time\":\"2026-04-20T00:00:00\",\"value\":2169.67},{\"time\":\"2026-04-21T00:00:00\",\"value\":2159.33},{\"time\":\"2026-04-22T00:00:00\",\"value\":2149},{\"time\":\"2026-04-23T00:00:00\",\"value\":2138.67},{\"time\":\"2026-04-24T00:00:00\",\"value\":2128.33},{\"time\":\"2026-04-25T00:00:00\",\"value\":2118},{\"time\":\"2026-04-26T00:00:00\",\"value\":2107.67},{\"time\":\"2026-04-27T00:00:00\",\"value\":2097.33},{\"time\":\"2026-04-28T00:00:00\",\"value\":2087},{\"time\":\"2026-04-29T00:00:00\",\"value\":2076.67},{\"time\":\"2026-04-30T00:00:00\",\"value\":2066.33},{\"time\":\"2026-05-01T00:00:00\",\"value\":2056},{\"time\":\"2026-05-02T00:00:00\",\"value\":2045.67},{\"time\":\"2026-05-03T00:00:00\",\"value\":2035.33},{\"time\":\"2026-05-04T00:00:00\",\"value\":2025},{\"time\":\"2026-05-05T00:00:00\",\"value\":2014.67},{\"time\":\"2026-05-06T00:00:00\",\"value\":2004.33},{\"time\":\"2026-05-07T00:00:00\",\"value\":1994},{\"time\":\"2026-05-08T00:00:00\",\"value\":1983.67},{\"time\":\"2026-05-09T00:00:00\",\"value\":1973.33},{\"time\":\"2026-05-10T00:00:00\",\"value\":1963},{\"time\":\"2026-05-11T00:00:00\",\"value\":1952.67},{\"time\":\"2026-05-12T00:00:00\",\"value\":1942.33},{\"time\":\"2026-05-13T00:00:00\",\"value\":1932},{\"time\":\"2026-05-14T00:00:00\",\"value\":1921.67},{\"time\":\"2026-05-15T00:00:00\",\"value\":1911.33},{\"time\":\"2026-05-16T00:00:00\",\"value\":1901},{\"time\":\"2026-05-17T00:00:00\",\"value\":1890.67},{\"time\":\"2026-05-18T00:00:00\",\"value\":1880.33},{\"time\":\"2026-05-19T00:00:00\",\"value\":1870}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Sat, 14 Mar 2026 07:15:37 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ ETH_PRICE_MON_01: 90 daily prices, $2800 → $1870 (-33%)'
+POST http://localhost:8082/addTwoDimensionalPrepaymentModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 56035
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.52.0",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "962cc62c-691e-498c-9799-2e5214b3b17c",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "673"
+  },
+  "Request Body": "{\"riskFactorId\":\"defi_pp_mon_01\",\"referenceRateId\":\"DEFI_RATE\",\"prepaymentEventTimes\":[\"2026-02-25T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-25T00:00:00\",\"2026-04-01T00:00:00\",\"2026-04-08T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-22T00:00:00\",\"2026-04-29T00:00:00\",\"2026-05-06T00:00:00\",\"2026-05-13T00:00:00\"],\"surface\":{\"interpolationMethod\":\"linear\",\"extrapolationMethod\":\"constant\",\"margins\":[{\"dimension\":1,\"values\":[0.03,0.02,0.01,0.0,-0.01,-0.02,-0.03]},{\"dimension\":2,\"values\":[0,0.025,0.05,0.083]}],\"data\":[[0.15,0.12,0.1,0.08],[0.1,0.08,0.06,0.05],[0.05,0.04,0.03,0.02],[0.02,0.01,0.005,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]}}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "50",
+    "date": "Sat, 14 Mar 2026 07:15:37 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "TwoDimensionalPrepayment model added successfully\n"
+}
+'✅ defi_pp_mon_01: TwoDimensionalPrepayment (voluntary)'
+POST http://localhost:8082/addBufferLTVModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 56035
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.52.0",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "17c861ae-b050-4851-92ef-2ff7a989353f",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "2795"
+  },
+  "Request Body": "{\"riskFactorId\":\"buffer_ltv_mon_01\",\"collateralPriceMarketObjectCode\":\"ETH_USD\",\"collateralQuantity\":3.0,\"bufferContractId\":\"ETH-Buffer-Portfolio-01\",\"initialBufferQuantity\":4.0,\"ltvThreshold\":0.75,\"ltvTarget\":0.65,\"liquidationThreshold\":0.825,\"maxInterventions\":2,\"minBufferReserve\":1.0,\"maxBufferUsagePerIntervention\":0.33,\"cooldownMillis\":86400000,\"fallingKnifePriceDropThreshold\":0.20,\"fallingKnifeTimeWindowMillis\":172800000,\"monitoringEventTimes\":[\"2026-02-19T00:00:00.001\",\"2026-02-20T00:00:00.001\",\"2026-02-21T00:00:00.001\",\"2026-02-22T00:00:00.001\",\"2026-02-23T00:00:00.001\",\"2026-02-24T00:00:00.001\",\"2026-02-25T00:00:00.001\",\"2026-02-26T00:00:00.001\",\"2026-02-27T00:00:00.001\",\"2026-02-28T00:00:00.001\",\"2026-03-01T00:00:00.001\",\"2026-03-02T00:00:00.001\",\"2026-03-03T00:00:00.001\",\"2026-03-04T00:00:00.001\",\"2026-03-05T00:00:00.001\",\"2026-03-06T00:00:00.001\",\"2026-03-07T00:00:00.001\",\"2026-03-08T00:00:00.001\",\"2026-03-09T00:00:00.001\",\"2026-03-10T00:00:00.001\",\"2026-03-11T00:00:00.001\",\"2026-03-12T00:00:00.001\",\"2026-03-13T00:00:00.001\",\"2026-03-14T00:00:00.001\",\"2026-03-15T00:00:00.001\",\"2026-03-16T00:00:00.001\",\"2026-03-17T00:00:00.001\",\"2026-03-18T00:00:00.001\",\"2026-03-19T00:00:00.001\",\"2026-03-20T00:00:00.001\",\"2026-03-21T00:00:00.001\",\"2026-03-22T00:00:00.001\",\"2026-03-23T00:00:00.001\",\"2026-03-24T00:00:00.001\",\"2026-03-25T00:00:00.001\",\"2026-03-26T00:00:00.001\",\"2026-03-27T00:00:00.001\",\"2026-03-28T00:00:00.001\",\"2026-03-29T00:00:00.001\",\"2026-03-30T00:00:00.001\",\"2026-03-31T00:00:00.001\",\"2026-04-01T00:00:00.001\",\"2026-04-02T00:00:00.001\",\"2026-04-03T00:00:00.001\",\"2026-04-04T00:00:00.001\",\"2026-04-05T00:00:00.001\",\"2026-04-06T00:00:00.001\",\"2026-04-07T00:00:00.001\",\"2026-04-08T00:00:00.001\",\"2026-04-09T00:00:00.001\",\"2026-04-10T00:00:00.001\",\"2026-04-11T00:00:00.001\",\"2026-04-12T00:00:00.001\",\"2026-04-13T00:00:00.001\",\"2026-04-14T00:00:00.001\",\"2026-04-15T00:00:00.001\",\"2026-04-16T00:00:00.001\",\"2026-04-17T00:00:00.001\",\"2026-04-18T00:00:00.001\",\"2026-04-19T00:00:00.001\",\"2026-04-20T00:00:00.001\",\"2026-04-21T00:00:00.001\",\"2026-04-22T00:00:00.001\",\"2026-04-23T00:00:00.001\",\"2026-04-24T00:00:00.001\",\"2026-04-25T00:00:00.001\",\"2026-04-26T00:00:00.001\",\"2026-04-27T00:00:00.001\",\"2026-04-28T00:00:00.001\",\"2026-04-29T00:00:00.001\",\"2026-04-30T00:00:00.001\",\"2026-05-01T00:00:00.001\",\"2026-05-02T00:00:00.001\",\"2026-05-03T00:00:00.001\",\"2026-05-04T00:00:00.001\",\"2026-05-05T00:00:00.001\",\"2026-05-06T00:00:00.001\",\"2026-05-07T00:00:00.001\",\"2026-05-08T00:00:00.001\",\"2026-05-09T00:00:00.001\",\"2026-05-10T00:00:00.001\",\"2026-05-11T00:00:00.001\",\"2026-05-12T00:00:00.001\",\"2026-05-13T00:00:00.001\",\"2026-05-14T00:00:00.001\",\"2026-05-15T00:00:00.001\",\"2026-05-16T00:00:00.001\",\"2026-05-17T00:00:00.001\",\"2026-05-18T00:00:00.001\",\"2026-05-19T00:00:00.001\"]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Sat, 14 Mar 2026 07:15:37 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "BufferLTVModel added successfully\n"
+}
+'════════════════════════════════════════════════════════════'
+'✅ buffer_ltv_mon_01: BufferLTVModel (OPTION B - V5)'
+'════════════════════════════════════════════════════════════'
+'STRATEGY: Buffer-First Liquidation Defense'
+'  → Monitors LTV using CONSTANT 3.0 ETH collateral'
+'  → Sells from 4.0 ETH BUFFER (not collateral)'
+'  → Preserves collateral quantity throughout'
+''
+'V5 CONFIGURATION UPDATES:'
+'  ✅ Max interventions: 2 (was 3 in V4)'
+'  ✅ Monitoring offset: +1ms (state sync fix)'
+''
+'CIRCUIT BREAKER:'
+'  → Max interventions: 2 (UPDATED - more conservative)'
+'  → Min reserve: 1.0 ETH (never touched)'
+'  → Max usage per intervention: 33% (1.32 ETH)'
+'  → Cooldown: 24 hours between interventions'
+'  → Falling knife: stops if price drops >20% in 48hr'
+''
+'STATE SYNCHRONIZATION:'
+'  → Monitoring at T00:00:00.001 (+1 millisecond)'
+'  → Ensures BufferLTVModel sees CURRENT state'
+'  → Contract events (PP, IP, RR) process at T00:00:00'
+'  → Monitoring reads UPDATED state at T00:00:00.001'
+''
+'SIMULATION: 90 days for faster analysis'
+'════════════════════════════════════════════════════════════'
+POST http://localhost:8082/addScenario: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 56035
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.52.0",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "cd4925c8-5e36-4b7d-8c19-c9b581b7c5da",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "359"
+  },
+  "Request Body": "{\"scenarioID\":\"defi_buffer_first_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"DEFI_RAT_MON_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ETH_PRICE_MON_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"defi_pp_mon_01\",\"riskFactorType\":\"TwoDimensionalPrepaymentModel\"},{\"riskFactorID\":\"buffer_ltv_mon_01\",\"riskFactorType\":\"BufferLTVModel\"}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "28",
+    "date": "Sat, 14 Mar 2026 07:15:37 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "Scenario added Successfully\n"
+}
+'✅ defi_buffer_first_scn01 created (V5 configuration)'
+'   → Uses BufferLTVModel (Option B - V5)'
+GET http://localhost:8082/findAllScenarios: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 56035
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "user-agent": "PostmanRuntime/7.52.0",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "6f75266e-078d-49d4-aaac-a0fb4749b0ea",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive"
+  },
+  "Response Headers": {
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Sat, 14 Mar 2026 07:15:37 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "The console only shows response bodies smaller than 10 KB inline. To view the complete body, inspect it by clicking Open."
+}
+'✅ All components verified (V5 configuration)'
+'   Scenario: defi_buffer_first_scn01'
+'   Risk factors: 4 (2 indices, 1 prepayment, 1 BufferLTV)'
+POST http://localhost:8083/rf2/scenarioSimulation: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 56037
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8083
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.52.0",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "fc3ea72c-7bdf-4f19-b318-21cfd53b2328",
+    "host": "localhost:8083",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "1615"
+  },
+  "Request Body": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"COM\",\"contractID\":\"ETH-Collateral-CompetingRisk-01\",\"contractRole\":\"RPA\",\"statusDate\":\"2026-02-17T00:00:00\",\"contractDealDate\":\"2026-02-17T00:00:00\",\"initialExchangeDate\":\"2026-02-18T00:00:00\",\"maturityDate\":\"2126-02-18T00:00:00\",\"currency\":\"USD\",\"marketObjectCode\":\"ETH_USD\",\"quantity\":3.0,\"unit\":\"ETH\"},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"COM\",\"contractID\":\"ETH-Buffer-Portfolio-01\",\"contractRole\":\"RPA\",\"statusDate\":\"2026-02-17T00:00:00\",\"contractDealDate\":\"2026-02-17T00:00:00\",\"initialExchangeDate\":\"2026-02-18T00:00:00\",\"maturityDate\":\"2126-02-18T00:00:00\",\"currency\":\"USD\",\"marketObjectCode\":\"ETH_USD\",\"quantity\":4.0,\"unit\":\"ETH\"},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-17T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"DeFi-ETH-CompetingRisk-01\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-20T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.05,\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-17T00:00:00\",\"initialExchangeDate\":\"2026-02-18T00:00:00\",\"maturityDate\":\"2126-02-18T00:00:00\",\"notionalPrincipal\":5000,\"premiumDiscountAtIED\":0,\"cycleAnchorDateOfRateReset\":\"2026-02-19T00:00:00\",\"cycleOfRateReset\":\"P1DL1\",\"rateSpread\":0.0,\"marketObjectCodeOfRateReset\":\"DEFI_RATE\",\"prepaymentModels\":[\"defi_pp_mon_01\",\"buffer_ltv_mon_01\"],\"enablePPStateCorrection\":true}],\"scenarioDescriptor\":{\"scenarioID\":\"defi_buffer_first_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-05-19T00:00:00\",\"monitoringTimes\":[]}",
+  "Response Headers": {
+    "vary": [
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Sat, 14 Mar 2026 07:15:42 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "The console only shows response bodies smaller than 10 KB inline. To view the complete body, inspect it by clicking Open."
+}
+'════════════════════════════════════════════════════════════'
+'OPTION B + PP STATE CORRECTION + STATE SYNC FIX (V5)'
+'════════════════════════════════════════════════════════════'
+'Total contracts simulated: 3'
+''
+'V5 IMPROVEMENTS:'
+'  ✅ maxInterventions: 2 (reduced from 3)'
+'  ✅ Monitoring offset: +1ms (state sync fix)'
+'  ✅ PP state correction enabled'
+'  ✅ Guaranteed current state in LTV calculations'
+''
+'══ PP EVENTS WITH STATE CORRECTION ══'
+'Total PP interventions: 2'
+''
+'PP Event 1: 2026-04-15T00:00:00.001'
+'  Loan BEFORE PP: $5000.00'
+'  Payoff (repayment): $668.41'
+'  ✅ nominalValue AFTER PP: $4331.59'
+'  Expected: $4331.59'
+'  Match: ✅ YES'
+''
+'PP Event 2: 2026-04-16T00:00:00.001'
+'  Loan BEFORE PP: $4331.59'
+'  Payoff (repayment): $688.55'
+'  ✅ nominalValue AFTER PP: $3643.04'
+'  Expected: $3643.04'
+'  Match: ✅ YES'
+''
+'══ FINAL STATE (Day 90) ══'
+'  Starting loan: $5000.00'
+'  Total repaid: $1356.96'
+'  Final notional: $3643.04'
+'  Deleveraged: 27.14%'
+''
+'══ V5 VALIDATION ══'
+'  ✅ Collateral: PRESERVED (3.0 ETH constant)'
+'  ✅ PP events: Show REDUCED loan balance'
+'  ✅ State sync: Monitoring sees current state'
+'  ✅ LTV accuracy: Uses updated notionalPrincipal'
+'  ✅ Max interventions: Capped at 2 (conservative)'
+'  ✅ Backward compatible: All features opt-in'
+'════════════════════════════════════════════════════════════'

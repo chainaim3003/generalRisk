@@ -1,0 +1,43 @@
+{
+  "scenario_name": "Moderate Correction",
+  "description": "ETH drawdown -25% over 30 days. Health factor approaches warning threshold (1.5) but stays above liquidation trigger (1.0). CollateralVelocity activates moderate repayment.",
+  "scenario_date": "2026-03",
+  "collateral_stress": "moderate",
+
+  "ETH_USD": {
+    "trend": "correction",
+    "start_value": 2800.0,
+    "trough_value": 2100.0,
+    "trough_date": "2026-03-31",
+    "recovery_value": 2400.0,
+    "end_date": "2026-05-31",
+    "peak_drawdown_pct": -25.0,
+    "note": "Moderate correction, partial recovery"
+  },
+  "DEFI_RATE": {
+    "trend": "rising_stress",
+    "start_value": 0.0624,
+    "peak_value": 0.0850,
+    "end_value": 0.0720,
+    "note": "Borrow demand spikes during correction"
+  },
+  "GAS_GWEI": {
+    "trend": "elevated",
+    "start_value": 25.0,
+    "peak_value": 85.0,
+    "end_value": 40.0,
+    "note": "Gas spikes as liquidators race"
+  },
+  "INVOICE_PAYMENT_PROB": {
+    "start_value": 0.95,
+    "trough_value": 0.88,
+    "end_value": 0.91,
+    "note": "Moderate credit stress"
+  },
+  "USDC_USD": {
+    "start_value": 1.0000,
+    "trough_value": 0.9990,
+    "end_value": 0.9995,
+    "note": "Minor depeg stress"
+  }
+}

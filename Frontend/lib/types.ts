@@ -156,7 +156,14 @@ export interface ScenarioTemplate {
 
 // ---- UI State Types ----
 
-export type DashboardMode = "upload" | "chat" | "simulation" | "defi-liquidation"
+export type DashboardMode =
+  | "upload"
+  | "chat"
+  | "simulation"
+  | "config"
+  | "defi-config"
+  | "defi-liquidation"
+  | "buffer-v5"
 
 export type Jurisdiction = "eu-mica" | "us-genius" | "custom"
 

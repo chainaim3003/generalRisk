@@ -1,0 +1,72 @@
+{
+  "protocol_code": "COMPOUND-V3",
+  "protocol_name": "Compound V3 (Comet) - Mainnet Ethereum",
+  "version": "3.0.0",
+  "effective_date": "2022-08-01",
+  "description": "Compound V3 (Comet) protocol risk parameters. Single-borrow-asset model (USDC base), multi-collateral. More conservative LTV than Aave V3.",
+
+  "liquidation_threshold": 0.80,
+  "loan_to_value": 0.75,
+  "liquidation_bonus": 0.08,
+  "liquidation_close_factor": 1.0,
+
+  "health_factor_trigger": 1.0,
+  "healthy_health_factor": 1.35,
+  "target_health_factor_recovery": 1.80,
+
+  "reserve_factor": 0.10,
+  "protocol_fee_bps": 5,
+  "max_utilization_rate": 0.85,
+
+  "collateral_assets": {
+    "ETH": {
+      "liquidation_threshold": 0.825,
+      "loan_to_value": 0.77,
+      "liquidation_bonus": 0.05,
+      "supply_cap_usd": 100000000,
+      "decimals": 18
+    },
+    "WBTC": {
+      "liquidation_threshold": 0.775,
+      "loan_to_value": 0.70,
+      "liquidation_bonus": 0.10,
+      "supply_cap_usd": 50000000,
+      "decimals": 8
+    },
+    "WSTETH": {
+      "liquidation_threshold": 0.80,
+      "loan_to_value": 0.75,
+      "liquidation_bonus": 0.05,
+      "supply_cap_usd": 75000000,
+      "decimals": 18
+    },
+    "LINK": {
+      "liquidation_threshold": 0.79,
+      "loan_to_value": 0.74,
+      "liquidation_bonus": 0.07,
+      "supply_cap_usd": 5000000,
+      "decimals": 18
+    }
+  },
+
+  "borrow_rate_model": {
+    "base_rate": 0.0,
+    "slope1": 0.05,
+    "slope2": 0.85,
+    "optimal_utilization": 0.80,
+    "kink": 0.80
+  },
+
+  "cascade_risk": {
+    "hhi_warning_threshold": 0.35,
+    "max_single_collateral_share": 0.70,
+    "correlation_penalty_threshold": 0.65
+  },
+
+  "gas_parameters": {
+    "liquidation_gas_units": 280000,
+    "flash_loan_gas_units": 0,
+    "base_fee_gwei_reference": 25,
+    "priority_fee_gwei": 2
+  }
+}

@@ -144,6 +144,63 @@ export async function checkRiskServiceHealth(
   return fetchApi(`/health/risk-service?environment=${env}`)
 }
 
+// ---- Config-Based Simulation API ----
+
+export interface ConfigSimulationRequest {
+  configData: {
+    config_metadata: {
+      config_id: string
+      collection_file: string
+    }
+    jurisdiction: {
+      source: "file" | "inline"
+      file?: string
+      inline?: any
+    }
+    market_scenario?: {
+      source: "file" | "inline"
+      file?: string
+      inline?: any
+    }
+    compliance_scenario?: {
+      source: "file" | "inline"
+      file?: string
+      inline?: any
+    }
+    simulation_timeframe: {
+      start_date: string
+      end_date: string
+      frequency: "daily" | "weekly" | "monthly"
+    }
+  }
+}
+
+export interface ConfigSimulationResponse {
+  success: boolean
+  message?: string
+  config?: {
+    id: string
+    collection_file: string
+    jurisdiction: string
+    monitoring_times_count: number
+  }
+  collection?: {
+    name: string
+    operations_count: number
+  }
+  note?: string
+  error?: string
+}
+
+export async function runConfigSimulation(
+  request: ConfigSimulationRequest
+): Promise<ConfigSimulationResponse> {
+  return fetchApi<ConfigSimulationResponse>("/simulate", {
+    method: "POST",
+    body: JSON.stringify(request),
+  })
+}
+
 // SWR fetchers
 export const scenariosFetcher = () => getScenarios()
 export const portfoliosFetcher = () => getPortfolios()

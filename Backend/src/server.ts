@@ -11,6 +11,7 @@ import type { VerificationParams, PortfolioConfig } from './types/index.js';
 import { runStimulation, ENVIRONMENTS } from './api/SimulationRunner.js';
 import type { EnvironmentConfig } from './api/SimulationRunner.js';
 import simulationRoutes from './routes/simulation.routes.js';
+import defiSimulationRoutes from './routes/defi-simulation.routes.js';
 
 const app = express();
 const PORT = 4000;
@@ -21,6 +22,8 @@ app.use(express.json({ limit: '10mb' }));
 
 // Register config-based simulation routes
 app.use('/api', simulationRoutes);
+// Register DeFi liquidation simulation routes
+app.use('/api', defiSimulationRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (_req, res) => {
@@ -118,10 +121,10 @@ app.post('/api/verify', async (req, res) => {
       portfolioPath: tempPath
     };
 
-    console.log('\n🎯 Verification Request');
-    console.log('Portfolio:', portfolioConfig.portfolioMetadata.portfolioId);
-    console.log('Contracts:', portfolioConfig.contracts.length);
-    console.log('Thresholds:', params);
+    console.error('\n🎯 Verification Request');
+    console.error('Portfolio:', portfolioConfig.portfolioMetadata.portfolioId);
+    console.error('Contracts:', portfolioConfig.contracts.length);
+    console.error('Thresholds:', params);
 
     const verifier = new StableCoinVerifier();
     const result = await verifier.verify(params);
@@ -359,7 +362,7 @@ app.post('/api/stimulation/run', async (req, res) => {
       // Path A: Raw collection provided directly (uploaded from UI)
       collectionJson = rawCollection;
       sourceLabel = rawCollection.info?.name || 'uploaded-collection';
-      console.log(`\n🎯 Stimulation Request (uploaded): ${sourceLabel}`);
+      console.error(`\n🎯 Stimulation Request (uploaded): ${sourceLabel}`);
     } else if (stimulationId) {
       // Path B: Load from disk by ID (preset scenario picker)
       const fs = await import('fs');
@@ -381,7 +384,7 @@ app.post('/api/stimulation/run', async (req, res) => {
       const fileContent = fs.readFileSync(filePath, 'utf8');
       collectionJson = JSON.parse(fileContent);
       sourceLabel = stimulationId;
-      console.log(`\n🎯 Stimulation Request: ${sourceLabel}`);
+      console.error(`\n🎯 Stimulation Request: ${sourceLabel}`);
     } else {
       return res.status(400).json({
         success: false,
@@ -389,9 +392,9 @@ app.post('/api/stimulation/run', async (req, res) => {
       });
     }
 
-    console.log(`   Environment: ${envName}`);
-    console.log(`   Risk Service: ${envConfig.riskServiceBase}`);
-    console.log(`   ACTUS Server: ${envConfig.actusServerBase}`);
+    console.error(`   Environment: ${envName}`);
+    console.error(`   Risk Service: ${envConfig.riskServiceBase}`);
+    console.error(`   ACTUS Server: ${envConfig.actusServerBase}`);
 
     // ── Execute the pipeline ──────────────────────────────────────
     const result = await runStimulation(collectionJson, envConfig, envName);
@@ -476,17 +479,21 @@ app.get('/api/health/risk-service', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log('\n🚀 StableRisk API Server');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`   Server:        http://localhost:${PORT}`);
-  console.log(`   Health:        http://localhost:${PORT}/api/health`);
-  console.log(`   ACTUS:         ${DEFAULT_ACTUS_URL}`);
-  console.log('  ─────────────── Stimulation Endpoints ───────────────────────');
-  console.log(`   Environments:  http://localhost:${PORT}/api/environments`);
-  console.log(`   Stimulations:  http://localhost:${PORT}/api/stimulations`);
-  console.log(`   Run:           POST http://localhost:${PORT}/api/stimulation/run`);
-  console.log(`   Health (full): http://localhost:${PORT}/api/health/risk-service?environment=localhost`);
-  console.log('  ─────────────── Config-Based Simulation ─────────────────────');
-  console.log(`   Simulate:      POST http://localhost:${PORT}/api/simulate`);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  console.error('\n🚀 StableRisk API Server');
+  console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.error(`   Server:        http://localhost:${PORT}`);
+  console.error(`   Health:        http://localhost:${PORT}/api/health`);
+  console.error(`   ACTUS:         ${DEFAULT_ACTUS_URL}`);
+  console.error('  ─────────────── Stimulation Endpoints ───────────────────────');
+  console.error(`   Environments:  http://localhost:${PORT}/api/environments`);
+  console.error(`   Stimulations:  http://localhost:${PORT}/api/stimulations`);
+  console.error(`   Run:           POST http://localhost:${PORT}/api/stimulation/run`);
+  console.error(`   Health (full): http://localhost:${PORT}/api/health/risk-service?environment=localhost`);
+  console.error('  ─────────────── Config-Based Simulation ─────────────────────');
+  console.error(`   Simulate:      POST http://localhost:${PORT}/api/simulate`);
+  console.error('  ─────────────── DeFi Liquidation Simulation ──────────────────');
+  console.error(`   DeFi Simulate: POST http://localhost:${PORT}/api/defi-simulate`);
+  console.error(`   DeFi Profiles: GET  http://localhost:${PORT}/api/defi-profiles`);
+  console.error(`   DeFi Colls:    GET  http://localhost:${PORT}/api/defi-collections`);
+  console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 });

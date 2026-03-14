@@ -1,0 +1,31 @@
+{
+  "config_metadata": {
+    "config_id": "DEFI_BORROWER_DEFAULT",
+    "description": "Default DeFi borrower configuration - Aave V3 style lending position with health factor monitoring",
+    "version": "1.0.0",
+    "is_default": true,
+    "collection_file": "DeFi-HealthFactor-CollateralVelocity-90d.json"
+  },
+
+  "protocol": {
+    "source": "file",
+    "file": "protocols/aave-v3.json"
+  },
+
+  "market_scenario": {
+    "source": "file",
+    "file": "market-scenarios/current-march-2026.json"
+  },
+
+  "liquidation_scenario": {
+    "source": "file",
+    "file": "liquidation-scenarios/current-position.json"
+  },
+
+  "simulation_timeframe": {
+    "status_date": "2026-02-28T00:00:00",
+    "start_date": "2026-03-01T00:00:00",
+    "end_date": "2026-05-31T00:00:00",
+    "frequency": "daily"
+  }
+}

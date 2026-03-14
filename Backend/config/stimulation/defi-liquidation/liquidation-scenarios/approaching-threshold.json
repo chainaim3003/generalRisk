@@ -1,0 +1,31 @@
+{
+  "scenario_name": "Approaching Liquidation Threshold",
+  "description": "Position health factor in warning zone (1.0 - 1.5). CollateralVelocity model active. Defensive repayments triggered. Position survivable if repayments execute before further price decline.",
+  "position_stress": "elevated",
+
+  "initial_health_factor": 1.35,
+  "collateral_basket": {
+    "ETH_units": 100,
+    "USDC_amount": 500000,
+    "invoice_amount": 200000
+  },
+  "outstanding_loan_usdc": 500000,
+  "ltv_current": 0.71,
+  "time_to_liquidation_days": 12,
+
+  "borrower_behavior": {
+    "repay_trigger_health_factor": 1.5,
+    "aggressive_repay_fraction": 0.15,
+    "moderate_repay_fraction": 0.05,
+    "safe_horizon_days": 30,
+    "urgent_days": 7
+  },
+
+  "liquidation_risk_metrics": {
+    "cascade_probability": 0.35,
+    "collateral_velocity_alert": true,
+    "early_warning_active": true,
+    "velocity_implied_liquidation_days": 12,
+    "defensive_repay_usd": 75000
+  }
+}

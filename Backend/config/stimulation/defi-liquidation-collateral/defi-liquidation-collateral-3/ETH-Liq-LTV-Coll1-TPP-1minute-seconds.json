@@ -1,0 +1,398 @@
+{
+  "info": {
+    "_postman_id": "c9f4a1e2-3b7d-4f08-a2c5-d8e6f0b1c234",
+    "name": "ETH-Liq-LTV-Coll1-1minute-seconds",
+    "description": "ACTUS DeFi ETH 1-minute loan: COMPETING BEHAVIORAL RISKS simulation — SECONDS granularity.\n\nTWO behavioral models run simultaneously:\n  1. TwoDimensionalPrepaymentModel — voluntary rate-driven deleveraging\n     (spread × age surface, checked every 10 seconds = 6 check points over 1 minute)\n  2. CollateralLTVModel — protocol-enforced LTV-driven liquidation\n     (second-level monitoring = 60 check times over 1 minute)\n\nScenario: Intraday ETH micro flash-crash tick pattern\n  ETH: $2,210 → $2,196 (~0.63% decline over 1 minute, with tick-level noise)\n     Derived from end-of-minute values of the 1-hour minutely simulation\n     Models historical ETH sub-minute tick volatility pattern\n  Rate: 6.850% → 6.858% (gradual second-level rise)\n     Derived from end-of-period values of the 1-minute window of the hourly simulation\n  Collateral: 3.0 ETH, initial LTV = 75.4%  ($5000 / (3 × $2,210))\n\nSECONDS design:\n  Index data: 61 second-level points each (T09:01:00 → T09:02:00)\n  LTV monitoring: 60 times (every second T09:01:01 → T09:02:00)\n  Prepayment checks: 6 (every 10 seconds: T09:01:10, ..., T09:02:00)\n  Rate resets: every second (cycle PT1SL1)\n\nKey LTV thresholds (Aave V3 calibrated):\n  ltvThreshold  = 75%  → partial repay to target 65%\n  liquidation   = 82.5% → full liquidation\n  LTV hits 75%   when ETH ≈ $2,222  (already breached at start: ETH=$2,210, LTV=75.4%)\n  LTV hits 82.5% when ETH ≈ $2,020\n  Starting LTV = 75.4% — ABOVE threshold, breach fires immediately at T09:01:01\n\nScholarly Basis:\n  - Deng, Quigley & Van Order (2000), Econometrica: Competing risks framework\n  - Schwartz & Torous (1989, 1993): Rate-driven prepayment modeling\n  - Qin et al. (2021): DeFi liquidation mechanisms & thresholds\n  - Heimbach & Huang (2024), BIS WP 1171: DeFi leverage & voluntary buffers\n  - Lehar & Parlour (2022), BIS WP 1062: Systemic fragility, cascades\n  - Sadeghi (2025): Liquidation dynamics & transaction fees\n  - Aspris & Svec (2025): Skilled vs unskilled DeFi risk management\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add DeFi Rate Index (DEFI_RAT_SEC_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 1: DeFi rate index added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('✅ DEFI_RAT_SEC_01 loaded: 61 second-level rates, 6.850% → 6.858%');",
+              "    console.log('   → End-of-minute DeFi rate, second-level granularity');",
+              "    console.log('   → Derived from final values of the 1-hour minutely simulation');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"DEFI_RAT_SEC_01\",\"marketObjectCode\":\"DEFI_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-10T09:01:00\",\"value\":0.0685},{\"time\":\"2026-03-10T09:01:01\",\"value\":0.068496},{\"time\":\"2026-03-10T09:01:02\",\"value\":0.068498},{\"time\":\"2026-03-10T09:01:03\",\"value\":0.068509},{\"time\":\"2026-03-10T09:01:04\",\"value\":0.068505},{\"time\":\"2026-03-10T09:01:05\",\"value\":0.068502},{\"time\":\"2026-03-10T09:01:06\",\"value\":0.068503},{\"time\":\"2026-03-10T09:01:07\",\"value\":0.068504},{\"time\":\"2026-03-10T09:01:08\",\"value\":0.068516},{\"time\":\"2026-03-10T09:01:09\",\"value\":0.068507},{\"time\":\"2026-03-10T09:01:10\",\"value\":0.068518},{\"time\":\"2026-03-10T09:01:11\",\"value\":0.06852},{\"time\":\"2026-03-10T09:01:12\",\"value\":0.068521},{\"time\":\"2026-03-10T09:01:13\",\"value\":0.068512},{\"time\":\"2026-03-10T09:01:14\",\"value\":0.068524},{\"time\":\"2026-03-10T09:01:15\",\"value\":0.06852},{\"time\":\"2026-03-10T09:01:16\",\"value\":0.068516},{\"time\":\"2026-03-10T09:01:17\",\"value\":0.068518},{\"time\":\"2026-03-10T09:01:18\",\"value\":0.068519},{\"time\":\"2026-03-10T09:01:19\",\"value\":0.06852},{\"time\":\"2026-03-10T09:01:20\",\"value\":0.068522},{\"time\":\"2026-03-10T09:01:21\",\"value\":0.068533},{\"time\":\"2026-03-10T09:01:22\",\"value\":0.068534},{\"time\":\"2026-03-10T09:01:23\",\"value\":0.068526},{\"time\":\"2026-03-10T09:01:24\",\"value\":0.068537},{\"time\":\"2026-03-10T09:01:25\",\"value\":0.068528},{\"time\":\"2026-03-10T09:01:26\",\"value\":0.06854},{\"time\":\"2026-03-10T09:01:27\",\"value\":0.068541},{\"time\":\"2026-03-10T09:01:28\",\"value\":0.068542},{\"time\":\"2026-03-10T09:01:29\",\"value\":0.068544},{\"time\":\"2026-03-10T09:01:30\",\"value\":0.06854},{\"time\":\"2026-03-10T09:01:31\",\"value\":0.068536},{\"time\":\"2026-03-10T09:01:32\",\"value\":0.068543},{\"time\":\"2026-03-10T09:01:33\",\"value\":0.068549},{\"time\":\"2026-03-10T09:01:34\",\"value\":0.068545},{\"time\":\"2026-03-10T09:01:35\",\"value\":0.068542},{\"time\":\"2026-03-10T09:01:36\",\"value\":0.068543},{\"time\":\"2026-03-10T09:01:37\",\"value\":0.068554},{\"time\":\"2026-03-10T09:01:38\",\"value\":0.068551},{\"time\":\"2026-03-10T09:01:39\",\"value\":0.068552},{\"time\":\"2026-03-10T09:01:40\",\"value\":0.068553},{\"time\":\"2026-03-10T09:01:41\",\"value\":0.06855},{\"time\":\"2026-03-10T09:01:42\",\"value\":0.068551},{\"time\":\"2026-03-10T09:01:43\",\"value\":0.068557},{\"time\":\"2026-03-10T09:01:44\",\"value\":0.068554},{\"time\":\"2026-03-10T09:01:45\",\"value\":0.068555},{\"time\":\"2026-03-10T09:01:46\",\"value\":0.068561},{\"time\":\"2026-03-10T09:01:47\",\"value\":0.068558},{\"time\":\"2026-03-10T09:01:48\",\"value\":0.068564},{\"time\":\"2026-03-10T09:01:49\",\"value\":0.068565},{\"time\":\"2026-03-10T09:01:50\",\"value\":0.068572},{\"time\":\"2026-03-10T09:01:51\",\"value\":0.068568},{\"time\":\"2026-03-10T09:01:52\",\"value\":0.068564},{\"time\":\"2026-03-10T09:01:53\",\"value\":0.068576},{\"time\":\"2026-03-10T09:01:54\",\"value\":0.068572},{\"time\":\"2026-03-10T09:01:55\",\"value\":0.068578},{\"time\":\"2026-03-10T09:01:56\",\"value\":0.06857},{\"time\":\"2026-03-10T09:01:57\",\"value\":0.068576},{\"time\":\"2026-03-10T09:01:58\",\"value\":0.068572},{\"time\":\"2026-03-10T09:01:59\",\"value\":0.068584},{\"time\":\"2026-03-10T09:02:00\",\"value\":0.06858}]}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addReferenceIndex"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Add ETH Price Index (ETH_PRICE_SEC_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 2: ETH price index added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('✅ ETH_PRICE_SEC_01 loaded: 61 second-level prices, $2210 → $2196');",
+              "    console.log('   → Historical ETH tick-level micro flash-crash pattern');",
+              "    console.log('   → Initial LTV = 75.4% — ABOVE 75% threshold from T=0');",
+              "    console.log('   → LTV hits 82.5% liquidation when ETH ≈ $2020 (not reached this minute)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_PRICE_SEC_01\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-10T09:01:00\",\"value\":2210.0},{\"time\":\"2026-03-10T09:01:01\",\"value\":2209.6},{\"time\":\"2026-03-10T09:01:02\",\"value\":2209.2},{\"time\":\"2026-03-10T09:01:03\",\"value\":2208.3},{\"time\":\"2026-03-10T09:01:04\",\"value\":2207.9},{\"time\":\"2026-03-10T09:01:05\",\"value\":2208.0},{\"time\":\"2026-03-10T09:01:06\",\"value\":2207.1},{\"time\":\"2026-03-10T09:01:07\",\"value\":2207.7},{\"time\":\"2026-03-10T09:01:08\",\"value\":2206.8},{\"time\":\"2026-03-10T09:01:09\",\"value\":2205.9},{\"time\":\"2026-03-10T09:01:10\",\"value\":2206.0},{\"time\":\"2026-03-10T09:01:11\",\"value\":2205.7},{\"time\":\"2026-03-10T09:01:12\",\"value\":2204.9},{\"time\":\"2026-03-10T09:01:13\",\"value\":2204.6},{\"time\":\"2026-03-10T09:01:14\",\"value\":2204.8},{\"time\":\"2026-03-10T09:01:15\",\"value\":2204.5},{\"time\":\"2026-03-10T09:01:16\",\"value\":2203.7},{\"time\":\"2026-03-10T09:01:17\",\"value\":2203.9},{\"time\":\"2026-03-10T09:01:18\",\"value\":2203.1},{\"time\":\"2026-03-10T09:01:19\",\"value\":2203.3},{\"time\":\"2026-03-10T09:01:20\",\"value\":2203.0},{\"time\":\"2026-03-10T09:01:21\",\"value\":2202.3},{\"time\":\"2026-03-10T09:01:22\",\"value\":2202.6},{\"time\":\"2026-03-10T09:01:23\",\"value\":2201.9},{\"time\":\"2026-03-10T09:01:24\",\"value\":2202.2},{\"time\":\"2026-03-10T09:01:25\",\"value\":2202.0},{\"time\":\"2026-03-10T09:01:26\",\"value\":2201.3},{\"time\":\"2026-03-10T09:01:27\",\"value\":2201.6},{\"time\":\"2026-03-10T09:01:28\",\"value\":2201.4},{\"time\":\"2026-03-10T09:01:29\",\"value\":2201.2},{\"time\":\"2026-03-10T09:01:30\",\"value\":2200.5},{\"time\":\"2026-03-10T09:01:31\",\"value\":2201.6},{\"time\":\"2026-03-10T09:01:32\",\"value\":2201.7},{\"time\":\"2026-03-10T09:01:33\",\"value\":2202.8},{\"time\":\"2026-03-10T09:01:34\",\"value\":2203.4},{\"time\":\"2026-03-10T09:01:35\",\"value\":2204.5},{\"time\":\"2026-03-10T09:01:36\",\"value\":2203.6},{\"time\":\"2026-03-10T09:01:37\",\"value\":2203.2},{\"time\":\"2026-03-10T09:01:38\",\"value\":2202.8},{\"time\":\"2026-03-10T09:01:39\",\"value\":2201.9},{\"time\":\"2026-03-10T09:01:40\",\"value\":2202.0},{\"time\":\"2026-03-10T09:01:41\",\"value\":2202.2},{\"time\":\"2026-03-10T09:01:42\",\"value\":2201.4},{\"time\":\"2026-03-10T09:01:43\",\"value\":2201.1},{\"time\":\"2026-03-10T09:01:44\",\"value\":2200.3},{\"time\":\"2026-03-10T09:01:45\",\"value\":2200.5},{\"time\":\"2026-03-10T09:01:46\",\"value\":2200.2},{\"time\":\"2026-03-10T09:01:47\",\"value\":2199.9},{\"time\":\"2026-03-10T09:01:48\",\"value\":2200.1},{\"time\":\"2026-03-10T09:01:49\",\"value\":2198.8},{\"time\":\"2026-03-10T09:01:50\",\"value\":2199.0},{\"time\":\"2026-03-10T09:01:51\",\"value\":2198.1},{\"time\":\"2026-03-10T09:01:52\",\"value\":2198.2},{\"time\":\"2026-03-10T09:01:53\",\"value\":2197.3},{\"time\":\"2026-03-10T09:01:54\",\"value\":2197.4},{\"time\":\"2026-03-10T09:01:55\",\"value\":2197.0},{\"time\":\"2026-03-10T09:01:56\",\"value\":2196.8},{\"time\":\"2026-03-10T09:01:57\",\"value\":2196.6},{\"time\":\"2026-03-10T09:01:58\",\"value\":2196.4},{\"time\":\"2026-03-10T09:01:59\",\"value\":2196.7},{\"time\":\"2026-03-10T09:02:00\",\"value\":2196.0}]}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addReferenceIndex"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Add Prepayment Model (defi_pp_sec_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 3: Prepayment model added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('added successfully');",
+              "    console.log('✅ defi_pp_sec_01: TwoDimensionalPrepayment (7×4 surface, 6 checks every 10 sec)');",
+              "    console.log('   → Models VOLUNTARY rate-driven deleveraging, checked every 10 seconds');",
+              "    console.log('   → Schwartz & Torous (1989): prepayment as American call option on loan');",
+              "    console.log('   → Age dimension scaled to 1-minute loan (0 → 0.0000019 year fraction)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"defi_pp_sec_01\",\"referenceRateId\":\"DEFI_RATE\",\"prepaymentEventTimes\":[\"2026-03-10T09:01:10\",\"2026-03-10T09:01:20\",\"2026-03-10T09:01:30\",\"2026-03-10T09:01:40\",\"2026-03-10T09:01:50\",\"2026-03-10T09:02:00\"],\"surface\":{\"interpolationMethod\":\"linear\",\"extrapolationMethod\":\"constant\",\"margins\":[{\"dimension\":1,\"values\":[0.03,0.02,0.01,0.0,-0.01,-0.02,-0.03]},{\"dimension\":2,\"values\":[0,3.169e-07,9.506e-07,1.9013e-06]}],\"data\":[[0.15,0.13,0.11,0.09],[0.1,0.08,0.07,0.05],[0.05,0.04,0.03,0.02],[0.02,0.01,0.005,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]}}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addTwoDimensionalPrepaymentModel",
+          "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addTwoDimensionalPrepaymentModel"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Add CollateralLTV Model (ltv_sec_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 4: CollateralLTV model added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    console.log('✅ ltv_sec_01: CollateralLTVModel (second-level monitoring, 60 check times)');",
+              "    console.log('   → Collateral: 3.0 ETH, starting value = $6,630  (3 × $2,210)');",
+              "    console.log('   → Initial LTV = $5000 / $6630 = 75.4% [ABOVE THRESHOLD — breach at T=0]');",
+              "    console.log('   → ltvThreshold=75% (partial repay to 65%) | liquidation=82.5% (full)');",
+              "    console.log('   → Calibrated to Aave V3 ETH thresholds (Qin et al. 2021)');",
+              "    console.log('   → LTV hits 75% when ETH ≈ $2,222 (already below at start)');",
+              "    console.log('   → LTV hits 82.5% when ETH ≈ $2,020');",
+              "    console.log('   → Partial repay expected at T09:01:01 (first monitoring check)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ltv_sec_01\",\"collateralPriceMarketObjectCode\":\"ETH_USD\",\"collateralQuantity\":3.0,\"ltvThreshold\":0.75,\"ltvTarget\":0.65,\"liquidationThreshold\":0.825,\"monitoringEventTimes\":[\"2026-03-10T09:01:01\",\"2026-03-10T09:01:02\",\"2026-03-10T09:01:03\",\"2026-03-10T09:01:04\",\"2026-03-10T09:01:05\",\"2026-03-10T09:01:06\",\"2026-03-10T09:01:07\",\"2026-03-10T09:01:08\",\"2026-03-10T09:01:09\",\"2026-03-10T09:01:10\",\"2026-03-10T09:01:11\",\"2026-03-10T09:01:12\",\"2026-03-10T09:01:13\",\"2026-03-10T09:01:14\",\"2026-03-10T09:01:15\",\"2026-03-10T09:01:16\",\"2026-03-10T09:01:17\",\"2026-03-10T09:01:18\",\"2026-03-10T09:01:19\",\"2026-03-10T09:01:20\",\"2026-03-10T09:01:21\",\"2026-03-10T09:01:22\",\"2026-03-10T09:01:23\",\"2026-03-10T09:01:24\",\"2026-03-10T09:01:25\",\"2026-03-10T09:01:26\",\"2026-03-10T09:01:27\",\"2026-03-10T09:01:28\",\"2026-03-10T09:01:29\",\"2026-03-10T09:01:30\",\"2026-03-10T09:01:31\",\"2026-03-10T09:01:32\",\"2026-03-10T09:01:33\",\"2026-03-10T09:01:34\",\"2026-03-10T09:01:35\",\"2026-03-10T09:01:36\",\"2026-03-10T09:01:37\",\"2026-03-10T09:01:38\",\"2026-03-10T09:01:39\",\"2026-03-10T09:01:40\",\"2026-03-10T09:01:41\",\"2026-03-10T09:01:42\",\"2026-03-10T09:01:43\",\"2026-03-10T09:01:44\",\"2026-03-10T09:01:45\",\"2026-03-10T09:01:46\",\"2026-03-10T09:01:47\",\"2026-03-10T09:01:48\",\"2026-03-10T09:01:49\",\"2026-03-10T09:01:50\",\"2026-03-10T09:01:51\",\"2026-03-10T09:01:52\",\"2026-03-10T09:01:53\",\"2026-03-10T09:01:54\",\"2026-03-10T09:01:55\",\"2026-03-10T09:01:56\",\"2026-03-10T09:01:57\",\"2026-03-10T09:01:58\",\"2026-03-10T09:01:59\",\"2026-03-10T09:02:00\"]}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addCollateralLTVModel",
+          "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addCollateralLTVModel"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Add Competing-Risk Scenario",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 5: Competing-risk scenario created', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('✅ defi_competing_risk_sec_scn01: 2 indexes + 2 behavioral models');",
+              "    console.log('   → Competing risks framework per Deng, Quigley & Van Order (2000)');",
+              "    console.log('   → Voluntary prepayment (rate, every 10 sec) + Forced liquidation (LTV, every sec)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_competing_risk_sec_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"DEFI_RAT_SEC_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ETH_PRICE_SEC_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"defi_pp_sec_01\",\"riskFactorType\":\"TwoDimensionalPrepaymentModel\"},{\"riskFactorID\":\"ltv_sec_01\",\"riskFactorType\":\"CollateralLTVModel\"}]}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addScenario"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6a. Verify Reference Indexes",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6a: Reference indexes verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    var ids = data.map(function(r){return r.riskFactorID;});",
+              "    pm.expect(ids).to.include('DEFI_RAT_SEC_01');",
+              "    pm.expect(ids).to.include('ETH_PRICE_SEC_01');",
+              "    console.log('✅ Found ' + data.length + ' indexes: ' + ids.join(', '));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findAllReferenceIndexes",
+          "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["findAllReferenceIndexes"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6b. Verify Scenarios",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6b: Scenario verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    var ids = data.map(function(s){return s.scenarioID;});",
+              "    pm.expect(ids).to.include('defi_competing_risk_sec_scn01');",
+              "    console.log('✅ Found scenarios: ' + ids.join(', '));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findAllScenarios",
+          "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["findAllScenarios"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6c. Verify Prepayment Model",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6c: Prepayment model verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.riskFactorId).to.eql('defi_pp_sec_01');",
+              "    console.log('✅ defi_pp_sec_01 confirmed in DB');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findTwoDimensionalPrepaymentModel/defi_pp_sec_01",
+          "protocol": "http", "host": ["localhost"], "port": "8082",
+          "path": ["findTwoDimensionalPrepaymentModel", "defi_pp_sec_01"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6d. Verify CollateralLTV Model",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6d: CollateralLTV model verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.riskFactorId).to.eql('ltv_sec_01');",
+              "    console.log('✅ ltv_sec_01 confirmed: qty=' + data.collateralQuantity +",
+              "        ' ETH, ltvThreshold=' + data.ltvThreshold +",
+              "        ', liquidation=' + data.liquidationThreshold);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findCollateralLTVModel/ltv_sec_01",
+          "protocol": "http", "host": ["localhost"], "port": "8082",
+          "path": ["findCollateralLTVModel", "ltv_sec_01"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Run Competing-Risk Simulation (Seconds)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 7: Combined behavioral simulation (seconds)', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data[0].status).to.eql('Success');",
+              "    var events = data[0].events;",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "    console.log('COMPETING RISKS SIMULATION RESULTS — SECONDS GRANULARITY');",
+              "    console.log('  Deng, Quigley & Van Order (2000) framework applied to DeFi');",
+              "    console.log('  Risk 1: TwoDimensionalPrepayment (voluntary, rate-driven, every 10s)');",
+              "    console.log('  Risk 2: CollateralLTV (forced, price-driven, every second)');",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "    console.log('Total events: ' + events.length);",
+              "    console.log('');",
+              "    var counts = {};",
+              "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+              "    Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+              "    console.log('');",
+              "    var pps = events.filter(function(e){return e.type==='PP';});",
+              "    console.log('══ BEHAVIORAL EVENTS (PP) ══');",
+              "    console.log('  Both prepayment (voluntary) and LTV (forced) generate PP events.');",
+              "    console.log('  NOTE: Initial LTV=75.4% — breach fires at T09:01:01 (first check)');",
+              "    console.log('');",
+              "    pps.forEach(function(pp){",
+              "        var action = pp.payoff > 0 ? 'ACTION: reduced by $'+pp.payoff.toFixed(2) : 'NO ACTION';",
+              "        console.log('  '+pp.time+' → '+action+' | notional=$'+pp.nominalValue.toFixed(2));",
+              "    });",
+              "    console.log('');",
+              "    var rrs = events.filter(function(e){return e.type==='RR';});",
+              "    if(rrs.length > 0){",
+              "        var lastRR = rrs[rrs.length-1];",
+              "        console.log('══ RATE TRAJECTORY ══');",
+              "        console.log('  Initial: 6.850% → Final: '+(lastRR.nominalRate*100).toFixed(4)+'%');",
+              "        console.log('  '+rrs.length+' rate resets over 60 seconds');",
+              "    }",
+              "    console.log('');",
+              "    var ip = events.filter(function(e){return e.type==='IP';})[0];",
+              "    var md = events.filter(function(e){return e.type==='MD';})[0];",
+              "    if(ip && md){",
+              "        console.log('══ FINAL SETTLEMENT ══');",
+              "        console.log('  Interest paid:      $'+ip.payoff.toFixed(6));",
+              "        console.log('  Principal returned: $'+md.payoff.toFixed(2));",
+              "        console.log('  Total deleveraged:  $'+(5000-md.payoff).toFixed(2));",
+              "        console.log('');",
+              "        if(md.payoff < 100){",
+              "            console.log('  ⚠️  FULL LIQUIDATION: notional reduced to near-zero');",
+              "            console.log('  → Per Qin et al. (2021): forced liquidation with penalty');",
+              "        } else if(md.payoff < 5000){",
+              "            console.log('  ℹ️  PARTIAL DELEVERAGING: combined behavioral effects');",
+              "            console.log('  → Competing risks interaction per Deng et al. (2000)');",
+              "        }",
+              "    }",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-03-10T09:00:59\",\"contractRole\":\"RPA\",\"contractID\":\"DeFi-ETH-CompetingRisk-SEC-01\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-10T09:02:00\",\"cycleOfInterestPayment\":\"PT1ML0\",\"nominalInterestRate\":0.0685,\"dayCountConvention\":\"AA365S\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-10T09:00:59\",\"initialExchangeDate\":\"2026-03-10T09:01:00\",\"maturityDate\":\"2026-03-10T09:02:00\",\"notionalPrincipal\":5000,\"premiumDiscountAtIED\":0,\"cycleAnchorDateOfRateReset\":\"2026-03-10T09:01:01\",\"cycleOfRateReset\":\"PT1SL1\",\"rateSpread\":0.0,\"marketObjectCodeOfRateReset\":\"DEFI_RATE\",\"prepaymentModels\":[\"defi_pp_sec_01\",\"ltv_sec_01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"defi_competing_risk_sec_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-10T09:02:01\",\"monitoringTimes\":[]}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http", "host": ["localhost"], "port": "8083",
+          "path": ["rf2", "scenarioSimulation"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "protocol_code": "MAKERDAO",
+  "protocol_name": "MakerDAO - Multi-Collateral DAI (MCD)",
+  "version": "2.0.0",
+  "effective_date": "2019-11-18",
+  "description": "MakerDAO MCD Vault system. CDP-based collateral locking to mint DAI. Collateral ratio enforced via liquidation auctions (Clip). Conservative parameters with stability fees.",
+
+  "liquidation_threshold": 0.8333,
+  "loan_to_value": 0.67,
+  "liquidation_bonus": 0.13,
+  "liquidation_close_factor": 1.0,
+
+  "health_factor_trigger": 1.0,
+  "healthy_health_factor": 1.50,
+  "target_health_factor_recovery": 2.0,
+
+  "reserve_factor": 0.0,
+  "protocol_fee_bps": 0,
+  "stability_fee_annual": 0.0350,
+  "max_utilization_rate": 0.70,
+
+  "collateral_assets": {
+    "ETH-A": {
+      "liquidation_threshold": 0.8333,
+      "loan_to_value": 0.67,
+      "liquidation_bonus": 0.13,
+      "debt_ceiling_dai": 500000000,
+      "dust_minimum_dai": 10000,
+      "stability_fee": 0.0350,
+      "decimals": 18
+    },
+    "WBTC-A": {
+      "liquidation_threshold": 0.7692,
+      "loan_to_value": 0.67,
+      "liquidation_bonus": 0.15,
+      "debt_ceiling_dai": 100000000,
+      "dust_minimum_dai": 15000,
+      "stability_fee": 0.0450,
+      "decimals": 8
+    },
+    "WSTETH-A": {
+      "liquidation_threshold": 0.8333,
+      "loan_to_value": 0.68,
+      "liquidation_bonus": 0.13,
+      "debt_ceiling_dai": 200000000,
+      "dust_minimum_dai": 7500,
+      "stability_fee": 0.0325,
+      "decimals": 18
+    },
+    "RWA_INVOICE": {
+      "liquidation_threshold": 0.769,
+      "loan_to_value": 0.65,
+      "liquidation_bonus": 0.0,
+      "debt_ceiling_dai": 10000000,
+      "dust_minimum_dai": 1000,
+      "stability_fee": 0.0250,
+      "decimals": 6,
+      "note": "Real world asset - no penalty liquidation, off-chain legal recovery"
+    }
+  },
+
+  "borrow_rate_model": {
+    "model_type": "stability_fee_fixed",
+    "base_stability_fee": 0.0350,
+    "dsr_rate": 0.0300,
+    "surplus_buffer_dai": 50000000
+  },
+
+  "cascade_risk": {
+    "hhi_warning_threshold": 0.40,
+    "max_single_collateral_share": 0.75,
+    "correlation_penalty_threshold": 0.60
+  },
+
+  "gas_parameters": {
+    "liquidation_gas_units": 400000,
+    "auction_kick_gas_units": 200000,
+    "base_fee_gwei_reference": 25,
+    "priority_fee_gwei": 2
+  }
+}

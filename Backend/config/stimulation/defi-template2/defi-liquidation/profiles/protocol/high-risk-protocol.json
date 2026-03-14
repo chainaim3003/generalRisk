@@ -1,0 +1,59 @@
+{
+  "config_metadata": {
+    "config_id": "DEFI_PROT_HIGH_RISK",
+    "description": "High-risk protocol profile - aggressive parameters, high leverage tolerance, minimal buffers. Use for stress testing cascade failure modes.",
+    "version": "1.0.0",
+    "collection_file": "DeFi-CascadeProbability-GasOptimization-90d.json"
+  },
+
+  "protocol": {
+    "source": "inline",
+    "inline": {
+      "protocol_code": "HIGH-RISK-PROTO",
+      "protocol_name": "High Risk DeFi Protocol - Stress Test Profile",
+      "liquidation_threshold": 0.92,
+      "loan_to_value": 0.90,
+      "liquidation_bonus": 0.02,
+      "liquidation_close_factor": 1.0,
+      "health_factor_trigger": 1.0,
+      "healthy_health_factor": 1.05,
+      "target_health_factor_recovery": 1.20,
+      "reserve_factor": 0.05,
+      "protocol_fee_bps": 3,
+      "max_utilization_rate": 0.98
+    }
+  },
+
+  "protocol_thresholds": {
+    "source": "inline",
+    "inline": {
+      "min_health_factor_trigger": 1.0,
+      "healthy_health_factor": 1.05,
+      "target_health_factor": 1.20,
+      "max_liquidation_bonus": 0.02,
+      "max_cascade_depth": 8,
+      "min_collateral_ratio": 1.10,
+      "gas_price_gwei_limit": 999,
+      "max_slippage_tolerance": 0.08,
+      "liquidation_close_factor": 1.0,
+      "protocol_fee_bps": 3
+    }
+  },
+
+  "market_scenario": {
+    "source": "file",
+    "file": "market-scenarios/severe-crash.json"
+  },
+
+  "liquidation_scenario": {
+    "source": "file",
+    "file": "liquidation-scenarios/cascade-liquidation.json"
+  },
+
+  "simulation_timeframe": {
+    "status_date": "2026-02-28T00:00:00",
+    "start_date": "2026-03-01T00:00:00",
+    "end_date": "2026-05-31T00:00:00",
+    "frequency": "daily"
+  }
+}

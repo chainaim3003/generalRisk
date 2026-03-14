@@ -1,0 +1,46 @@
+{
+  "config_metadata": {
+    "config_id": "DEFI_BRW_INSTITUTIONAL_HEDGED",
+    "description": "Institutional borrower - delta-hedged with off-chain hedges, tight monitoring, automatic rebalance. Low liquidation risk even in stress.",
+    "version": "1.0.0",
+    "collection_file": "DeFi-CollateralRebalancing-CorrelationRisk-90d.json"
+  },
+
+  "protocol": {
+    "source": "file",
+    "file": "protocols/aave-v3.json"
+  },
+
+  "borrower_thresholds": {
+    "source": "inline",
+    "inline": {
+      "min_health_factor_comfort": 2.0,
+      "repay_trigger_health_factor": 1.8,
+      "aggressive_repay_fraction": 0.25,
+      "moderate_repay_fraction": 0.10,
+      "safe_horizon_days": 60,
+      "urgent_days": 14,
+      "max_ltv_target": 0.55,
+      "gas_price_abort_gwei": 500,
+      "hedge_delta_threshold": 0.85,
+      "rebalance_frequency_hours": 24
+    }
+  },
+
+  "market_scenario": {
+    "source": "file",
+    "file": "market-scenarios/severe-crash.json"
+  },
+
+  "liquidation_scenario": {
+    "source": "file",
+    "file": "liquidation-scenarios/healthy-position.json"
+  },
+
+  "simulation_timeframe": {
+    "status_date": "2026-02-28T00:00:00",
+    "start_date": "2026-03-01T00:00:00",
+    "end_date": "2026-05-31T00:00:00",
+    "frequency": "daily"
+  }
+}

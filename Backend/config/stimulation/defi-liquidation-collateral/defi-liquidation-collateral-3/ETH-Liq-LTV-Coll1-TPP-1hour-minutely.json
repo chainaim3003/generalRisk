@@ -1,0 +1,439 @@
+{
+  "info": {
+    "_postman_id": "b7c23d41-8e55-4f03-9d14-2e6a0b7f1c38",
+    "name": "ETH-Liq-LTV-Coll1-1hour-minutely",
+    "description": "ACTUS DeFi ETH 1-hour loan: COMPETING BEHAVIORAL RISKS simulation — MINUTELY granularity.\n\nTWO behavioral models run simultaneously:\n  1. TwoDimensionalPrepaymentModel — voluntary rate-driven deleveraging\n     (spread × age surface, checked every 10 minutes = 6 check points over 1 hour)\n  2. CollateralLTVModel — protocol-enforced LTV-driven liquidation\n     (minutely monitoring = 60 check times over 1 hour)\n\nScenario: Intraday ETH flash-crash pattern\n  ETH: $2,280 → $2,210 (~3.1% decline over 1 hour, with minute-level noise)\n     Based on historical ETH intraday flash-crash micro-volatility pattern\n  Rate: 6.75% → 6.85% (gradual minutely rise)\n     Derived from end-of-period values of the 1-week hourly simulation\n  Collateral: 3.0 ETH, initial LTV = 73.1%  ($5000 / (3 × $2,280))\n\nMINUTELY design:\n  Index data: 61 minutely points each (T09:00 → T10:00)\n  LTV monitoring: 60 times (every minute T09:01 → T10:00)\n  Prepayment checks: 6 (every 10 minutes: T09:10, T09:20, T09:30, T09:40, T09:50, T10:00)\n  Rate resets: every minute (cycle PT1ML1)\n\nKey LTV thresholds (Aave V3 calibrated):\n  ltvThreshold  = 75%  → partial repay to target 65%\n  liquidation   = 82.5% → full liquidation\n  LTV hits 75%   when ETH ≈ $2,222  (notional = $5,000, collateral = 3 ETH)\n  LTV hits 82.5% when ETH ≈ $2,020\n  Starting LTV = 73.1% — just 1.9% below threshold, breach expected within ~10 min\n\nScholarly Basis:\n  - Deng, Quigley & Van Order (2000), Econometrica: Competing risks framework\n  - Schwartz & Torous (1989, 1993): Rate-driven prepayment modeling\n  - Qin et al. (2021): DeFi liquidation mechanisms & thresholds\n  - Heimbach & Huang (2024), BIS WP 1171: DeFi leverage & voluntary buffers\n  - Lehar & Parlour (2022), BIS WP 1062: Systemic fragility, cascades\n  - Sadeghi (2025): Liquidation dynamics & transaction fees\n  - Aspris & Svec (2025): Skilled vs unskilled DeFi risk management\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add DeFi Rate Index (DEFI_RAT_MIN_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 1: DeFi rate index added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('✅ DEFI_RAT_MIN_01 loaded: 61 minutely rates, 6.75% → 6.85%');",
+              "    console.log('   → End-of-period bear-market DeFi rate, minutely granularity');",
+              "    console.log('   → Derived from final values of 1-week hourly simulation');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"DEFI_RAT_MIN_01\",\"marketObjectCode\":\"DEFI_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-10T09:00:00\",\"value\":0.06750},{\"time\":\"2026-03-10T09:01:00\",\"value\":0.06751},{\"time\":\"2026-03-10T09:02:00\",\"value\":0.06752},{\"time\":\"2026-03-10T09:03:00\",\"value\":0.06754},{\"time\":\"2026-03-10T09:04:00\",\"value\":0.06753},{\"time\":\"2026-03-10T09:05:00\",\"value\":0.06755},{\"time\":\"2026-03-10T09:06:00\",\"value\":0.06756},{\"time\":\"2026-03-10T09:07:00\",\"value\":0.06757},{\"time\":\"2026-03-10T09:08:00\",\"value\":0.06756},{\"time\":\"2026-03-10T09:09:00\",\"value\":0.06758},{\"time\":\"2026-03-10T09:10:00\",\"value\":0.06759},{\"time\":\"2026-03-10T09:11:00\",\"value\":0.06760},{\"time\":\"2026-03-10T09:12:00\",\"value\":0.06761},{\"time\":\"2026-03-10T09:13:00\",\"value\":0.06760},{\"time\":\"2026-03-10T09:14:00\",\"value\":0.06762},{\"time\":\"2026-03-10T09:15:00\",\"value\":0.06763},{\"time\":\"2026-03-10T09:16:00\",\"value\":0.06764},{\"time\":\"2026-03-10T09:17:00\",\"value\":0.06763},{\"time\":\"2026-03-10T09:18:00\",\"value\":0.06765},{\"time\":\"2026-03-10T09:19:00\",\"value\":0.06766},{\"time\":\"2026-03-10T09:20:00\",\"value\":0.06767},{\"time\":\"2026-03-10T09:21:00\",\"value\":0.06768},{\"time\":\"2026-03-10T09:22:00\",\"value\":0.06767},{\"time\":\"2026-03-10T09:23:00\",\"value\":0.06769},{\"time\":\"2026-03-10T09:24:00\",\"value\":0.06770},{\"time\":\"2026-03-10T09:25:00\",\"value\":0.06771},{\"time\":\"2026-03-10T09:26:00\",\"value\":0.06772},{\"time\":\"2026-03-10T09:27:00\",\"value\":0.06771},{\"time\":\"2026-03-10T09:28:00\",\"value\":0.06773},{\"time\":\"2026-03-10T09:29:00\",\"value\":0.06774},{\"time\":\"2026-03-10T09:30:00\",\"value\":0.06775},{\"time\":\"2026-03-10T09:31:00\",\"value\":0.06776},{\"time\":\"2026-03-10T09:32:00\",\"value\":0.06775},{\"time\":\"2026-03-10T09:33:00\",\"value\":0.06777},{\"time\":\"2026-03-10T09:34:00\",\"value\":0.06778},{\"time\":\"2026-03-10T09:35:00\",\"value\":0.06779},{\"time\":\"2026-03-10T09:36:00\",\"value\":0.06780},{\"time\":\"2026-03-10T09:37:00\",\"value\":0.06779},{\"time\":\"2026-03-10T09:38:00\",\"value\":0.06781},{\"time\":\"2026-03-10T09:39:00\",\"value\":0.06782},{\"time\":\"2026-03-10T09:40:00\",\"value\":0.06783},{\"time\":\"2026-03-10T09:41:00\",\"value\":0.06784},{\"time\":\"2026-03-10T09:42:00\",\"value\":0.06783},{\"time\":\"2026-03-10T09:43:00\",\"value\":0.06785},{\"time\":\"2026-03-10T09:44:00\",\"value\":0.06786},{\"time\":\"2026-03-10T09:45:00\",\"value\":0.06787},{\"time\":\"2026-03-10T09:46:00\",\"value\":0.06788},{\"time\":\"2026-03-10T09:47:00\",\"value\":0.06787},{\"time\":\"2026-03-10T09:48:00\",\"value\":0.06789},{\"time\":\"2026-03-10T09:49:00\",\"value\":0.06790},{\"time\":\"2026-03-10T09:50:00\",\"value\":0.06791},{\"time\":\"2026-03-10T09:51:00\",\"value\":0.06792},{\"time\":\"2026-03-10T09:52:00\",\"value\":0.06791},{\"time\":\"2026-03-10T09:53:00\",\"value\":0.06793},{\"time\":\"2026-03-10T09:54:00\",\"value\":0.06794},{\"time\":\"2026-03-10T09:55:00\",\"value\":0.06795},{\"time\":\"2026-03-10T09:56:00\",\"value\":0.06796},{\"time\":\"2026-03-10T09:57:00\",\"value\":0.06795},{\"time\":\"2026-03-10T09:58:00\",\"value\":0.06797},{\"time\":\"2026-03-10T09:59:00\",\"value\":0.06798},{\"time\":\"2026-03-10T10:00:00\",\"value\":0.06850}]}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addReferenceIndex"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Add ETH Price Index (ETH_PRICE_MIN_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 2: ETH price index added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('✅ ETH_PRICE_MIN_01 loaded: 61 minutely prices, $2280 → $2210');",
+              "    console.log('   → Historical ETH intraday flash-crash micro-volatility pattern');",
+              "    console.log('   → Initial LTV = 73.1%, threshold 75% breached ~min 8 (ETH ≈ $2222)');",
+              "    console.log('   → LTV hits 82.5% liquidation when ETH ≈ $2020 (not reached this hour)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_PRICE_MIN_01\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-10T09:00:00\",\"value\":2280},{\"time\":\"2026-03-10T09:01:00\",\"value\":2278},{\"time\":\"2026-03-10T09:02:00\",\"value\":2275},{\"time\":\"2026-03-10T09:03:00\",\"value\":2272},{\"time\":\"2026-03-10T09:04:00\",\"value\":2269},{\"time\":\"2026-03-10T09:05:00\",\"value\":2266},{\"time\":\"2026-03-10T09:06:00\",\"value\":2263},{\"time\":\"2026-03-10T09:07:00\",\"value\":2261},{\"time\":\"2026-03-10T09:08:00\",\"value\":2258},{\"time\":\"2026-03-10T09:09:00\",\"value\":2255},{\"time\":\"2026-03-10T09:10:00\",\"value\":2252},{\"time\":\"2026-03-10T09:11:00\",\"value\":2255},{\"time\":\"2026-03-10T09:12:00\",\"value\":2253},{\"time\":\"2026-03-10T09:13:00\",\"value\":2250},{\"time\":\"2026-03-10T09:14:00\",\"value\":2248},{\"time\":\"2026-03-10T09:15:00\",\"value\":2245},{\"time\":\"2026-03-10T09:16:00\",\"value\":2243},{\"time\":\"2026-03-10T09:17:00\",\"value\":2240},{\"time\":\"2026-03-10T09:18:00\",\"value\":2238},{\"time\":\"2026-03-10T09:19:00\",\"value\":2241},{\"time\":\"2026-03-10T09:20:00\",\"value\":2238},{\"time\":\"2026-03-10T09:21:00\",\"value\":2236},{\"time\":\"2026-03-10T09:22:00\",\"value\":2233},{\"time\":\"2026-03-10T09:23:00\",\"value\":2231},{\"time\":\"2026-03-10T09:24:00\",\"value\":2228},{\"time\":\"2026-03-10T09:25:00\",\"value\":2226},{\"time\":\"2026-03-10T09:26:00\",\"value\":2223},{\"time\":\"2026-03-10T09:27:00\",\"value\":2221},{\"time\":\"2026-03-10T09:28:00\",\"value\":2224},{\"time\":\"2026-03-10T09:29:00\",\"value\":2222},{\"time\":\"2026-03-10T09:30:00\",\"value\":2219},{\"time\":\"2026-03-10T09:31:00\",\"value\":2217},{\"time\":\"2026-03-10T09:32:00\",\"value\":2214},{\"time\":\"2026-03-10T09:33:00\",\"value\":2212},{\"time\":\"2026-03-10T09:34:00\",\"value\":2215},{\"time\":\"2026-03-10T09:35:00\",\"value\":2213},{\"time\":\"2026-03-10T09:36:00\",\"value\":2210},{\"time\":\"2026-03-10T09:37:00\",\"value\":2208},{\"time\":\"2026-03-10T09:38:00\",\"value\":2206},{\"time\":\"2026-03-10T09:39:00\",\"value\":2203},{\"time\":\"2026-03-10T09:40:00\",\"value\":2201},{\"time\":\"2026-03-10T09:41:00\",\"value\":2204},{\"time\":\"2026-03-10T09:42:00\",\"value\":2202},{\"time\":\"2026-03-10T09:43:00\",\"value\":2199},{\"time\":\"2026-03-10T09:44:00\",\"value\":2197},{\"time\":\"2026-03-10T09:45:00\",\"value\":2195},{\"time\":\"2026-03-10T09:46:00\",\"value\":2192},{\"time\":\"2026-03-10T09:47:00\",\"value\":2190},{\"time\":\"2026-03-10T09:48:00\",\"value\":2193},{\"time\":\"2026-03-10T09:49:00\",\"value\":2191},{\"time\":\"2026-03-10T09:50:00\",\"value\":2188},{\"time\":\"2026-03-10T09:51:00\",\"value\":2186},{\"time\":\"2026-03-10T09:52:00\",\"value\":2184},{\"time\":\"2026-03-10T09:53:00\",\"value\":2187},{\"time\":\"2026-03-10T09:54:00\",\"value\":2184},{\"time\":\"2026-03-10T09:55:00\",\"value\":2182},{\"time\":\"2026-03-10T09:56:00\",\"value\":2180},{\"time\":\"2026-03-10T09:57:00\",\"value\":2177},{\"time\":\"2026-03-10T09:58:00\",\"value\":2175},{\"time\":\"2026-03-10T09:59:00\",\"value\":2178},{\"time\":\"2026-03-10T10:00:00\",\"value\":2210}]}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addReferenceIndex"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Add Prepayment Model (defi_pp_min_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 3: Prepayment model added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('added successfully');",
+              "    console.log('✅ defi_pp_min_01: TwoDimensionalPrepayment (7×4 surface, 6 checks every 10 min)');",
+              "    console.log('   → Models VOLUNTARY rate-driven deleveraging, checked every 10 minutes');",
+              "    console.log('   → Schwartz & Torous (1989): prepayment as American call option on loan');",
+              "    console.log('   → Age dimension scaled to 1-hour loan (0 → 0.0001142 year fraction)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"riskFactorId\": \"defi_pp_min_01\",\n    \"referenceRateId\": \"DEFI_RATE\",\n    \"prepaymentEventTimes\": [\n        \"2026-03-10T09:10:00\",\n        \"2026-03-10T09:20:00\",\n        \"2026-03-10T09:30:00\",\n        \"2026-03-10T09:40:00\",\n        \"2026-03-10T09:50:00\",\n        \"2026-03-10T10:00:00\"\n    ],\n    \"surface\": {\n        \"interpolationMethod\": \"linear\",\n        \"extrapolationMethod\": \"constant\",\n        \"margins\": [\n            {\n                \"dimension\": 1,\n                \"values\": [\n                    0.03,\n                    0.02,\n                    0.01,\n                    0.0,\n                    -0.01,\n                    -0.02,\n                    -0.03\n                ]\n            },\n            {\n                \"dimension\": 2,\n                \"values\": [\n                    0,\n                    0.0000190,\n                    0.0000571,\n                    0.0001142\n                ]\n            }\n        ],\n        \"data\": [\n            [0.15, 0.13, 0.11, 0.09],\n            [0.10, 0.08, 0.07, 0.05],\n            [0.05, 0.04, 0.03, 0.02],\n            [0.02, 0.01, 0.005, 0],\n            [0, 0, 0, 0],\n            [0, 0, 0, 0],\n            [0, 0, 0, 0]\n        ]\n    }\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addTwoDimensionalPrepaymentModel",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addTwoDimensionalPrepaymentModel"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Add CollateralLTV Model (ltv_min_01)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 4: CollateralLTV model added', function(){",
+              "    pm.response.to.have.status(200);",
+              "    console.log('✅ ltv_min_01: CollateralLTVModel (minutely monitoring, 60 check times)');",
+              "    console.log('   → Collateral: 3.0 ETH, starting value = $6,840  (3 × $2,280)');",
+              "    console.log('   → Initial LTV = $5000 / $6840 = 73.1% [ELEVATED — near threshold]');",
+              "    console.log('   → ltvThreshold=75% (partial repay to 65%) | liquidation=82.5% (full)');",
+              "    console.log('   → Calibrated to Aave V3 ETH thresholds (Qin et al. 2021)');",
+              "    console.log('   → LTV hits 75% when ETH ≈ $2,222');",
+              "    console.log('   → LTV hits 82.5% when ETH ≈ $2,020');",
+              "    console.log('   → With declining ETH, 75% breach expected within ~10 minutes');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"riskFactorId\": \"ltv_min_01\",\n    \"collateralPriceMarketObjectCode\": \"ETH_USD\",\n    \"collateralQuantity\": 3.0,\n    \"ltvThreshold\": 0.75,\n    \"ltvTarget\": 0.65,\n    \"liquidationThreshold\": 0.825,\n    \"monitoringEventTimes\": [\n        \"2026-03-10T09:01:00\",\"2026-03-10T09:02:00\",\"2026-03-10T09:03:00\",\"2026-03-10T09:04:00\",\"2026-03-10T09:05:00\",\n        \"2026-03-10T09:06:00\",\"2026-03-10T09:07:00\",\"2026-03-10T09:08:00\",\"2026-03-10T09:09:00\",\"2026-03-10T09:10:00\",\n        \"2026-03-10T09:11:00\",\"2026-03-10T09:12:00\",\"2026-03-10T09:13:00\",\"2026-03-10T09:14:00\",\"2026-03-10T09:15:00\",\n        \"2026-03-10T09:16:00\",\"2026-03-10T09:17:00\",\"2026-03-10T09:18:00\",\"2026-03-10T09:19:00\",\"2026-03-10T09:20:00\",\n        \"2026-03-10T09:21:00\",\"2026-03-10T09:22:00\",\"2026-03-10T09:23:00\",\"2026-03-10T09:24:00\",\"2026-03-10T09:25:00\",\n        \"2026-03-10T09:26:00\",\"2026-03-10T09:27:00\",\"2026-03-10T09:28:00\",\"2026-03-10T09:29:00\",\"2026-03-10T09:30:00\",\n        \"2026-03-10T09:31:00\",\"2026-03-10T09:32:00\",\"2026-03-10T09:33:00\",\"2026-03-10T09:34:00\",\"2026-03-10T09:35:00\",\n        \"2026-03-10T09:36:00\",\"2026-03-10T09:37:00\",\"2026-03-10T09:38:00\",\"2026-03-10T09:39:00\",\"2026-03-10T09:40:00\",\n        \"2026-03-10T09:41:00\",\"2026-03-10T09:42:00\",\"2026-03-10T09:43:00\",\"2026-03-10T09:44:00\",\"2026-03-10T09:45:00\",\n        \"2026-03-10T09:46:00\",\"2026-03-10T09:47:00\",\"2026-03-10T09:48:00\",\"2026-03-10T09:49:00\",\"2026-03-10T09:50:00\",\n        \"2026-03-10T09:51:00\",\"2026-03-10T09:52:00\",\"2026-03-10T09:53:00\",\"2026-03-10T09:54:00\",\"2026-03-10T09:55:00\",\n        \"2026-03-10T09:56:00\",\"2026-03-10T09:57:00\",\"2026-03-10T09:58:00\",\"2026-03-10T09:59:00\",\n        \"2026-03-10T10:00:00\"\n    ]\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addCollateralLTVModel",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addCollateralLTVModel"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Add Competing-Risk Scenario",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 5: Competing-risk scenario created', function(){",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('✅ defi_competing_risk_min_scn01: 2 indexes + 2 behavioral models');",
+              "    console.log('   → Competing risks framework per Deng, Quigley & Van Order (2000)');",
+              "    console.log('   → Voluntary prepayment (rate, every 10 min) + Forced liquidation (LTV, minutely)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"scenarioID\": \"defi_competing_risk_min_scn01\",\n    \"riskFactorDescriptors\": [\n        {\n            \"riskFactorID\": \"DEFI_RAT_MIN_01\",\n            \"riskFactorType\": \"ReferenceIndex\"\n        },\n        {\n            \"riskFactorID\": \"ETH_PRICE_MIN_01\",\n            \"riskFactorType\": \"ReferenceIndex\"\n        },\n        {\n            \"riskFactorID\": \"defi_pp_min_01\",\n            \"riskFactorType\": \"TwoDimensionalPrepaymentModel\"\n        },\n        {\n            \"riskFactorID\": \"ltv_min_01\",\n            \"riskFactorType\": \"CollateralLTVModel\"\n        }\n    ]\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["addScenario"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6a. Verify Reference Indexes",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6a: Reference indexes verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    var ids = data.map(function(r){return r.riskFactorID;});",
+              "    pm.expect(ids).to.include('DEFI_RAT_MIN_01');",
+              "    pm.expect(ids).to.include('ETH_PRICE_MIN_01');",
+              "    console.log('✅ Found ' + data.length + ' indexes: ' + ids.join(', '));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findAllReferenceIndexes",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["findAllReferenceIndexes"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6b. Verify Scenarios",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6b: Scenario verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    var ids = data.map(function(s){return s.scenarioID;});",
+              "    pm.expect(ids).to.include('defi_competing_risk_min_scn01');",
+              "    console.log('✅ Found scenarios: ' + ids.join(', '));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findAllScenarios",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["findAllScenarios"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6c. Verify Prepayment Model",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6c: Prepayment model verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.riskFactorId).to.eql('defi_pp_min_01');",
+              "    console.log('✅ defi_pp_min_01 confirmed in DB');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findTwoDimensionalPrepaymentModel/defi_pp_min_01",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["findTwoDimensionalPrepaymentModel", "defi_pp_min_01"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6d. Verify CollateralLTV Model",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6d: CollateralLTV model verified', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.riskFactorId).to.eql('ltv_min_01');",
+              "    console.log('✅ ltv_min_01 confirmed: qty=' + data.collateralQuantity +",
+              "        ' ETH, ltvThreshold=' + data.ltvThreshold +",
+              "        ', liquidation=' + data.liquidationThreshold);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findCollateralLTVModel/ltv_min_01",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8082",
+          "path": ["findCollateralLTVModel", "ltv_min_01"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Run Competing-Risk Simulation (Minutely)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 7: Combined minutely behavioral simulation', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data[0].status).to.eql('Success');",
+              "    var events = data[0].events;",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "    console.log('COMPETING RISKS SIMULATION RESULTS — 1-HOUR MINUTELY');",
+              "    console.log('  Period: 2026-03-10T09:00:00 → 2026-03-10T10:00:00');",
+              "    console.log('  Deng, Quigley & Van Order (2000) framework applied to DeFi');",
+              "    console.log('  Risk 1: TwoDimensionalPrepayment (voluntary, rate-driven, every 10 min)');",
+              "    console.log('  Risk 2: CollateralLTV (forced, ETH-price-driven, MINUTELY monitoring)');",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "    console.log('Total events: ' + events.length);",
+              "    console.log('');",
+              "",
+              "    // Count event types",
+              "    var counts = {};",
+              "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+              "    Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+              "    console.log('');",
+              "",
+              "    // Show ALL PP events",
+              "    var pps = events.filter(function(e){return e.type==='PP';});",
+              "    console.log('══ BEHAVIORAL EVENTS (PP) ══');",
+              "    console.log('  Voluntary (rate-driven) + Forced (LTV breach) both produce PP events.');",
+              "    console.log('  Minutely LTV monitoring enables fastest possible liquidation response.');",
+              "    console.log('  Starting LTV = 73.1% — only $2222 ETH triggers 75% threshold.');",
+              "    console.log('');",
+              "    pps.forEach(function(pp){",
+              "        var action = pp.payoff > 0 ? 'ACTION: reduced by $'+pp.payoff.toFixed(2) : 'NO ACTION';",
+              "        console.log('  '+pp.time+' → '+action+' | notional=$'+pp.nominalValue.toFixed(2));",
+              "    });",
+              "    console.log('');",
+              "",
+              "    // Rate story",
+              "    var rrs = events.filter(function(e){return e.type==='RR';});",
+              "    if(rrs.length > 0){",
+              "        var lastRR = rrs[rrs.length-1];",
+              "        console.log('══ RATE TRAJECTORY ══');",
+              "        console.log('  Initial: 6.75% → Final: '+(lastRR.nominalRate*100).toFixed(4)+'%');",
+              "        console.log('  '+rrs.length+' minutely rate resets over 1 hour');",
+              "    }",
+              "    console.log('');",
+              "",
+              "    // Final settlement",
+              "    var ip = events.filter(function(e){return e.type==='IP';})[0];",
+              "    var md = events.filter(function(e){return e.type==='MD';})[0];",
+              "    if(ip && md){",
+              "        console.log('══ FINAL SETTLEMENT ══');",
+              "        console.log('  Interest paid:      $'+ip.payoff.toFixed(4));",
+              "        console.log('  Principal returned: $'+md.payoff.toFixed(2));",
+              "        console.log('  Total deleveraged:  $'+(5000-md.payoff).toFixed(2));",
+              "        console.log('');",
+              "        if(md.payoff < 100){",
+              "            console.log('  ⚠️  FULL LIQUIDATION: notional reduced to near-zero');",
+              "            console.log('  → Per Qin et al. (2021): forced liquidation with penalty');",
+              "            console.log('  → ETH flash-crash crossed 82.5% LTV threshold intra-hour');",
+              "        } else if(md.payoff < 5000){",
+              "            console.log('  ℹ️  PARTIAL DELEVERAGING: combined behavioral effects');",
+              "            console.log('  → Competing risks interaction per Deng et al. (2000)');",
+              "            console.log('  → LTV partial repay fired (ETH crossed $2,222 threshold)');",
+              "        } else {",
+              "            console.log('  ✅ FULL REPAYMENT: loan survived the hour intact');",
+              "        }",
+              "    }",
+              "    console.log('════════════════════════════════════════════════════════════');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"contracts\": [\n        {\n            \"calendar\": \"NC\",\n            \"businessDayConvention\": \"SCF\",\n            \"contractType\": \"PAM\",\n            \"statusDate\": \"2026-03-10T08:59:00\",\n            \"contractRole\": \"RPA\",\n            \"contractID\": \"DeFi-ETH-CompetingRisk-MIN-01\",\n            \"cycleAnchorDateOfInterestPayment\": \"2026-03-10T10:00:00\",\n            \"cycleOfInterestPayment\": \"PT1HL0\",\n            \"nominalInterestRate\": 0.0675,\n            \"dayCountConvention\": \"AA365S\",\n            \"currency\": \"USD\",\n            \"contractDealDate\": \"2026-03-10T08:59:00\",\n            \"initialExchangeDate\": \"2026-03-10T09:00:00\",\n            \"maturityDate\": \"2026-03-10T10:00:00\",\n            \"notionalPrincipal\": 5000,\n            \"premiumDiscountAtIED\": 0,\n            \"cycleAnchorDateOfRateReset\": \"2026-03-10T09:01:00\",\n            \"cycleOfRateReset\": \"PT1ML1\",\n            \"rateSpread\": 0.0,\n            \"marketObjectCodeOfRateReset\": \"DEFI_RATE\",\n            \"prepaymentModels\": [\n                \"defi_pp_min_01\",\n                \"ltv_min_01\"\n            ]\n        }\n    ],\n    \"scenarioDescriptor\": {\n        \"scenarioID\": \"defi_competing_risk_min_scn01\",\n        \"scenarioType\": \"scenario\"\n    },\n    \"simulateTo\": \"2026-03-10T10:01:00\",\n    \"monitoringTimes\": []\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8083",
+          "path": ["rf2", "scenarioSimulation"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

@@ -380,62 +380,64 @@ export function ModeDefiLiquidation() {
           <h3 className="mb-3 text-sm font-semibold text-foreground">
             Or Upload DeFi Collection
           </h3>
-          <div
-            role="button"
-            tabIndex={0}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ")
-                fileInputRef.current?.click()
-            }}
-            className={cn(
-              "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-5 transition-colors",
-              uploadedJson
-                ? "border-amber-500/30 bg-amber-500/5"
-                : "border-border hover:border-amber-500/40 hover:bg-secondary/50"
-            )}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files?.[0]) handleFile(e.target.files[0])
-              }}
-            />
-            {uploadedJson ? (
-              <div className="flex flex-col items-center gap-1.5 text-center">
-                <FileJson className="h-6 w-6 text-amber-400" />
-                <p className="text-xs font-medium text-foreground">{uploadedName}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {uploadedJson.item?.length || 0} steps
-                </p>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    clearAll()
+
+          {uploadedJson ? (
+            /* ── Loaded state ── */
+            <div className="flex flex-col items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-center">
+              <FileJson className="h-7 w-7 text-amber-400" />
+              <p className="max-w-full truncate text-xs font-semibold text-foreground">
+                {uploadedName}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                {uploadedJson.item?.length || 0} steps ready
+              </p>
+              <button
+                type="button"
+                onClick={clearAll}
+                className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-destructive"
+              >
+                <X className="h-3 w-3" /> Remove file
+              </button>
+            </div>
+          ) : (
+            /* ── Upload state: drop zone + real input button ── */
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+              className="flex flex-col gap-3"
+            >
+              {/* Drop hint */}
+              <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border p-4 text-center">
+                <Upload className="h-5 w-5 text-muted-foreground" />
+                <p className="mt-1.5 text-xs text-muted-foreground">Drop JSON here</p>
+              </div>
+
+              {/* Browse button — uses a real visible input so browser never blocks it */}
+              <div className="relative flex h-9 w-full items-center justify-center overflow-hidden rounded-lg border border-amber-500/40 bg-amber-500/5 cursor-pointer hover:bg-amber-500/10 transition-colors">
+                <span className="pointer-events-none flex items-center gap-2 text-xs font-semibold text-amber-400">
+                  <FileJson className="h-3.5 w-3.5" />
+                  Browse JSON file
+                </span>
+                {/* input covers the full button area, opacity 0 so label text shows through */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) handleFile(e.target.files[0])
                   }}
-                  className="mt-1 text-[10px] text-muted-foreground hover:text-destructive"
-                >
-                  <X className="inline h-3 w-3" /> Clear
-                </button>
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    opacity: 0,
+                    cursor: "pointer",
+                  }}
+                />
               </div>
-            ) : (
-              <div className="flex flex-col items-center gap-1.5 text-center">
-                <Upload className="h-6 w-6 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
-                  Drop DeFi Postman JSON
-                </p>
-                <p className="text-[10px] text-muted-foreground/60">
-                  ETH-Liq-Coll, DeFi-HealthFactor, etc.
-                </p>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Error */}

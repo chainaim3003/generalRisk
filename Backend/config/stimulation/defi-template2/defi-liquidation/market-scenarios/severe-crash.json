@@ -1,0 +1,54 @@
+{
+  "scenario_name": "Severe Crash - Cascade Liquidation",
+  "description": "ETH drawdown -50% within 60 days mimicking May 2022 Terra/LUNA contagion style event. Health factor breaches 1.0 liquidation trigger. Cascade probability >60%. Gas reaches 300+ gwei. USDC depeg stress 0.5%. Aggressive repayment insufficient - forced liquidation occurs.",
+  "scenario_date": "2026-03",
+  "collateral_stress": "severe",
+
+  "ETH_USD": {
+    "trend": "crash",
+    "start_value": 2800.0,
+    "crash_phases": [
+      {"date": "2026-03-15", "value": 2400.0, "note": "Phase 1: Initial sell-off -14%"},
+      {"date": "2026-03-31", "value": 1900.0, "note": "Phase 2: Panic accelerates -32%"},
+      {"date": "2026-04-15", "value": 1500.0, "note": "Phase 3: Cascade begins HF<1.5"},
+      {"date": "2026-04-30", "value": 1200.0, "note": "Phase 4: Liquidations cascade HF<1.0"},
+      {"date": "2026-05-15", "value": 1100.0, "note": "Phase 5: Market bottom -60.7%"},
+      {"date": "2026-05-31", "value": 1400.0, "note": "Dead cat bounce recovery"}
+    ],
+    "peak_drawdown_pct": -60.7,
+    "note": "Severe crash scenario - based on ETH May 2022 dynamics"
+  },
+  "DEFI_RATE": {
+    "trend": "spike_and_crash",
+    "start_value": 0.0624,
+    "peak_value": 0.2500,
+    "crash_value": 0.0300,
+    "end_value": 0.0800,
+    "note": "Extreme borrow demand spike then protocol insolvency fear"
+  },
+  "GAS_GWEI": {
+    "trend": "extreme_spike",
+    "start_value": 25.0,
+    "peak_value": 350.0,
+    "end_value": 60.0,
+    "note": "MEV bots and liquidators compete - 350 gwei peak"
+  },
+  "INVOICE_PAYMENT_PROB": {
+    "start_value": 0.95,
+    "trough_value": 0.72,
+    "end_value": 0.80,
+    "note": "Severe credit deterioration during crypto bear market"
+  },
+  "USDC_USD": {
+    "start_value": 1.0000,
+    "trough_value": 0.9950,
+    "end_value": 0.9975,
+    "note": "USDC depeg 0.5% during peak stress"
+  },
+  "CASCADE_PROBABILITY": {
+    "start_value": 0.05,
+    "peak_value": 0.85,
+    "end_value": 0.20,
+    "note": "Cascade probability peaks >85% at Phase 4"
+  }
+}

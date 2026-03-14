@@ -1,0 +1,49 @@
+{
+  "config_metadata": {
+    "config_id": "DEFI_PROT_MAKERDAO_VAULTS",
+    "description": "MakerDAO Multi-Collateral DAI Vault profile - CDP-based, auction liquidation, stability fee model",
+    "version": "1.0.0",
+    "collection_file": "DeFi-HealthFactor-CollateralVelocity-90d.json"
+  },
+
+  "protocol": {
+    "source": "file",
+    "file": "protocols/makerdao.json"
+  },
+
+  "protocol_thresholds": {
+    "source": "inline",
+    "inline": {
+      "min_health_factor_trigger": 1.0,
+      "healthy_health_factor": 1.50,
+      "target_health_factor": 2.0,
+      "max_liquidation_bonus": 0.13,
+      "max_cascade_depth": 4,
+      "min_collateral_ratio": 1.50,
+      "gas_price_gwei_limit": 200,
+      "max_slippage_tolerance": 0.05,
+      "liquidation_close_factor": 1.0,
+      "protocol_fee_bps": 0,
+      "stability_fee_annual": 0.035,
+      "auction_duration_hours": 4,
+      "circuit_breaker_active": true
+    }
+  },
+
+  "market_scenario": {
+    "source": "file",
+    "file": "market-scenarios/severe-crash.json"
+  },
+
+  "liquidation_scenario": {
+    "source": "file",
+    "file": "liquidation-scenarios/cascade-liquidation.json"
+  },
+
+  "simulation_timeframe": {
+    "status_date": "2026-02-28T00:00:00",
+    "start_date": "2026-03-01T00:00:00",
+    "end_date": "2026-05-31T00:00:00",
+    "frequency": "daily"
+  }
+}

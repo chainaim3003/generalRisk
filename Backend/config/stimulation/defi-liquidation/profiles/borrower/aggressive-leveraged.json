@@ -1,0 +1,46 @@
+{
+  "config_metadata": {
+    "config_id": "DEFI_BRW_AGGRESSIVE_LEVERAGED",
+    "description": "Aggressive borrower - maximum leverage, high LTV, does not repay proactively. Relies on flash loans to re-collateralize at last moment.",
+    "version": "1.0.0",
+    "collection_file": "DeFi-CascadeProbability-GasOptimization-90d.json"
+  },
+
+  "protocol": {
+    "source": "file",
+    "file": "protocols/compound-v3.json"
+  },
+
+  "borrower_thresholds": {
+    "source": "inline",
+    "inline": {
+      "min_health_factor_comfort": 1.05,
+      "repay_trigger_health_factor": 1.08,
+      "aggressive_repay_fraction": 0.50,
+      "moderate_repay_fraction": 0.15,
+      "safe_horizon_days": 7,
+      "urgent_days": 1,
+      "max_ltv_target": 0.92,
+      "gas_price_abort_gwei": 999,
+      "flash_loan_enabled": true,
+      "flash_loan_max_usd": 2000000
+    }
+  },
+
+  "market_scenario": {
+    "source": "file",
+    "file": "market-scenarios/severe-crash.json"
+  },
+
+  "liquidation_scenario": {
+    "source": "file",
+    "file": "liquidation-scenarios/cascade-liquidation.json"
+  },
+
+  "simulation_timeframe": {
+    "status_date": "2026-02-28T00:00:00",
+    "start_date": "2026-03-01T00:00:00",
+    "end_date": "2026-05-31T00:00:00",
+    "frequency": "daily"
+  }
+}
