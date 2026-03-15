@@ -426,6 +426,25 @@ function createExpect(value: unknown): unknown {
           negate ? value !== expected : value === expected,
           `${JSON.stringify(value)} to${q} equal ${JSON.stringify(expected)}`,
         ),
+      at: {
+        most: (n: number): void =>
+          assert(
+            negate ? Number(value) > n : Number(value) <= n,
+            `${String(value)} to${q} be at most ${n}`,
+          ),
+        least: (n: number): void =>
+          assert(
+            negate ? Number(value) < n : Number(value) >= n,
+            `${String(value)} to${q} be at least ${n}`,
+          ),
+      },
+      within: (low: number, high: number): void =>
+        assert(
+          negate
+            ? Number(value) < low || Number(value) > high
+            : Number(value) >= low && Number(value) <= high,
+          `${String(value)} to${q} be within ${low}..${high}`,
+        ),
     };
 
     // .empty is a property getter, not a method (chai-style)
@@ -544,6 +563,12 @@ function createSandbox(
       callback: (...args: unknown[]) => void,
     ): void => {
       pending.push({ options, callback });
+    },
+    // pm.execution.setNextRequest — used by HOL collection for epoch looping
+    execution: {
+      setNextRequest: (name: string | null): void => {
+        nextRequest = name;
+      },
     },
   };
 
@@ -713,6 +738,7 @@ async function runScriptedCollection(
   // Override actus_sim_host with the chosen environment's host:port.
   // This is the single variable that controls which server all scripts hit.
   collVars['actus_sim_host'] = env.actusServerBase.replace(/^https?:\/\//, '');
+  collVars['actus_risk_host'] = env.riskServiceBase.replace(/^https?:\/\//, '');
 
   // envVars: mutable state shared across all scripts via pm.environment
   const envVars: Record<string, string> = {};
@@ -725,6 +751,10 @@ async function runScriptedCollection(
   // directSimulation: captures the response from a POST to the ACTUS server (port 8083).
   // stablecoin-1 collections use this path (not epoch_history) to return simulation data.
   let directSimulation: unknown = null;
+
+  // Track the peak rt_history value — HOL collection's final summary resets it to '[]',
+  // so we capture the longest version seen during execution.
+  let peakCollHistory = '';
 
   // ── Flatten items and build name → index lookup ────────────────
   const flatItems = flattenItems(collectionJson.item || []);
@@ -851,6 +881,12 @@ async function runScriptedCollection(
       durationMs: Date.now() - stepStart,
     });
 
+    // ── Capture peak rt_history before scripts can reset it ───
+    const currentHistory = collVars['rt_history'] || '';
+    if (currentHistory.length > peakCollHistory.length) {
+      peakCollHistory = currentHistory;
+    }
+
     // ── Routing via postman.setNextRequest() ───────────────────
     const nextReq = sandbox.getNextRequest();
 
@@ -877,7 +913,7 @@ async function runScriptedCollection(
   // ── Extract epoch_history as the simulation result ─────────────
   let epochHistory: unknown[] = [];
   try {
-    const raw = envVars['epoch_history'] || '[]';
+    const raw = envVars['epoch_history'] || peakCollHistory || '[]';
     const parsed: unknown = JSON.parse(raw);
     epochHistory = Array.isArray(parsed) ? parsed : [];
   } catch {

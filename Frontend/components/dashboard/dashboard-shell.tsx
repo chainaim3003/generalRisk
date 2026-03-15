@@ -1,10 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import React, { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import {
-  Upload,
-  MessageSquareText,
   Activity,
   Shield,
   Wifi,
@@ -13,21 +11,21 @@ import {
   Settings,
   Download,
   HelpCircle,
-  FlameKindling,
-  Settings2,
-  Layers,
+  Building2,
+  User,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { ModeUpload } from "./mode-upload"
-import { ModeChat } from "./mode-chat"
-import { ModeSimulation } from "./mode-simulation"
-import { ModeDefiLiquidation } from "./mode-defi-liquidation"
+// Commented out — unused tabs
+// import { ModeUpload } from "./mode-upload"
+// import { ModeChat } from "./mode-chat"
+// import { ModeSimulation } from "./mode-simulation"
+// import { ModeDefiLiquidation } from "./mode-defi-liquidation"
+// import { ModeDefiConfig } from "./mode-defi-config"
+// import { BufferDashboardShell } from "./defi-newdashboard1"
 import { ConfigSimulationMode } from "./mode-config"
-import { ModeDefiConfig } from "./mode-defi-config"
-import { BufferDashboardShell } from "./defi-newdashboard1"
 import type { DashboardMode, HealthStatus } from "@/lib/types"
-import { checkHealth, getActusEnvironment } from "@/lib/api"
+import { checkHealth } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
 const modeDescriptions: Record<DashboardMode, string> = {
@@ -45,10 +43,14 @@ const modeDescriptions: Record<DashboardMode, string> = {
     "DeFi liquidation risk — HealthFactor, CollateralVelocity & ETH price stress simulations",
   "buffer-v5":
     "Buffer-First V5 — ETH collateral defense with BufferLTVModel, configurable sliders, 4-tab ACTUS dashboard",
+  issuer:
+    "Issuer simulation — adjust regulatory thresholds (GENIUS / MiCA / Conservative) and run ACTUS behavioral models",
+  holder:
+    "Holder simulation — configure portfolio & risk thresholds, simulate 45-day USD ↔ USDC allocation strategy",
 }
 
 export function DashboardShell() {
-  const [mode, setMode] = useState<DashboardMode>("buffer-v5")
+  const [mode, setMode] = useState<DashboardMode>("issuer")
   const [health, setHealth] = useState<HealthStatus>({
     status: "checking",
     actusConnected: false,
@@ -152,7 +154,31 @@ export function DashboardShell() {
       </header>
 
       {/* ── Main Content ── */}
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-6">
+      <div className="flex-1 bg-white">
+      <main
+        className="mx-auto w-full max-w-[1440px] px-6 py-6 text-slate-900"
+        style={{
+          '--background': '0 0% 100%',
+          '--foreground': '222 47% 11%',
+          '--card': '0 0% 100%',
+          '--card-foreground': '222 47% 11%',
+          '--popover': '0 0% 100%',
+          '--popover-foreground': '222 47% 11%',
+          '--primary': '160 84% 40%',
+          '--primary-foreground': '0 0% 100%',
+          '--secondary': '210 40% 96%',
+          '--secondary-foreground': '222 47% 11%',
+          '--muted': '210 40% 96%',
+          '--muted-foreground': '215 16% 47%',
+          '--accent': '210 40% 96%',
+          '--accent-foreground': '222 47% 11%',
+          '--destructive': '0 84% 60%',
+          '--destructive-foreground': '210 40% 98%',
+          '--border': '214 32% 91%',
+          '--input': '214 32% 91%',
+          '--ring': '222 47% 11%',
+        } as React.CSSProperties}
+      >
         <Tabs
           value={mode}
           onValueChange={(v) => setMode(v as DashboardMode)}
@@ -160,74 +186,24 @@ export function DashboardShell() {
         >
           <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <TabsList className="bg-secondary">
-              {/* ── File Upload ── */}
+              {/* ── Issuer ── */}
               <TabsTrigger
-                value="upload"
+                value="issuer"
                 className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground"
               >
-                <Upload className="h-4 w-4" />
-                <span className="hidden sm:inline">File Upload</span>
-                <span className="sm:hidden">Upload</span>
+                <Building2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Issuer</span>
+                <span className="sm:hidden">ISS</span>
               </TabsTrigger>
 
-              {/* ── AI Assistant ── */}
+              {/* ── Holder ── */}
               <TabsTrigger
-                value="chat"
+                value="holder"
                 className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground"
               >
-                <MessageSquareText className="h-4 w-4" />
-                <span className="hidden sm:inline">AI Assistant</span>
-                <span className="sm:hidden">AI Chat</span>
-              </TabsTrigger>
-
-              {/* ── Config Simulation ── */}
-              <TabsTrigger
-                value="config"
-                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground"
-              >
-                <Settings2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Config Sim</span>
-                <span className="sm:hidden">Config</span>
-              </TabsTrigger>
-
-              {/* ── Simulation (StableCoin) ── */}
-              <TabsTrigger
-                value="simulation"
-                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground"
-              >
-                <Activity className="h-4 w-4" />
-                <span className="hidden sm:inline">Simulation</span>
-                <span className="sm:hidden">Sim</span>
-              </TabsTrigger>
-
-              {/* ── DeFi Config Simulation ── */}
-              <TabsTrigger
-                value="defi-config"
-                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-amber-400"
-              >
-                <FlameKindling className="h-4 w-4" />
-                <span className="hidden sm:inline">DeFi Config</span>
-                <span className="sm:hidden">DeFi Cfg</span>
-              </TabsTrigger>
-
-              {/* ── DeFi Liquidation ── */}
-              <TabsTrigger
-                value="defi-liquidation"
-                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-amber-400"
-              >
-                <FlameKindling className="h-4 w-4" />
-                <span className="hidden sm:inline">DeFi Liquidation</span>
-                <span className="sm:hidden">DeFi</span>
-              </TabsTrigger>
-
-              {/* ── Buffer V5 (NEW) ── */}
-              <TabsTrigger
-                value="buffer-v5"
-                className="gap-1.5 data-[state=active]:bg-background data-[state=active]:text-primary"
-              >
-                <Layers className="h-4 w-4" />
-                <span className="hidden sm:inline">Buffer V5</span>
-                <span className="sm:hidden">V5</span>
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Holder</span>
+                <span className="sm:hidden">HOL</span>
               </TabsTrigger>
             </TabsList>
 
@@ -236,112 +212,72 @@ export function DashboardShell() {
             </p>
           </div>
 
-          {/* ── Upload Tab ── */}
+          {/* ── Issuer Tab ── */}
+          <TabsContent value="issuer" className="mt-0">
+            {mode === "issuer" && (
+              <motion.div
+                key="issuer-content"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <ConfigSimulationMode entityType="issuer" />
+              </motion.div>
+            )}
+          </TabsContent>
+
+          {/* ── Holder Tab ── */}
+          <TabsContent value="holder" className="mt-0">
+            {mode === "holder" && (
+              <motion.div
+                key="holder-content"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <ConfigSimulationMode entityType="holder" />
+              </motion.div>
+            )}
+          </TabsContent>
+
+          {/* ══════════════════════════════════════════════════════════
+             COMMENTED OUT TABS — kept for future restoration
+             ══════════════════════════════════════════════════════════ */}
+
+          {/*
           <TabsContent value="upload" className="mt-0">
-            {mode === "upload" && (
-              <motion.div
-                key="upload-content"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.25 }}
-              >
-                <ModeUpload />
-              </motion.div>
-            )}
+            {mode === "upload" && <ModeUpload />}
           </TabsContent>
 
-          {/* ── Chat Tab ── */}
           <TabsContent value="chat" className="mt-0">
-            {mode === "chat" && (
-              <motion.div
-                key="chat-content"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.25 }}
-              >
-                <ModeChat />
-              </motion.div>
-            )}
+            {mode === "chat" && <ModeChat />}
           </TabsContent>
 
-          {/* ── Config Simulation Tab ── */}
           <TabsContent value="config" className="mt-0">
-            {mode === "config" && (
-              <motion.div
-                key="config-content"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.25 }}
-              >
-                <ConfigSimulationMode />
-              </motion.div>
-            )}
+            {mode === "config" && <ConfigSimulationMode />}
           </TabsContent>
 
-          {/* ── Simulation (StableCoin) Tab ── */}
           <TabsContent value="simulation" className="mt-0">
-            {mode === "simulation" && (
-              <motion.div
-                key="simulation-content"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.25 }}
-              >
-                <ModeSimulation />
-              </motion.div>
-            )}
+            {mode === "simulation" && <ModeSimulation />}
           </TabsContent>
 
-          {/* ── DeFi Config Tab ── */}
           <TabsContent value="defi-config" className="mt-0">
-            {mode === "defi-config" && (
-              <motion.div
-                key="defi-config-content"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.25 }}
-              >
-                <ModeDefiConfig />
-              </motion.div>
-            )}
+            {mode === "defi-config" && <ModeDefiConfig />}
           </TabsContent>
 
-          {/* ── DeFi Liquidation Tab ── */}
           <TabsContent value="defi-liquidation" className="mt-0">
-            {mode === "defi-liquidation" && (
-              <motion.div
-                key="defi-liquidation-content"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.25 }}
-              >
-                <ModeDefiLiquidation />
-              </motion.div>
-            )}
+            {mode === "defi-liquidation" && <ModeDefiLiquidation />}
           </TabsContent>
 
-          {/* ── Buffer V5 Tab (NEW) ── */}
           <TabsContent value="buffer-v5" className="mt-0">
-            {mode === "buffer-v5" && (
-              <motion.div
-                key="buffer-v5-content"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.25 }}
-              >
-                <BufferDashboardShell />
-              </motion.div>
-            )}
+            {mode === "buffer-v5" && <BufferDashboardShell />}
           </TabsContent>
+          */}
         </Tabs>
       </main>
+      </div>
 
       {/* ── Footer ── */}
       <footer className="border-t border-border bg-card/50 px-6 py-3">

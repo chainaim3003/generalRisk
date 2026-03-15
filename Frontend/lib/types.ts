@@ -164,6 +164,8 @@ export type DashboardMode =
   | "defi-config"
   | "defi-liquidation"
   | "buffer-v5"
+  | "issuer"
+  | "holder"
 
 export type Jurisdiction = "eu-mica" | "us-genius" | "custom"
 

@@ -201,6 +201,50 @@ export async function runConfigSimulation(
   })
 }
 
+// ---- Stablecoin Config Simulation API ----
+
+export interface IssuerThresholds {
+  backingThreshold: number
+  liquidityThreshold: number
+  wamMaxDays: number
+  bankStressThreshold: number
+  baseQuality: number
+  qualityFloor: number
+  sovereignMaxDegradation: number
+  maxSingleAssetShare: number
+  hhiWarningThreshold: number
+}
+
+export interface HolderPortfolio {
+  initialUsd: number
+  targetUsdc: number
+  deployPct: number
+}
+
+export interface HolderThresholdSet {
+  br: number
+  lq: number
+  peg: number
+  mr: number
+  hqla: number
+  cc: number
+}
+
+export async function runStablecoinSimulation(params: {
+  entityType: 'issuer' | 'holder'
+  environment?: string
+  issuerThresholds?: IssuerThresholds
+  holderPortfolio?: HolderPortfolio
+  holderGood?: HolderThresholdSet
+  holderBad?: HolderThresholdSet
+}): Promise<StimulationResult & { entityType: string; appliedThresholds: any }> {
+  const env = params.environment || getActusEnvironment()
+  return fetchApi('/stablecoin-simulate', {
+    method: 'POST',
+    body: JSON.stringify({ ...params, environment: env }),
+  })
+}
+
 // SWR fetchers
 export const scenariosFetcher = () => getScenarios()
 export const portfoliosFetcher = () => getPortfolios()
