@@ -17,10 +17,10 @@
           }
         ],
         "url": {
-          "raw": "http://127.0.0.1:8083/eventsBatch",
+          "raw": "http://localhost:8083/eventsBatch",
           "protocol": "http",
           "host": [
-            "127.0.0.1:8083"
+            "localhost:8083"
           ],
           "path": [
             "eventsBatch"

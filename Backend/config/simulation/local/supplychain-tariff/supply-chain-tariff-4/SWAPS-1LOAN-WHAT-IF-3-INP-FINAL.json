@@ -472,7 +472,7 @@
           "request": {
             "method": "POST",
             "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": "http://127.0.0.1:8083/eventsBatch",
+            "url": "http://localhost:8083/eventsBatch",
             "body": {"mode": "raw", "raw": "{{LOAN_ONLY_PAYLOAD}}"}
           },
           "event": [
@@ -521,7 +521,7 @@
           "request": {
             "method": "POST",
             "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": "http://127.0.0.1:8083/eventsBatch",
+            "url": "http://localhost:8083/eventsBatch",
             "body": {"mode": "raw", "raw": "{{SWAP_NOW_PAYLOAD}}"}
           },
           "event": [
@@ -572,7 +572,7 @@
           "request": {
             "method": "POST",
             "header": [{"key": "Content-Type", "value": "application/json"}],
-            "url": "http://127.0.0.1:8083/eventsBatch",
+            "url": "http://localhost:8083/eventsBatch",
             "body": {"mode": "raw", "raw": "{{SWAP_LATER_PAYLOAD}}"}
           },
           "event": [
@@ -631,7 +631,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "http://127.0.0.1:8083/"
+            "url": "http://localhost:8083/"
           },
           "event": [
             {

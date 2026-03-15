@@ -17,10 +17,12 @@ const __dirname = path.dirname(__filename);
 const DEFAULT_ACTUS_URL = "http://34.203.247.32:8083/eventsBatch";
 const DEFAULT_LOCAL_RISK_URL = "http://localhost:8082";
 const DEFAULT_LOCAL_SIM_URL = "http://localhost:8083";
+const DEFAULT_AWS_RISK_URL = "http://34.203.247.32:8082";
+const DEFAULT_AWS_SIM_URL = "http://34.203.247.32:8083";
 
 // ── Create MCP Server ─────────────────────────────────────────────
 const server = new Server(
-  { name: "generalRisk", version: "3.0.0" },
+  { name: "generalRisk", version: "3.2.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -116,10 +118,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["filename"],
         },
       },
-      // ─── Tool 5: run_simulation (UNCHANGED logic, same as old simulate_defi_liquidation) ──
+      // ─── Tool 5: run_simulation ────────────────────────────
+      // UPDATED in v3.2.0: Now supports BOTH ACTUS endpoints:
+      //   /eventsBatch         — for collections with inline riskFactors (supply chain tariff, SWAPS)
+      //   /rf2/scenarioSimulation — for collections with pre-loaded scenarios (DeFi, hybrid treasury)
+      // Auto-detects based on payload structure. No breaking changes.
       {
         name: "run_simulation",
         description: `Execute an ACTUS financial contract simulation against the ACTUS risk engine (ports 8082/8083 or AWS). This tool runs a complete multi-step workflow: loads market risk factors (interest rates, collateral/asset prices), configures risk models (prepayment, LTV monitoring, buffer protection, allocation drift, early settlement, penalty accrual), creates a scenario, and runs the ACTUS simulation engine.
+
+SUPPORTS TWO ACTUS ENDPOINTS (auto-detected from payload):
+  1. /eventsBatch — for collections with INLINE riskFactors (supply chain tariff, SWAPS collections)
+  2. /rf2/scenarioSimulation — for collections with PRE-LOADED scenarios (DeFi, hybrid treasury, stablecoin)
+
+Auto-detection: If simulation_json contains a top-level "riskFactors" array → routes to /eventsBatch.
+If it contains "reference_indexes" + "scenario" → routes to /rf2/scenarioSimulation.
 
 USE THIS TOOL WHEN the user asks to run or execute any simulation collection — DeFi liquidation, hybrid treasury, stablecoin, dynamic discounting, supply chain tariff, or any other ACTUS Postman collection.
 
@@ -131,21 +144,21 @@ RESPONSE: Structured JSON with simulation_metadata, market_risk_factors loaded, 
           properties: {
             simulation_json: {
               type: "string",
-              description: "Complete simulation configuration as a JSON string containing reference_indexes, prepayment_models, buffer_ltv_models, collateral_ltv_models, scenario, contracts (REQUIRED), and simulateTo (REQUIRED).",
+              description: "Complete simulation configuration as a JSON string. For /eventsBatch: include contracts and riskFactors (inline). For /rf2/scenarioSimulation: include reference_indexes, prepayment_models, buffer_ltv_models, collateral_ltv_models, scenario, contracts, and simulateTo.",
             },
             risk_server_url: {
               type: "string",
-              description: "ACTUS risk factor server URL (default: http://localhost:8082).",
+              description: "ACTUS risk factor server URL. If omitted, tries localhost:8082 first, then falls back to AWS (34.203.247.32:8082).",
             },
             simulation_server_url: {
               type: "string",
-              description: "ACTUS simulation server URL (default: http://localhost:8083).",
+              description: "ACTUS simulation server URL. If omitted, tries localhost:8083 first, then falls back to AWS (34.203.247.32:8083).",
             },
           },
           required: ["simulation_json"],
         },
       },
-      // ─── Tool 6: list_simulations (NEW — replaces list_defi_simulations) ──
+      // ─── Tool 6: list_simulations (UNCHANGED) ─────────────
       {
         name: "list_simulations",
         description: "List all available simulation collections across all domains: defi-liquidation-collateral, hybrid-treasury, stablecoin, dynamic-discounting, supplychain-tariff, base-actus-samples. Returns filenames organized by domain and subcategory. Use load_simulation to read a specific file.",
@@ -165,7 +178,7 @@ RESPONSE: Structured JSON with simulation_metadata, market_risk_factors loaded, 
           required: [],
         },
       },
-      // ─── Tool 7: load_simulation (NEW — replaces load_defi_simulation) ──
+      // ─── Tool 7: load_simulation (UNCHANGED) ──────────────
       {
         name: "load_simulation",
         description: "Load any simulation collection file from any domain. Returns the full Postman collection JSON including all API request bodies (reference indexes, risk models, scenario config, contracts, simulation params). Use list_simulations first to see available files.",
@@ -207,6 +220,64 @@ async function actusPost(url: string, body: any): Promise<any> {
     timeout: 60000,
   });
   return response.data;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Helper: Quick health check — can we reach this server?
+// ══════════════════════════════════════════════════════════════════
+async function isServerReachable(baseUrl: string): Promise<boolean> {
+  try {
+    const axios = (await import("axios")).default;
+    await axios.get(`${baseUrl}/findAllScenarios`, { timeout: 3000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Helper: Resolve server URLs — try localhost first, fallback to AWS
+// Returns { riskUrl, simUrl, server_used } with full transparency
+// ══════════════════════════════════════════════════════════════════
+async function resolveServerUrls(
+  explicitRiskUrl?: string,
+  explicitSimUrl?: string
+): Promise<{ riskUrl: string; simUrl: string; server_used: string }> {
+  // If user explicitly passed URLs, use them — no fallback
+  if (explicitRiskUrl || explicitSimUrl) {
+    return {
+      riskUrl: explicitRiskUrl || DEFAULT_LOCAL_RISK_URL,
+      simUrl: explicitSimUrl || DEFAULT_LOCAL_SIM_URL,
+      server_used: `explicit: risk=${explicitRiskUrl || DEFAULT_LOCAL_RISK_URL}, sim=${explicitSimUrl || DEFAULT_LOCAL_SIM_URL}`,
+    };
+  }
+
+  // No explicit URLs — try localhost first
+  const localAlive = await isServerReachable(DEFAULT_LOCAL_RISK_URL);
+  if (localAlive) {
+    return {
+      riskUrl: DEFAULT_LOCAL_RISK_URL,
+      simUrl: DEFAULT_LOCAL_SIM_URL,
+      server_used: `localhost (Docker) — ${DEFAULT_LOCAL_RISK_URL} / ${DEFAULT_LOCAL_SIM_URL}`,
+    };
+  }
+
+  // Localhost unreachable — try AWS
+  const awsAlive = await isServerReachable(DEFAULT_AWS_RISK_URL);
+  if (awsAlive) {
+    return {
+      riskUrl: DEFAULT_AWS_RISK_URL,
+      simUrl: DEFAULT_AWS_SIM_URL,
+      server_used: `AWS fallback — ${DEFAULT_AWS_RISK_URL} / ${DEFAULT_AWS_SIM_URL} (localhost was unreachable)`,
+    };
+  }
+
+  // Both unreachable — return localhost URLs so the caller gets a clear connection error
+  return {
+    riskUrl: DEFAULT_LOCAL_RISK_URL,
+    simUrl: DEFAULT_LOCAL_SIM_URL,
+    server_used: "NONE — both localhost and AWS are unreachable",
+  };
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -323,7 +394,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   // ══════════════════════════════════════════════════════════════
-  // TOOL 5: run_simulation (same logic as old simulate_defi_liquidation, renamed)
+  // TOOL 5: run_simulation
+  // v3.2.0: Added /eventsBatch path for supply chain tariff collections
   // ══════════════════════════════════════════════════════════════
   if (name === "run_simulation") {
     try {
@@ -331,8 +403,100 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (!simJsonStr) { return { content: [{ type: "text", text: "Error: simulation_json is required" }], isError: true }; }
 
       const simConfig = JSON.parse(simJsonStr);
-      const riskUrl = (args?.risk_server_url as string) || DEFAULT_LOCAL_RISK_URL;
-      const simUrl = (args?.simulation_server_url as string) || DEFAULT_LOCAL_SIM_URL;
+
+      // ── Resolve server URLs: localhost first, AWS fallback, full transparency ──
+      const { riskUrl, simUrl, server_used } = await resolveServerUrls(
+        args?.risk_server_url as string | undefined,
+        args?.simulation_server_url as string | undefined
+      );
+
+      // ════════════════════════════════════════════════════════
+      // PATH A: /eventsBatch — inline riskFactors
+      // Used by: supply chain tariff, SWAPS collections
+      // Detect: payload has top-level "riskFactors" array
+      // ════════════════════════════════════════════════════════
+      if (simConfig.riskFactors && Array.isArray(simConfig.riskFactors)) {
+        if (!simConfig.contracts || !Array.isArray(simConfig.contracts) || simConfig.contracts.length === 0) {
+          return { content: [{ type: "text", text: "Error: 'contracts' array is required in simulation_json" }], isError: true };
+        }
+
+        const eventsBatchPayload = {
+          contracts: simConfig.contracts,
+          riskFactors: simConfig.riskFactors,
+        };
+
+        let ebResponse: any;
+        const endpoint = `${simUrl}/eventsBatch`;
+        try {
+          ebResponse = await actusPost(endpoint, eventsBatchPayload);
+        } catch (err: any) {
+          return { content: [{ type: "text", text: JSON.stringify({
+            error: `eventsBatch simulation failed: ${err.message}`,
+            endpoint_used: endpoint,
+            server_used,
+            contracts_sent: simConfig.contracts.length,
+            risk_factors_sent: simConfig.riskFactors.length,
+            hint: "Ensure ACTUS server is running on port 8083 and accepts /eventsBatch",
+          }, null, 2) }], isError: true };
+        }
+
+        // Analyze results
+        const analysis: any = { total_events: 0, event_counts_by_type: {}, rate_summary: {}, loan_summary: {} };
+        const contractResults: any[] = [];
+
+        if (Array.isArray(ebResponse)) {
+          for (const contractResult of ebResponse) {
+            const events = contractResult.events || [];
+            analysis.total_events += events.length;
+            for (const evt of events) {
+              analysis.event_counts_by_type[evt.type] = (analysis.event_counts_by_type[evt.type] || 0) + 1;
+            }
+            const ipEvents = events.filter((e: any) => e.type === "IP");
+            let totalIP = 0;
+            for (const ip of ipEvents) { totalIP += ip.payoff || 0; }
+            const rrEvents = events.filter((e: any) => e.type === "RR");
+            if (rrEvents.length > 0) {
+              let minRate = Infinity, maxRate = -Infinity, minTime = "", maxTime = "";
+              for (const rr of rrEvents) {
+                if (rr.nominalRate < minRate) { minRate = rr.nominalRate; minTime = rr.time; }
+                if (rr.nominalRate > maxRate) { maxRate = rr.nominalRate; maxTime = rr.time; }
+              }
+              analysis.rate_summary[contractResult.contractId || contractResult.contractID || "unknown"] = {
+                initial: rrEvents[0].nominalRate, min: minRate, max: maxRate,
+                final: rrEvents[rrEvents.length - 1].nominalRate,
+                min_time: minTime, max_time: maxTime, total_resets: rrEvents.length,
+              };
+            }
+            contractResults.push({
+              contractId: contractResult.contractId || contractResult.contractID,
+              status: contractResult.status,
+              events_count: events.length,
+              ip_total: totalIP,
+              events: events,
+            });
+          }
+        }
+
+        const finalResponse = {
+          simulation_metadata: {
+            endpoint_used: endpoint,
+            endpoint_mode: "eventsBatch",
+            contracts_count: simConfig.contracts.length,
+            risk_factors_count: simConfig.riskFactors.length,
+            timestamp: new Date().toISOString(),
+            server_used: server_used,
+          },
+          simulation_results: contractResults,
+          analysis: analysis,
+        };
+        return { content: [{ type: "text", text: JSON.stringify(finalResponse, null, 2) }] };
+      }
+
+      // ════════════════════════════════════════════════════════
+      // PATH B: /rf2/scenarioSimulation — pre-loaded scenarios
+      // Used by: DeFi, hybrid treasury, stablecoin, dynamic discounting
+      // Everything below is UNCHANGED from v3.1.0
+      // ════════════════════════════════════════════════════════
       const loadResults: any = { reference_indexes: [], prepayment_models: [], ltv_models: [] };
 
       // Step 1: Load reference indexes
@@ -384,7 +548,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         } catch (err: any) { scenarioResult = { scenarioID: simConfig.scenario.scenarioID, status: "error", error: err.message }; }
       }
 
-      // Step 5: Run simulation
+      // Step 5: Run simulation via /rf2/scenarioSimulation
       if (!simConfig.contracts || !Array.isArray(simConfig.contracts) || simConfig.contracts.length === 0) {
         return { content: [{ type: "text", text: "Error: 'contracts' array is required in simulation_json" }], isError: true };
       }
@@ -436,7 +600,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       const finalResponse = {
-        simulation_metadata: { scenario_id: simConfig.scenario?.scenarioID || "none", contracts_count: simConfig.contracts.length, simulate_to: simConfig.simulateTo, timestamp: new Date().toISOString() },
+        simulation_metadata: { endpoint_used: `${simUrl}/rf2/scenarioSimulation`, endpoint_mode: "scenarioSimulation", scenario_id: simConfig.scenario?.scenarioID || "none", contracts_count: simConfig.contracts.length, simulate_to: simConfig.simulateTo, timestamp: new Date().toISOString(), server_used: server_used },
         market_risk_factors: loadResults,
         scenario_config: scenarioResult,
         contracts: simConfig.contracts.map((c: any) => ({ contractID: c.contractID, contractType: c.contractType, contractRole: c.contractRole, notionalPrincipal: c.notionalPrincipal, currency: c.currency, maturityDate: c.maturityDate, prepaymentModels: c.prepaymentModels })),
@@ -451,8 +615,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   // ══════════════════════════════════════════════════════════════
-  // TOOL 6: list_simulations (NEW — scans ALL domains)
-  // Path: config/simulation/{environment}/{domain}/{subcategory}/*.json
+  // TOOL 6: list_simulations (UNCHANGED)
   // ══════════════════════════════════════════════════════════════
   if (name === "list_simulations") {
     try {
@@ -466,7 +629,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: JSON.stringify({ error: `Environment directory not found: ${basePath}`, available_environments: ["hosted", "local"] }, null, 2) }], isError: true };
       }
 
-      // Get all domain directories (or just the filtered one)
       const domains = fs.readdirSync(basePath).filter((d) => {
         const full = path.join(basePath, d);
         if (!fs.statSync(full).isDirectory()) return false;
@@ -478,13 +640,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const domainPath = path.join(basePath, domain);
         result[domain] = {};
 
-        // Check if domain has direct JSON files (like base-actus-samples)
         const directFiles = fs.readdirSync(domainPath).filter((f) => f.endsWith(".json"));
         if (directFiles.length > 0) {
           result[domain]["_root"] = directFiles;
         }
 
-        // Check subcategory directories
         const subcategories = fs.readdirSync(domainPath).filter((d) => {
           const full = path.join(domainPath, d);
           return fs.statSync(full).isDirectory();
@@ -498,7 +658,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         }
 
-        // Remove domain if empty
         if (Object.keys(result[domain]).length === 0) {
           delete result[domain];
         }
@@ -521,7 +680,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   // ══════════════════════════════════════════════════════════════
-  // TOOL 7: load_simulation (NEW — loads from ANY domain)
+  // TOOL 7: load_simulation (UNCHANGED)
   // ══════════════════════════════════════════════════════════════
   if (name === "load_simulation") {
     try {
@@ -536,18 +695,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       let filePath = "";
 
       if (filterDomain && filterSubcategory) {
-        // Direct path: environment/domain/subcategory/filename
         filePath = path.join(basePath, filterDomain, filterSubcategory, filename);
       } else if (filterDomain) {
-        // Search within one domain (check root + all subcategories)
         const domainPath = path.join(basePath, filterDomain);
         if (fs.existsSync(domainPath)) {
-          // Check root of domain
           const rootCandidate = path.join(domainPath, filename);
           if (fs.existsSync(rootCandidate)) {
             filePath = rootCandidate;
           } else {
-            // Search subcategories
             const subs = fs.readdirSync(domainPath).filter((d) => fs.statSync(path.join(domainPath, d)).isDirectory());
             for (const sub of subs) {
               const candidate = path.join(domainPath, sub, filename);
@@ -556,17 +711,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         }
       } else {
-        // Search everything: all domains, all subcategories
         if (fs.existsSync(basePath)) {
           const domains = fs.readdirSync(basePath).filter((d) => fs.statSync(path.join(basePath, d)).isDirectory());
           let found = false;
           for (const domain of domains) {
             if (found) break;
             const domainPath = path.join(basePath, domain);
-            // Check root
             const rootCandidate = path.join(domainPath, filename);
             if (fs.existsSync(rootCandidate)) { filePath = rootCandidate; found = true; break; }
-            // Check subcategories
             const subs = fs.readdirSync(domainPath).filter((d) => fs.statSync(path.join(domainPath, d)).isDirectory());
             for (const sub of subs) {
               const candidate = path.join(domainPath, sub, filename);
@@ -597,7 +749,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("generalRisk MCP Server v3.0.0 started — all simulation domains");
+  console.error("generalRisk MCP Server v3.2.0 started — localhost-first with AWS fallback, eventsBatch support");
 }
 
 main().catch((err) => {

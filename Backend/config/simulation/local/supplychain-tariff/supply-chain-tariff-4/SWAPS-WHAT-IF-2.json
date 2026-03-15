@@ -126,7 +126,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "http://127.0.0.1:8083/eventsBatch",
+            "url": "http://localhost:8083/eventsBatch",
             "body": {
               "mode": "raw",
               "raw": "{\"contracts\": [{\"contractType\": \"PAM\", \"contractID\": \"LOAN-FLOAT-A\", \"contractRole\": \"RPA\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"maturityDate\": \"2028-03-01T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"currency\": \"USD\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0725\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateSpread\": \"{{loan_spread}}\", \"rateMultiplier\": \"1.0\"}, {\"contractType\": \"SWAPS\", \"contractID\": \"SWAP-NOW-A\", \"contractRole\": \"PFL\", \"currency\": \"USD\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"deliverySettlement\": \"D\", \"contractStructure\": [{\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-A-FIXED\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-02-28T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"{{swap_now_rate}}\", \"maturityDate\": \"2028-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"FIL\"}, {\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-A-FLOAT\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-02-28T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0600\", \"maturityDate\": \"2028-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateMultiplier\": \"1.0\", \"rateSpread\": \"0.0\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"SEL\"}]}], \"riskFactors\": [{\"marketObjectCode\": \"DETERIORATING_SOFR\", \"base\": 1.0, \"data\": [{\"time\": \"2026-03-01T00:00:00\", \"value\": 0.06}, {\"time\": \"2026-06-01T00:00:00\", \"value\": 0.0635}, {\"time\": \"2026-09-01T00:00:00\", \"value\": 0.0665}, {\"time\": \"2026-12-01T00:00:00\", \"value\": 0.0695}, {\"time\": \"2027-03-01T00:00:00\", \"value\": 0.072}, {\"time\": \"2027-06-01T00:00:00\", \"value\": 0.073}, {\"time\": \"2027-09-01T00:00:00\", \"value\": 0.0745}, {\"time\": \"2027-12-01T00:00:00\", \"value\": 0.075}, {\"time\": \"2028-03-01T00:00:00\", \"value\": 0.075}]}]}"
@@ -178,7 +178,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "http://127.0.0.1:8083/eventsBatch",
+            "url": "http://localhost:8083/eventsBatch",
             "body": {
               "mode": "raw",
               "raw": "{\"contracts\": [{\"contractType\": \"PAM\", \"contractID\": \"LOAN-UNHEDGED-B\", \"contractRole\": \"RPA\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"maturityDate\": \"2026-06-01T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"currency\": \"USD\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0725\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateSpread\": \"{{loan_spread}}\", \"rateMultiplier\": \"1.0\"}, {\"contractType\": \"PAM\", \"contractID\": \"LOAN-HEDGED-B\", \"contractRole\": \"RPA\", \"contractDealDate\": \"2026-05-31T00:00:00\", \"statusDate\": \"2026-05-31T00:00:00\", \"initialExchangeDate\": \"2026-06-01T00:00:00\", \"maturityDate\": \"2028-03-01T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"currency\": \"USD\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0725\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleAnchorDateOfInterestPayment\": \"2026-09-01T00:00:00\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-06-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateSpread\": \"{{loan_spread}}\", \"rateMultiplier\": \"1.0\"}, {\"contractType\": \"SWAPS\", \"contractID\": \"SWAP-LATER-B\", \"contractRole\": \"PFL\", \"currency\": \"USD\", \"contractDealDate\": \"2026-05-31T00:00:00\", \"statusDate\": \"2026-05-31T00:00:00\", \"deliverySettlement\": \"D\", \"contractStructure\": [{\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-B-FIXED\", \"contractDealDate\": \"2026-05-31T00:00:00\", \"initialExchangeDate\": \"2026-06-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-05-31T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"{{swap_later_rate}}\", \"maturityDate\": \"2028-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-09-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"FIL\"}, {\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-B-FLOAT\", \"contractDealDate\": \"2026-05-31T00:00:00\", \"initialExchangeDate\": \"2026-06-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-05-31T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0635\", \"maturityDate\": \"2028-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-09-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-06-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateMultiplier\": \"1.0\", \"rateSpread\": \"0.0\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"SEL\"}]}], \"riskFactors\": [{\"marketObjectCode\": \"DETERIORATING_SOFR\", \"base\": 1.0, \"data\": [{\"time\": \"2026-03-01T00:00:00\", \"value\": 0.06}, {\"time\": \"2026-06-01T00:00:00\", \"value\": 0.0635}, {\"time\": \"2026-09-01T00:00:00\", \"value\": 0.0665}, {\"time\": \"2026-12-01T00:00:00\", \"value\": 0.0695}, {\"time\": \"2027-03-01T00:00:00\", \"value\": 0.072}, {\"time\": \"2027-06-01T00:00:00\", \"value\": 0.073}, {\"time\": \"2027-09-01T00:00:00\", \"value\": 0.0745}, {\"time\": \"2027-12-01T00:00:00\", \"value\": 0.075}, {\"time\": \"2028-03-01T00:00:00\", \"value\": 0.075}]}]}"
@@ -229,7 +229,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "http://127.0.0.1:8083/"
+            "url": "http://localhost:8083/"
           },
           "event": [
             {
@@ -308,7 +308,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "http://127.0.0.1:8083/"
+            "url": "http://localhost:8083/"
           },
           "event": [
             {
@@ -375,7 +375,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "http://127.0.0.1:8083/"
+            "url": "http://localhost:8083/"
           },
           "event": [
             {
