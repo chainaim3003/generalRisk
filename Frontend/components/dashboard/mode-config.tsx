@@ -204,6 +204,8 @@ export function ConfigSimulationMode({ entityType }: ConfigSimulationProps) {
   const [error, setError] = useState("")
   const [expandedRaw, setExpandedRaw] = useState(false)
   const [environment, setEnvironment] = useState("localhost")
+  const [vleiStatus, setVleiStatus] = useState<'idle' | 'signing' | 'signed' | 'error'>('idle')
+  const [vleiResult, setVleiResult] = useState<any>(null)
 
   // Issuer state
   const [issThresholds, setIssThresholds] = useState<IssuerThresholds>(
@@ -451,7 +453,44 @@ export function ConfigSimulationMode({ entityType }: ConfigSimulationProps) {
                 <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-600">
                   {portfolioHistory ? `${portfolioHistory.length} days` : `${contractEvents?.length || 0} contracts`}
                 </Badge>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { setResult(null); setError("") }}>
+                <button
+                  type="button"
+                  disabled={vleiStatus === 'signing'}
+                  className={`flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                    vleiStatus === 'signed'
+                      ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                      : vleiStatus === 'error'
+                        ? 'border-red-300 bg-red-50 text-red-600'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                  }`}
+                  onClick={async () => {
+                    setVleiStatus('signing')
+                    setVleiResult(null)
+                    try {
+                      const payload = {
+                        entityType,
+                        thresholds: entityType === 'issuer' ? issThresholds : { portfolio: holPortfolio, good: holGood, bad: holBad },
+                        simulationResult: result,
+                        timestamp: new Date().toISOString(),
+                      }
+                      const res = await fetch(`${API_BASE}/vlei-sign`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                      })
+                      if (!res.ok) throw new Error(`${res.status}`)
+                      const data = await res.json()
+                      setVleiResult(data)
+                      setVleiStatus('signed')
+                    } catch {
+                      setVleiStatus('error')
+                    }
+                  }}
+                >
+                  {vleiStatus === 'signing' && <Loader2 className="h-3 w-3 animate-spin" />}
+                  {vleiStatus === 'signed' ? '\u2713 Signed' : vleiStatus === 'error' ? 'Sign failed' : vleiStatus === 'signing' ? 'Signing\u2026' : '\uD83D\uDD0F Sign vLEI'}
+                </button>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { setResult(null); setError(""); setVleiStatus('idle'); setVleiResult(null) }}>
                   <RotateCcw className="h-3 w-3" />
                 </Button>
               </div>
