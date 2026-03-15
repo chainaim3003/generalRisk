@@ -1,0 +1,465 @@
+POST http://34.203.247.32:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "1a585f5e-f474-4f03-b484-f70e5c2b1ac7",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "1540"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_RESERVES_01\",\"marketObjectCode\":\"SC_TOTAL_RESERVES\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":102000000},{\"time\":\"2026-03-02T00:00:00\",\"value\":101800000},{\"time\":\"2026-03-03T00:00:00\",\"value\":101500000},{\"time\":\"2026-03-04T00:00:00\",\"value\":101000000},{\"time\":\"2026-03-05T00:00:00\",\"value\":100500000},{\"time\":\"2026-03-06T00:00:00\",\"value\":100000000},{\"time\":\"2026-03-07T00:00:00\",\"value\":99500000},{\"time\":\"2026-03-08T00:00:00\",\"value\":99000000},{\"time\":\"2026-03-09T00:00:00\",\"value\":98000000},{\"time\":\"2026-03-10T00:00:00\",\"value\":97000000},{\"time\":\"2026-03-11T00:00:00\",\"value\":95500000},{\"time\":\"2026-03-12T00:00:00\",\"value\":94000000},{\"time\":\"2026-03-13T00:00:00\",\"value\":92500000},{\"time\":\"2026-03-14T00:00:00\",\"value\":91000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":89500000},{\"time\":\"2026-03-16T00:00:00\",\"value\":88500000},{\"time\":\"2026-03-17T00:00:00\",\"value\":88000000},{\"time\":\"2026-03-18T00:00:00\",\"value\":88000000},{\"time\":\"2026-03-19T00:00:00\",\"value\":88500000},{\"time\":\"2026-03-20T00:00:00\",\"value\":89000000},{\"time\":\"2026-03-21T00:00:00\",\"value\":90000000},{\"time\":\"2026-03-22T00:00:00\",\"value\":91000000},{\"time\":\"2026-03-23T00:00:00\",\"value\":92500000},{\"time\":\"2026-03-24T00:00:00\",\"value\":94000000},{\"time\":\"2026-03-25T00:00:00\",\"value\":95500000},{\"time\":\"2026-03-26T00:00:00\",\"value\":97000000},{\"time\":\"2026-03-27T00:00:00\",\"value\":98000000},{\"time\":\"2026-03-28T00:00:00\",\"value\":99000000},{\"time\":\"2026-03-29T00:00:00\",\"value\":100000000},{\"time\":\"2026-03-30T00:00:00\",\"value\":100500000}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Sat, 07 Mar 2026 00:24:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_RESERVES_01: $102M → $88M trough → $100.5M recovery'
+POST http://34.203.247.32:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "6fb698ea-333c-4903-96ee-b6a8a0e3cf1b",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "1526"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_CASH_01\",\"marketObjectCode\":\"SC_CASH_RESERVE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":40800000},{\"time\":\"2026-03-02T00:00:00\",\"value\":40200000},{\"time\":\"2026-03-03T00:00:00\",\"value\":39500000},{\"time\":\"2026-03-04T00:00:00\",\"value\":38500000},{\"time\":\"2026-03-05T00:00:00\",\"value\":37000000},{\"time\":\"2026-03-06T00:00:00\",\"value\":35500000},{\"time\":\"2026-03-07T00:00:00\",\"value\":33000000},{\"time\":\"2026-03-08T00:00:00\",\"value\":30000000},{\"time\":\"2026-03-09T00:00:00\",\"value\":27000000},{\"time\":\"2026-03-10T00:00:00\",\"value\":24000000},{\"time\":\"2026-03-11T00:00:00\",\"value\":21000000},{\"time\":\"2026-03-12T00:00:00\",\"value\":18500000},{\"time\":\"2026-03-13T00:00:00\",\"value\":16500000},{\"time\":\"2026-03-14T00:00:00\",\"value\":15000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":13500000},{\"time\":\"2026-03-16T00:00:00\",\"value\":13200000},{\"time\":\"2026-03-17T00:00:00\",\"value\":13500000},{\"time\":\"2026-03-18T00:00:00\",\"value\":14000000},{\"time\":\"2026-03-19T00:00:00\",\"value\":15000000},{\"time\":\"2026-03-20T00:00:00\",\"value\":17000000},{\"time\":\"2026-03-21T00:00:00\",\"value\":19000000},{\"time\":\"2026-03-22T00:00:00\",\"value\":22000000},{\"time\":\"2026-03-23T00:00:00\",\"value\":25000000},{\"time\":\"2026-03-24T00:00:00\",\"value\":28000000},{\"time\":\"2026-03-25T00:00:00\",\"value\":31000000},{\"time\":\"2026-03-26T00:00:00\",\"value\":33000000},{\"time\":\"2026-03-27T00:00:00\",\"value\":35000000},{\"time\":\"2026-03-28T00:00:00\",\"value\":36500000},{\"time\":\"2026-03-29T00:00:00\",\"value\":37500000},{\"time\":\"2026-03-30T00:00:00\",\"value\":38000000}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Sat, 07 Mar 2026 00:24:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_CASH_01: $40.8M (40%) → $13.2M (15%) → $38M recovery'
+'   → Crosses 35% liquidity threshold at day 6'
+'   → Per 609-event data: <20% liquidity → 23% recovery rate'
+POST http://34.203.247.32:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "a5f26d52-7f63-4ebd-ad80-15d24460928c",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "1432"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_PEG_DEV_01\",\"marketObjectCode\":\"STABLECOIN_PEG_DEV\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-02T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-03T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-04T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.002},{\"time\":\"2026-03-06T00:00:00\",\"value\":0.002},{\"time\":\"2026-03-07T00:00:00\",\"value\":0.003},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.004},{\"time\":\"2026-03-09T00:00:00\",\"value\":0.005},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.008},{\"time\":\"2026-03-11T00:00:00\",\"value\":0.012},{\"time\":\"2026-03-12T00:00:00\",\"value\":0.018},{\"time\":\"2026-03-13T00:00:00\",\"value\":0.025},{\"time\":\"2026-03-14T00:00:00\",\"value\":0.035},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.050},{\"time\":\"2026-03-16T00:00:00\",\"value\":0.048},{\"time\":\"2026-03-17T00:00:00\",\"value\":0.042},{\"time\":\"2026-03-18T00:00:00\",\"value\":0.035},{\"time\":\"2026-03-19T00:00:00\",\"value\":0.025},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.018},{\"time\":\"2026-03-21T00:00:00\",\"value\":0.012},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.008},{\"time\":\"2026-03-23T00:00:00\",\"value\":0.005},{\"time\":\"2026-03-24T00:00:00\",\"value\":0.003},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.002},{\"time\":\"2026-03-26T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-27T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-28T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-30T00:00:00\",\"value\":0.0}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Sat, 07 Mar 2026 00:24:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_PEG_DEV_01: 0% → 0.5% trigger → 5% peak → 0% recovery'
+'   → Calibrated breakpoints from 609 historical de-peg events'
+'   → 5% de-peg → 28.5% daily redemption rate (median)'
+POST http://34.203.247.32:8082/addBackingRatioModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "fa937b37-7526-4caa-9f27-bf31b62c0576",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "834"
+  },
+  "Request Body": "{\"riskFactorId\":\"br_sc01\",\"totalReservesMOC\":\"SC_TOTAL_RESERVES\",\"cashReserveMOC\":\"SC_CASH_RESERVE\",\"backingThreshold\":1.0,\"liquidityThreshold\":0.35,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-02T00:00:00\",\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "37",
+    "date": "Sat, 07 Mar 2026 00:24:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "BackingRatioModel added successfully\n"
+}
+'✅ br_sc01: BackingRatioModel (daily monitoring, 30 days)'
+'   backingThreshold=1.0 (100% per STABLE/GENIUS/MiCA)'
+'   liquidityThreshold=0.35 (35% = 94% recovery rate cutoff)'
+'   → Backing drops below 100% around day 6-7'
+'   → Liquidity drops below 35% around day 6'
+POST http://34.203.247.32:8082/addRedemptionPressureModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "b41ac672-8ada-4c85-9549-130af544126d",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "815"
+  },
+  "Request Body": "{\"riskFactorId\":\"rp_sc01\",\"pegDeviationMOC\":\"STABLECOIN_PEG_DEV\",\"cashReserveMOC\":\"SC_CASH_RESERVE\",\"pegDeviationThreshold\":0.005,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-02T00:00:00\",\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "43",
+    "date": "Sat, 07 Mar 2026 00:24:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "RedemptionPressureModel added successfully\n"
+}
+'✅ rp_sc01: RedemptionPressureModel (daily monitoring, 30 days)'
+'   pegDeviationThreshold=0.005 (0.5% minimum to trigger)'
+'   Calibrated from 609 historical de-peg events:'
+'     0.5% de-peg → 2.3% daily redemption'
+'     1.0% de-peg → 5.7% daily redemption'
+'     5.0% de-peg → 28.5% daily redemption'
+POST http://34.203.247.32:8082/addScenario: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "308a4b11-597e-46ac-aa14-069897673cb0",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "397"
+  },
+  "Request Body": "{\"scenarioID\":\"sc_depeg_stress_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_RESERVES_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_PEG_DEV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"br_sc01\",\"riskFactorType\":\"BackingRatioModel\"},{\"riskFactorID\":\"rp_sc01\",\"riskFactorType\":\"RedemptionPressureModel\"}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "28",
+    "date": "Sat, 07 Mar 2026 00:24:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "Scenario added Successfully\n"
+}
+'✅ sc_depeg_stress_scn01: 3 indexes + 2 stablecoin behavioral models'
+'   ReferenceIndex: SC_TOTAL_RESERVES, SC_CASH_RESERVE, STABLECOIN_PEG_DEV'
+'   BackingRatioModel: br_sc01'
+'   RedemptionPressureModel: rp_sc01'
+GET http://34.203.247.32:8082/findBackingRatioModel/br_sc01: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "980d6525-451d-4818-a1be-269b6e7f99df",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive"
+  },
+  "Response Headers": {
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Sat, 07 Mar 2026 00:24:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "{\"riskFactorId\":\"br_sc01\",\"totalReservesMOC\":\"SC_TOTAL_RESERVES\",\"cashReserveMOC\":\"SC_CASH_RESERVE\",\"backingThreshold\":1.0,\"liquidityThreshold\":0.35,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-02T00:00:00\",\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}"
+}
+'✅ br_sc01 confirmed: backingThresh=1, liqThresh=0.35'
+GET http://34.203.247.32:8082/findRedemptionPressureModel/rp_sc01: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "ae287e74-7d53-47e7-a865-345da84a56b3",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive"
+  },
+  "Response Headers": {
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Sat, 07 Mar 2026 00:24:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "{\"riskFactorId\":\"rp_sc01\",\"pegDeviationMOC\":\"STABLECOIN_PEG_DEV\",\"cashReserveMOC\":\"SC_CASH_RESERVE\",\"pegDeviationThreshold\":0.005,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-02T00:00:00\",\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}"
+}
+'✅ rp_sc01 confirmed: pegDevThresh=0.005'
+GET http://34.203.247.32:8082/findScenario/sc_depeg_stress_scn01: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50104
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "519bcce5-1834-42e6-83a8-6f31d33af8be",
+    "host": "34.203.247.32:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive"
+  },
+  "Response Headers": {
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Sat, 07 Mar 2026 00:24:33 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "{\"scenarioID\":\"sc_depeg_stress_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_RESERVES_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_PEG_DEV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"br_sc01\",\"riskFactorType\":\"BackingRatioModel\"},{\"riskFactorID\":\"rp_sc01\",\"riskFactorType\":\"RedemptionPressureModel\"}]}"
+}
+'✅ Scenario descriptors: ["ReferenceIndex","ReferenceIndex","ReferenceIndex","BackingRatioModel","RedemptionPressureModel"]'
+POST http://34.203.247.32:8083/rf2/scenarioSimulation: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 50108
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8083
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "d6a0a5ee-3758-44e8-b84b-aed69181ee83",
+    "host": "34.203.247.32:8083",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "703"
+  },
+  "Request Body": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"StableCoinA-Liability-01\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000000,\"premiumDiscountAtIED\":0,\"stablecoinModels\":[\"br_sc01\",\"rp_sc01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"sc_depeg_stress_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}",
+  "Response Headers": {
+    "vary": [
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Sat, 07 Mar 2026 00:24:34 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "[{\"scenarioId\":\"sc_depeg_stress_scn01\",\"contractID\":\"StableCoinA-Liability-01\",\"status\":\"Success\",\"message\":\"\",\"events\":[{\"type\":\"PP\",\"time\":\"2026-03-01T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-01T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"IED\",\"time\":\"2026-03-01T00:00\",\"payoff\":-1.0E8,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-02T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-02T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-03T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-03T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-04T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-04T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-05T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-05T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-06T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-06T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0E8,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-07T00:00\",\"payoff\":500000.00000000047,\"currency\":\"USD\",\"nominalValue\":9.95E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-07T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":9.95E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-08T00:00\",\"payoff\":500000.00000000215,\"currency\":\"USD\",\"nominalValue\":9.9E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-08T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":9.9E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-09T00:00\",\"payoff\":999999.9999999955,\"currency\":\"USD\",\"nominalValue\":9.8E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-09T00:00\",\"payoff\":2254000.0,\"currency\":\"USD\",\"nominalValue\":9.5746E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-10T00:00\",\"payoff\":9511100.0,\"currency\":\"USD\",\"nominalValue\":8.62349E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-10T00:00\",\"payoff\":3742594.66,\"currency\":\"USD\",\"nominalValue\":8.249230534E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-11T00:00\",\"payoff\":7872306.869000002,\"currency\":\"USD\",\"nominalValue\":7.4619998471E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-11T00:00\",\"payoff\":4887609.8998505,\"currency\":\"USD\",\"nominalValue\":6.97323885711495E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-12T00:00\",\"payoff\":5906335.999902322,\"currency\":\"USD\",\"nominalValue\":6.3826052571247175E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-12T00:00\",\"payoff\":5808170.783983493,\"currency\":\"USD\",\"nominalValue\":5.8017881787263684E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-13T00:00\",\"payoff\":3806258.6255422886,\"currency\":\"USD\",\"nominalValue\":5.421162316172139E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-13T00:00\",\"payoff\":6546053.4967778595,\"currency\":\"USD\",\"nominalValue\":4.766556966494353E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-14T00:00\",\"payoff\":1682949.3827302358,\"currency\":\"USD\",\"nominalValue\":4.598262028221329E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-14T00:00\",\"payoff\":8173410.7551634135,\"currency\":\"USD\",\"nominalValue\":3.780920952704988E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-15T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":3.780920952704988E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-15T00:00\",\"payoff\":1.0775624715209214E7,\"currency\":\"USD\",\"nominalValue\":2.703358481184066E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-16T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":2.703358481184066E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-16T00:00\",\"payoff\":7317991.408565265,\"currency\":\"USD\",\"nominalValue\":1.9715593403275397E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-17T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.9715593403275397E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-17T00:00\",\"payoff\":4491212.177266136,\"currency\":\"USD\",\"nominalValue\":1.522438122600926E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-18T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.522438122600926E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-18T00:00\",\"payoff\":2706133.7629231466,\"currency\":\"USD\",\"nominalValue\":1.2518247463086113E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-19T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.2518247463086113E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-19T00:00\",\"payoff\":1511578.3811676486,\"currency\":\"USD\",\"nominalValue\":1.1006669081918465E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-20T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.1006669081918465E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-20T00:00\",\"payoff\":1001606.8864545802,\"currency\":\"USD\",\"nominalValue\":1.0005062195463885E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-21T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":1.0005062195463885E7,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-21T00:00\",\"payoff\":655331.5738028844,\"currency\":\"USD\",\"nominalValue\":9349730.621661,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-22T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":9349730.621661,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-22T00:00\",\"payoff\":405778.3089800874,\"currency\":\"USD\",\"nominalValue\":8943952.312680913,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-23T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8943952.312680913,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-23T00:00\",\"payoff\":205710.903191661,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-24T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-24T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-25T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-25T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-26T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-26T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-27T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-27T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-28T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-28T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-29T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-29T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-30T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-30T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"IP\",\"time\":\"2026-03-31T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":8738241.409489252,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"MD\",\"time\":\"2026-03-31T00:00\",\"payoff\":8738241.409489252,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0}]}]"
+}
+'════════════════════════════════════════════════════════════════'
+'STABLECOIN DE-PEG STRESS: BACKING RATIO + REDEMPTION PRESSURE'
+'  Issuer: StableCoinA ($100M outstanding supply)'
+'  Reserves: $102M → $88M trough → recovery'
+'  Peg deviation: 0% → 5% peak → 0% recovery'
+'════════════════════════════════════════════════════════════════'
+'Total events: 63'
+''
+'  PP: 60'
+'  IED: 1'
+'  IP: 1'
+'  MD: 1'
+''
+'══ BEHAVIORAL EVENTS (MRD/PP) ══'
+'  Days 1-9:  Both models → 0.0 (fully backed, on peg)'
+'  Days 10-14: BackingRatio flags underbacking + liquidity gap'
+'  Day 15: Peak stress: 88% backing, 5% de-peg'
+'  Days 21-30: Recovery phase'
+''
+'  2026-03-01T00:00 type=PP payoff=$0.00 remaining=$0.00'
+'  2026-03-01T00:00 type=PP payoff=$0.00 remaining=$0.00'
+'  2026-03-02T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-02T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-03T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-03T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-04T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-04T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-05T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-05T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-06T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-06T00:00 type=PP payoff=$0.00 remaining=$100000000.00'
+'  2026-03-07T00:00 type=PP payoff=$500000.00 remaining=$99500000.00'
+'  2026-03-07T00:00 type=PP payoff=$0.00 remaining=$99500000.00'
+'  2026-03-08T00:00 type=PP payoff=$500000.00 remaining=$99000000.00'
+'  2026-03-08T00:00 type=PP payoff=$0.00 remaining=$99000000.00'
+'  2026-03-09T00:00 type=PP payoff=$1000000.00 remaining=$98000000.00'
+'  2026-03-09T00:00 type=PP payoff=$2254000.00 remaining=$95746000.00'
+'  2026-03-10T00:00 type=PP payoff=$9511100.00 remaining=$86234900.00'
+'  2026-03-10T00:00 type=PP payoff=$3742594.66 remaining=$82492305.34'
+'  2026-03-11T00:00 type=PP payoff=$7872306.87 remaining=$74619998.47'
+'  2026-03-11T00:00 type=PP payoff=$4887609.90 remaining=$69732388.57'
+'  2026-03-12T00:00 type=PP payoff=$5906336.00 remaining=$63826052.57'
+'  2026-03-12T00:00 type=PP payoff=$5808170.78 remaining=$58017881.79'
+'  2026-03-13T00:00 type=PP payoff=$3806258.63 remaining=$54211623.16'
+'  2026-03-13T00:00 type=PP payoff=$6546053.50 remaining=$47665569.66'
+'  2026-03-14T00:00 type=PP payoff=$1682949.38 remaining=$45982620.28'
+'  2026-03-14T00:00 type=PP payoff=$8173410.76 remaining=$37809209.53'
+'  2026-03-15T00:00 type=PP payoff=$0.00 remaining=$37809209.53'
+'  2026-03-15T00:00 type=PP payoff=$10775624.72 remaining=$27033584.81'
+'  2026-03-16T00:00 type=PP payoff=$0.00 remaining=$27033584.81'
+'  2026-03-16T00:00 type=PP payoff=$7317991.41 remaining=$19715593.40'
+'  2026-03-17T00:00 type=PP payoff=$0.00 remaining=$19715593.40'
+'  2026-03-17T00:00 type=PP payoff=$4491212.18 remaining=$15224381.23'
+'  2026-03-18T00:00 type=PP payoff=$0.00 remaining=$15224381.23'
+'  2026-03-18T00:00 type=PP payoff=$2706133.76 remaining=$12518247.46'
+'  2026-03-19T00:00 type=PP payoff=$0.00 remaining=$12518247.46'
+'  2026-03-19T00:00 type=PP payoff=$1511578.38 remaining=$11006669.08'
+'  2026-03-20T00:00 type=PP payoff=$0.00 remaining=$11006669.08'
+'  2026-03-20T00:00 type=PP payoff=$1001606.89 remaining=$10005062.20'
+'  2026-03-21T00:00 type=PP payoff=$0.00 remaining=$10005062.20'
+'  2026-03-21T00:00 type=PP payoff=$655331.57 remaining=$9349730.62'
+'  2026-03-22T00:00 type=PP payoff=$0.00 remaining=$9349730.62'
+'  2026-03-22T00:00 type=PP payoff=$405778.31 remaining=$8943952.31'
+'  2026-03-23T00:00 type=PP payoff=$0.00 remaining=$8943952.31'
+'  2026-03-23T00:00 type=PP payoff=$205710.90 remaining=$8738241.41'
+'  2026-03-24T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-24T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-25T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-25T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-26T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-26T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-27T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-27T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-28T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-28T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-29T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-29T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-30T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+'  2026-03-30T00:00 type=PP payoff=$0.00 remaining=$8738241.41'
+''
+'══ MATURITY ══'
+'  Final principal: $8738241.41'
+'  ⚠️  Supply reduced by $91261758.59 due to behavioral risk'
+'════════════════════════════════════════════════════════════════'

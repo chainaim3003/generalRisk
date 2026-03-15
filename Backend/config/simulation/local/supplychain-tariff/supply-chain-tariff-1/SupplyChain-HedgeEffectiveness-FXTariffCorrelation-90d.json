@@ -1,0 +1,246 @@
+{
+  "info": {
+    "_postman_id": "sc-he-fxtc-90d-001",
+    "name": "SupplyChain-HedgeEffectiveness-FXTariffCorrelation-90d",
+    "description": "ACTUS Supply Chain Tariff: HEDGE EFFECTIVENESS + FX-TARIFF CORRELATION (China-US electronics corridor).\n\nTWO supply chain tariff behavioral models run simultaneously:\n  1. HedgeEffectivenessModel (7.3) — ASC 815 / IFRS 9 hedge effectiveness under tariff stress\n  2. FXTariffCorrelationModel (7.5) — correlated USD/CNY + tariff stress amplification\n\nScenario: Chinese electronics exporter, $10M FX forward hedge\n  Baseline tariff: 25% (HS Chapter 84-85 electronics, Section 301)\n  Tariff escalation: 25% → 45% over 30 days (reciprocal tariff announcement)\n  USD/CNY baseline: 7.25, depreciates to 7.85 under tariff stress\n  Hedge notional: $10M FX forward, 6-month tenor\n  Exposure grows from $10M to $14M as tariff inflates USD costs\n\nKEY DYNAMICS:\n  Days 1-15:  Hedge effective (ratio 0.80-1.25 per ASC 815)\n  Days 16-45: Tariff spike → exposure grows beyond hedged notional\n              Hedge ratio drops below 0.80 → de-designation required\n              FX depreciation compounds exposure (correlation=0.65)\n  Days 46-90: Partial tariff rollback → hedge ratio recovers\n              FX stabilizes → re-designation possible\n\nReferences:\n  - ASC 815 (FASB): 80%-125% effectiveness corridor\n  - IFRS 9 / IAS 39: hedge accounting designation\n  - BIS Bulletin No. 105 (2025): EM FX-tariff correlation\n  - CME Group: FX hedging under trade policy uncertainty\n\nContract: PAM representing FX forward hedge\n  notionalPrincipal = 10000000 ($10M forward)\n  nominalInterestRate = 0.0 (forward, no coupon)\n  tariffModels: [he_chn01, fxtc_chn01]\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add TARIFF_INDEX (China-US electronics tariff)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"TARIFF_IDX_02\",\"marketObjectCode\":\"TARIFF_INDEX_CN\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.25},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.25},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.28},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.32},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.37},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.42},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.45},{\"time\":\"2026-04-10T00:00:00\",\"value\":0.45},{\"time\":\"2026-04-20T00:00:00\",\"value\":0.45},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.42},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.38},{\"time\":\"2026-05-20T00:00:00\",\"value\":0.35},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.30}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TARIFF_INDEX_CN added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 TARIFF_IDX_02: 25% baseline \\u2192 45% peak \\u2192 30% partial rollback');",
+        "    console.log('   China-US HS84-85 electronics (Section 301)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add USD_CNY (FX rate)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"FX_USDCNY_01\",\"marketObjectCode\":\"USD_CNY\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":7.25},{\"time\":\"2026-03-05T00:00:00\",\"value\":7.28},{\"time\":\"2026-03-10T00:00:00\",\"value\":7.32},{\"time\":\"2026-03-15T00:00:00\",\"value\":7.40},{\"time\":\"2026-03-20T00:00:00\",\"value\":7.52},{\"time\":\"2026-03-25T00:00:00\",\"value\":7.65},{\"time\":\"2026-03-31T00:00:00\",\"value\":7.78},{\"time\":\"2026-04-10T00:00:00\",\"value\":7.85},{\"time\":\"2026-04-20T00:00:00\",\"value\":7.80},{\"time\":\"2026-04-30T00:00:00\",\"value\":7.70},{\"time\":\"2026-05-10T00:00:00\",\"value\":7.55},{\"time\":\"2026-05-20T00:00:00\",\"value\":7.45},{\"time\":\"2026-05-31T00:00:00\",\"value\":7.35}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('USD_CNY added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 FX_USDCNY_01: 7.25 \\u2192 7.85 peak depreciation \\u2192 7.35 recovery');",
+        "    console.log('   CNY depreciates ~8.3% under tariff stress (BIS correlation ~0.65)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add CURRENT_EXPOSURE (tariff-inflated exposure)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"EXPOSURE_01\",\"marketObjectCode\":\"CURRENT_EXPOSURE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":10000000},{\"time\":\"2026-03-10T00:00:00\",\"value\":10300000},{\"time\":\"2026-03-20T00:00:00\",\"value\":11200000},{\"time\":\"2026-03-31T00:00:00\",\"value\":12800000},{\"time\":\"2026-04-10T00:00:00\",\"value\":14000000},{\"time\":\"2026-04-20T00:00:00\",\"value\":13500000},{\"time\":\"2026-04-30T00:00:00\",\"value\":12800000},{\"time\":\"2026-05-10T00:00:00\",\"value\":11800000},{\"time\":\"2026-05-20T00:00:00\",\"value\":11000000},{\"time\":\"2026-05-31T00:00:00\",\"value\":10500000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CURRENT_EXPOSURE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 EXPOSURE_01: $10M \\u2192 $14M peak (tariff-inflated) \\u2192 $10.5M recovery');",
+        "    console.log('   40% exposure growth exceeds $10M hedged notional \\u2192 under-hedged');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add HedgeEffectivenessModel (he_chn01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addHedgeEffectivenessModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addHedgeEffectivenessModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"he_chn01\",\"tariffIndexMOC\":\"TARIFF_INDEX_CN\",\"fxRateMOC\":\"USD_CNY\",\"hedgedNotional\":10000000.0,\"currentExposureMOC\":\"CURRENT_EXPOSURE\",\"lowerEffectivenessBound\":0.80,\"upperEffectivenessBound\":1.25,\"tariffExposureSensitivity\":0.6,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('HedgeEffectivenessModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 he_chn01: HedgeEffectivenessModel (bi-weekly, 90 days)');",
+        "    console.log('   ASC 815 corridor: [0.80, 1.25]');",
+        "    console.log('   hedgedNotional=$10M, tariffExposureSensitivity=0.6');",
+        "    console.log('   At peak: hedge ratio = 10M/14M = 0.71 < 0.80 \\u2192 INEFFECTIVE');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add FXTariffCorrelationModel (fxtc_chn01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addFXTariffCorrelationModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addFXTariffCorrelationModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"fxtc_chn01\",\"tariffIndexMOC\":\"TARIFF_INDEX_CN\",\"fxRateMOC\":\"USD_CNY\",\"baseFxRate\":7.25,\"correlationCoefficient\":0.65,\"fxSensitivity\":0.8,\"amplificationFactor\":1.2,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FXTariffCorrelationModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 fxtc_chn01: FXTariffCorrelationModel (bi-weekly, 90 days)');",
+        "    console.log('   baseFxRate=7.25, correlation=0.65, fxSensitivity=0.8, amplification=1.2');",
+        "    console.log('   Per BIS Bulletin 105: EM FX-tariff correlation = 0.60-0.75');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add Hedge-FX Correlation Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"tariff_hedge_fx_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"TARIFF_IDX_02\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"FX_USDCNY_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"EXPOSURE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"he_chn01\",\"riskFactorType\":\"HedgeEffectivenessModel\"},{\"riskFactorID\":\"fxtc_chn01\",\"riskFactorType\":\"FXTariffCorrelationModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Hedge-FX scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 tariff_hedge_fx_scn01: 3 indexes + 2 tariff behavioral models');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7a. Verify HedgeEffectivenessModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findHedgeEffectivenessModel/he_chn01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findHedgeEffectivenessModel", "he_chn01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('HedgeEffectivenessModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('he_chn01');",
+        "    pm.expect(d.lowerEffectivenessBound).to.eql(0.80);",
+        "    console.log('\\u2705 he_chn01 confirmed: bounds=[' + d.lowerEffectivenessBound + ',' + d.upperEffectivenessBound + ']');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7b. Verify FXTariffCorrelationModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findFXTariffCorrelationModel/fxtc_chn01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findFXTariffCorrelationModel", "fxtc_chn01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FXTariffCorrelationModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('fxtc_chn01');",
+        "    pm.expect(d.correlationCoefficient).to.eql(0.65);",
+        "    console.log('\\u2705 fxtc_chn01 confirmed: correlation=' + d.correlationCoefficient + ', amplification=' + d.amplificationFactor);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run China-US Hedge+FX Correlation Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"ChinaExporter-FXForward-01\",\"cycleAnchorDateOfInterestPayment\":\"2026-05-31T00:00:00\",\"cycleOfInterestPayment\":\"P3ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":10000000,\"premiumDiscountAtIED\":0,\"tariffModels\":[\"he_chn01\",\"fxtc_chn01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"tariff_hedge_fx_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-05-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('China-US hedge+FX correlation simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('CHINA-US HEDGE EFFECTIVENESS + FX-TARIFF CORRELATION');",
+        "    console.log('  Exporter: $10M FX forward, electronics HS84-85');",
+        "    console.log('  Tariff: 25% \\u2192 45% peak (Section 301 escalation)');",
+        "    console.log('  USD/CNY: 7.25 \\u2192 7.85 peak depreciation');",
+        "    console.log('  ASC 815 corridor: [0.80, 1.25]');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('Total events: ' + events.length);",
+        "    var counts = {};",
+        "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "    Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+        "    var mrds = events.filter(function(e){return e.type==='MRD';});",
+        "    if(mrds.length>0){console.log(''); console.log('BEHAVIORAL CALLOUTS:');",
+        "        mrds.forEach(function(m){console.log('  '+m.time+' payoff=$'+m.payoff.toFixed(2));});}",
+        "});"
+      ]}}]
+    }
+  ]
+}

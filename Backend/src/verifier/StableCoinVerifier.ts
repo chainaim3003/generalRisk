@@ -13,15 +13,15 @@ export class StableCoinVerifier {
    * Execute StableCoin risk verification
    */
   async verify(params: VerificationParams): Promise<VerificationResult> {
-    console.log('🎯 StableCoin Risk Verification');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.error('🎯 StableCoin Risk Verification');
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     try {
       // Display configuration
       this.displayConfiguration(params);
 
       // Step 1: Load portfolio
-      console.log('\n📁 Loading portfolio...');
+      console.error('\n📁 Loading portfolio...');
       const contracts = await ACTUSClient.loadPortfolio(params.portfolioPath);
       
       if (contracts.length === 0) {
@@ -32,7 +32,7 @@ export class StableCoinVerifier {
       this.displayContractBreakdown(contracts);
 
       // Step 2: Fetch ACTUS data
-      console.log('\n🌐 Fetching ACTUS data...');
+      console.error('\n🌐 Fetching ACTUS data...');
       const actusClient = new ACTUSClient(params.actusUrl);
       const actusResponse = await actusClient.fetchCashFlowData(contracts);
 
@@ -80,13 +80,13 @@ export class StableCoinVerifier {
    * Display verification configuration
    */
   private displayConfiguration(params: VerificationParams): void {
-    console.log('📊 Configuration:');
-    console.log(`   Backing Ratio Threshold: ${params.backingRatioThreshold}%`);
-    console.log(`   Liquidity Ratio Threshold: ${params.liquidityRatioThreshold}%`);
-    console.log(`   Concentration Limit: ${params.concentrationLimit}%`);
-    console.log(`   Quality Threshold: ${params.qualityThreshold}`);
-    console.log(`   ACTUS URL: ${params.actusUrl}`);
-    console.log(`   Portfolio Path: ${params.portfolioPath}`);
+    console.error('📊 Configuration:');
+    console.error(`   Backing Ratio Threshold: ${params.backingRatioThreshold}%`);
+    console.error(`   Liquidity Ratio Threshold: ${params.liquidityRatioThreshold}%`);
+    console.error(`   Concentration Limit: ${params.concentrationLimit}%`);
+    console.error(`   Quality Threshold: ${params.qualityThreshold}`);
+    console.error(`   ACTUS URL: ${params.actusUrl}`);
+    console.error(`   Portfolio Path: ${params.portfolioPath}`);
   }
 
   /**
@@ -96,10 +96,10 @@ export class StableCoinVerifier {
     const assets = contracts.filter(c => c.contractRole === 'RPA');
     const liabilities = contracts.filter(c => c.contractRole === 'RPL');
 
-    console.log('\n📋 Contract Breakdown:');
-    console.log(`   Total Contracts: ${contracts.length}`);
-    console.log(`   Assets (RPA): ${assets.length}`);
-    console.log(`   Liabilities (RPL): ${liabilities.length}`);
+    console.error('\n📋 Contract Breakdown:');
+    console.error(`   Total Contracts: ${contracts.length}`);
+    console.error(`   Assets (RPA): ${assets.length}`);
+    console.error(`   Liabilities (RPL): ${liabilities.length}`);
 
     // Breakdown by reserve type for assets
     if (assets.length > 0) {
@@ -108,11 +108,11 @@ export class StableCoinVerifier {
       const corporate = assets.filter(c => c.reserveType === 'corporate').length;
       const other = assets.filter(c => !c.reserveType || c.reserveType === 'other').length;
 
-      console.log('\n   Asset Breakdown by Type:');
-      console.log(`     Cash: ${cash}`);
-      console.log(`     Treasury: ${treasury}`);
-      console.log(`     Corporate: ${corporate}`);
-      console.log(`     Other: ${other}`);
+      console.error('\n   Asset Breakdown by Type:');
+      console.error(`     Cash: ${cash}`);
+      console.error(`     Treasury: ${treasury}`);
+      console.error(`     Corporate: ${corporate}`);
+      console.error(`     Other: ${other}`);
     }
   }
 }

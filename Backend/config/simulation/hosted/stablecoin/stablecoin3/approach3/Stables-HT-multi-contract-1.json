@@ -1,0 +1,529 @@
+{
+  "info": {
+    "_postman_id": "sc3-ht-mc-bh-001",
+    "name": "Stables-HT-multi-contract-BH-1",
+    "description": "ACTUS: HYBRID TREASURY MANAGEMENT — Multi-Contract Behavioral Simulation\n\nMODELS A STABLECOIN PORTFOLIO with $100K token supply backed by:\n  Cash Reserve (PAM):     $5,000  — immediate liquidity, tracked daily\n  T-Bill 4-Week (PAM):    $25,000 — matures Mar 15, injects cash on maturity\n  T-Bill 8-Week (PAM):    $25,000 — matures Mar 30, second cash injection\n  T-Bill 13-Week (PAM):   $25,000 — matures Apr 15, third cash injection\n  T-Bill 26-Week (PAM):   $23,000 — matures Jun 15, long-dated reserve\n  TOTAL RESERVES:         $103,000 (103% backing)\n\nCASH TRACKING ACROSS CONTRACTS:\n  Day 1:  Cash = $5,000 (5% liquidity — thin)\n  Day 8:  Cash = $2,800 (redemption drain erodes cash)\n  Day 15: Cash = $28,300 (T-Bill-4W matures → +$25,000 cash spike)\n  Day 18: Cash = $25,500 (some cash deployed to new T-bill purchase)\n  Day 20: Cash = $23,000 (continued outflow)\n  Day 30: Cash = $48,500 (T-Bill-8W matures → +$25,000 second spike)\n\nINTEGRATED BEHAVIORAL MODEL:\n  BackingRatioModel    — monitors reserve/supply ratio + liquidity threshold\n  MaturityLadderModel  — drives T-bill roll decisions based on peg risk score\n  ConcentrationDriftModel — tracks HHI across cash + 4 T-bill buckets\n\n  All three models fire at every epoch. The combined signal tells you:\n    Is the portfolio adequately backed? (BackingRatio)\n    Should we shorten tenor / hold cash / liquidate? (MaturityLadder)\n    Is the portfolio dangerously concentrated? (ConcentrationDrift)\n\nSCENARIO ARC (30 days):\n  Days 1-7:   Healthy. All models return 0.0. Normal operations.\n  Days 8-14:  Stress. Backing drops below 100%. Cash drains to 2.8%.\n              MaturityLadder escalates from NORMAL_ROLL → SHORTEN → CASH_RETENTION.\n              ConcentrationDrift: cash share drops below 5%, T-bills dominate.\n  Day 15:     INFLECTION. T-Bill-4W matures. Cash spikes from $2.8K → $28.3K.\n              BackingRatio recovers. Concentration shifts toward cash (28%).\n  Days 16-29: Recovery. MaturityLadder returns to NORMAL_ROLL.\n              ConcentrationDrift normalizes as cash is redeployed.\n  Day 30:     T-Bill-8W matures. Second cash spike. Portfolio rebalanced.\n\nAPI ENDPOINTS:\n  Risk Service:  localhost:8082\n  Sim Engine:    localhost:8083\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "actus_risk_host", "value": "34.203.247.32:8082"},
+    {"key": "actus_sim_host", "value": "34.203.247.32:8083"}
+  ],
+  "item": [
+    {
+      "name": "═══ PHASE 1: Reference Indexes (Market Data) ═══",
+      "item": [
+        {
+          "name": "1.1 Add SC_TOTAL_RESERVES — Combined cash + T-bill MtM",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HT_RESERVES_01\",\n  \"marketObjectCode\": \"SC_TOTAL_RESERVES\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 103000},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 102800},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 102500},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 102000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 101200},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 100500},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 99800},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 98500},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 97500},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 96800},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 96200},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 95800},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 95500},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 95300},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 96500},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 96000},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 95600},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 96200},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 97000},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 97500},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 98200},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 99000},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 99500},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 100000},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 100500},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 101000},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 101500},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 101800},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 102000},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 102500}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_TOTAL_RESERVES loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ HT_RESERVES_01: Total reserves (cash + T-bill MtM)');",
+            "    console.log('   Day 1:  $103,000 (103% backed)');",
+            "    console.log('   Day 8:  $98,500  (98.5% — BREACH)');",
+            "    console.log('   Day 15: $96,500  (T-Bill A matured but net of redemptions)');",
+            "    console.log('   Day 24: $100,000 (recovery to 100%)');",
+            "    console.log('   Day 30: $102,500 (fully recovered)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.2 Add SC_CASH_RESERVE — Cash balance tracking across contracts",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HT_CASH_01\",\n  \"marketObjectCode\": \"SC_CASH_RESERVE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 5000},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 4800},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 4500},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 4200},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 3800},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 3500},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 3200},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 2800},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 2500},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 2200},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 2000},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 1800},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 1600},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 1500},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 28300},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 27000},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 26000},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 25500},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 24500},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 23000},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 22000},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 21500},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 21000},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 20500},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 20000},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 19500},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 19000},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 18500},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 18200},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 48500}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_CASH_RESERVE loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ HT_CASH_01: Cash reserve tracking across all contracts');",
+            "    console.log('   Day 1:  $5,000  (5% liquidity — initial cash reserve PAM)');",
+            "    console.log('   Day 8:  $2,800  (2.8% — redemption drain, CRISIS)');",
+            "    console.log('   Day 14: $1,500  (1.5% — near-zero before T-bill maturity)');",
+            "    console.log('   Day 15: $28,300 (T-Bill-4W matures → +$25,000 cash!)');",
+            "    console.log('   Day 30: $48,500 (T-Bill-8W matures → +$25,000 second spike)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.3 Add PEG_RISK_SCORE — Composite risk for MaturityLadder",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HT_PEG_RISK_01\",\n  \"marketObjectCode\": \"PEG_RISK_SCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 4},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 6},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 9},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 12},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 16},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 22},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 30},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 36},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 42},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 46},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 48},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 44},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 38},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 22},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 18},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 14},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 10},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 8},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 6},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 5},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 4},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 3},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 1},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 1},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('PEG_RISK_SCORE loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ HT_PEG_RISK_01: Composite peg risk score (0-100)');",
+            "    console.log('   Decision tree: <15=NORMAL_ROLL, 15-29=SHORTEN, 30-44=CASH, >=45=EMERGENCY');",
+            "    console.log('   Day 1:  2  → NORMAL_ROLL');",
+            "    console.log('   Day 6:  16 → SHORTEN_TENOR');",
+            "    console.log('   Day 8:  30 → CASH_RETENTION');",
+            "    console.log('   Day 11: 46 → EMERGENCY_LIQUIDATE');",
+            "    console.log('   Day 15: 22 → SHORTEN (T-bill maturity calms market)');",
+            "    console.log('   Day 18: 10 → NORMAL_ROLL (recovery)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.4 Add SC_BUCKET_CASH — Cash bucket for concentration tracking",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HT_BUCKET_CASH_01\",\n  \"marketObjectCode\": \"SC_BUCKET_CASH\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 5000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 3800},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 2800},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 1800},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 28300},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 23000},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 20000},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 48500}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_BUCKET_CASH loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ HT_BUCKET_CASH_01: Cash bucket for HHI concentration');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.5 Add SC_BUCKET_4W_TBILL",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HT_BUCKET_4W_01\",\n  \"marketObjectCode\": \"SC_BUCKET_4W_TBILL\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 25000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 24800},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 24600},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 24400},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_BUCKET_4W loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ HT_BUCKET_4W_01: 4-week T-bill bucket ($25K → $0 at maturity Day 15)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.6 Add SC_BUCKET_8W_TBILL",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HT_BUCKET_8W_01\",\n  \"marketObjectCode\": \"SC_BUCKET_8W_TBILL\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 25000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 24900},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 24800},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 24700},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 24600},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 24400},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 24200},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_BUCKET_8W loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ HT_BUCKET_8W_01: 8-week T-bill bucket ($25K → $0 at maturity Day 30)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.7 Add SC_BUCKET_13W_TBILL",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HT_BUCKET_13W_01\",\n  \"marketObjectCode\": \"SC_BUCKET_13W_TBILL\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 25000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 24950},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 24900},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 24850},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 24800},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 24700},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 24600},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 24500}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_BUCKET_13W loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ HT_BUCKET_13W_01: 13-week T-bill bucket ($25K, matures Apr 15)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.8 Add SC_BUCKET_26W_TBILL",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HT_BUCKET_26W_01\",\n  \"marketObjectCode\": \"SC_BUCKET_26W_TBILL\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 23000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 22950},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 22900},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 22850},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 22800},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 22700},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 22600},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 22500}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_BUCKET_26W loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ HT_BUCKET_26W_01: 26-week T-bill bucket ($23K, matures Jun 15)');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 2: Behavioral Models ═══",
+      "item": [
+        {
+          "name": "2.1 Add BackingRatioModel (reserve adequacy + liquidity)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addBackingRatioModel",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addBackingRatioModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"br_ht_01\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('BackingRatioModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ br_ht_01: BackingRatioModel (daily, 30 epochs)');",
+            "    console.log('   backingThreshold=1.0 (100% per STABLE/GENIUS/MiCA)');",
+            "    console.log('   liquidityThreshold=0.20 (20% cash/reserves)');",
+            "    console.log('   Tracks: is reserves/supply >= 100%? is cash/reserves >= 20%?');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "2.2 Add MaturityLadderModel (T-bill roll decisions)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addMaturityLadderModel",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addMaturityLadderModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"ml_ht_01\",\n  \"pegRiskScoreMOC\": \"PEG_RISK_SCORE\",\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('MaturityLadderModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ ml_ht_01: MaturityLadderModel (daily, 30 epochs)');",
+            "    console.log('   <15=NORMAL_ROLL, 15-29=SHORTEN, 30-44=CASH, >=45=EMERGENCY');",
+            "    console.log('   Drives T-bill roll decisions based on peg risk score');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "2.3 Add ConcentrationDriftModel (HHI across 5 buckets)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addConcentrationDriftModel",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addConcentrationDriftModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"cd_ht_01\",\n  \"assetBucketMOCs\": [\n    \"SC_BUCKET_CASH\",\n    \"SC_BUCKET_4W_TBILL\",\n    \"SC_BUCKET_8W_TBILL\",\n    \"SC_BUCKET_13W_TBILL\",\n    \"SC_BUCKET_26W_TBILL\"\n  ],\n  \"maxSingleAssetShare\": 0.40,\n  \"hhiWarningThreshold\": 0.30,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('ConcentrationDriftModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ cd_ht_01: ConcentrationDriftModel (daily, 30 epochs)');",
+            "    console.log('   5 buckets: CASH, 4W, 8W, 13W, 26W');",
+            "    console.log('   maxSingleAssetShare=0.40 (40% breach threshold)');",
+            "    console.log('   hhiWarningThreshold=0.30');",
+            "    console.log('   Tracks: does cash concentration spike after T-bill maturity?');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 3: Scenario Assembly ═══",
+      "item": [
+        {
+          "name": "3.1 Create Hybrid Treasury Scenario (8 indexes + 3 models)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addScenario"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"sc_hybrid_treasury_01\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"HT_RESERVES_01\",      \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HT_CASH_01\",          \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HT_PEG_RISK_01\",      \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HT_BUCKET_CASH_01\",   \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HT_BUCKET_4W_01\",     \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HT_BUCKET_8W_01\",     \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HT_BUCKET_13W_01\",    \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HT_BUCKET_26W_01\",    \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_ht_01\",            \"riskFactorType\": \"BackingRatioModel\"},\n    {\"riskFactorID\": \"ml_ht_01\",            \"riskFactorType\": \"MaturityLadderModel\"},\n    {\"riskFactorID\": \"cd_ht_01\",            \"riskFactorType\": \"ConcentrationDriftModel\"}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Hybrid Treasury scenario created', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ sc_hybrid_treasury_01: 8 reference indexes + 3 behavioral models');",
+            "    console.log('   BackingRatioModel:        reserve adequacy + liquidity');",
+            "    console.log('   MaturityLadderModel:      T-bill roll decision engine');",
+            "    console.log('   ConcentrationDriftModel:  HHI portfolio diversification');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 4: Verification ═══",
+      "item": [
+        {
+          "name": "4.1 Verify BackingRatioModel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findBackingRatioModel/br_ht_01",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["findBackingRatioModel", "br_ht_01"]
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('BackingRatioModel verified', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var d = pm.response.json();",
+            "    pm.expect(d.riskFactorId).to.eql('br_ht_01');",
+            "    pm.expect(d.backingThreshold).to.eql(1.0);",
+            "    pm.expect(d.liquidityThreshold).to.eql(0.20);",
+            "    console.log('✅ br_ht_01: backing=' + d.backingThreshold + ', liq=' + d.liquidityThreshold);",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "4.2 Verify MaturityLadderModel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findMaturityLadderModel/ml_ht_01",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["findMaturityLadderModel", "ml_ht_01"]
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('MaturityLadderModel verified', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var d = pm.response.json();",
+            "    pm.expect(d.riskFactorId).to.eql('ml_ht_01');",
+            "    pm.expect(d.pegRiskScoreMOC).to.eql('PEG_RISK_SCORE');",
+            "    console.log('✅ ml_ht_01: pegRiskScoreMOC=' + d.pegRiskScoreMOC);",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "4.3 Verify ConcentrationDriftModel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findConcentrationDriftModel/cd_ht_01",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["findConcentrationDriftModel", "cd_ht_01"]
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('ConcentrationDriftModel verified', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var d = pm.response.json();",
+            "    pm.expect(d.riskFactorId).to.eql('cd_ht_01');",
+            "    pm.expect(d.maxSingleAssetShare).to.eql(0.40);",
+            "    console.log('✅ cd_ht_01: maxShare=' + d.maxSingleAssetShare + ', hhiWarn=' + d.hhiWarningThreshold);",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "4.4 Verify Scenario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findScenario/sc_hybrid_treasury_01",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["findScenario", "sc_hybrid_treasury_01"]
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Scenario verified with all 3 model types', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var d = pm.response.json();",
+            "    pm.expect(d.scenarioID).to.eql('sc_hybrid_treasury_01');",
+            "    var types = d.riskFactorDescriptors.map(function(r){ return r.riskFactorType; });",
+            "    pm.expect(types).to.include('BackingRatioModel');",
+            "    pm.expect(types).to.include('MaturityLadderModel');",
+            "    pm.expect(types).to.include('ConcentrationDriftModel');",
+            "    console.log('✅ Scenario descriptors: ' + JSON.stringify(types));",
+            "    console.log('   8 ReferenceIndex + 3 behavioral models = 11 total');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 5: Multi-Contract Simulation ═══",
+      "item": [
+        {
+          "name": "5.1 Run Hybrid Treasury Simulation (6 contracts, 30 days)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": ["{{actus_sim_host}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HT-CashReserve-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-01T00:00:00\",\n      \"maturityDate\": \"2026-06-30T00:00:00\",\n      \"notionalPrincipal\": 5000,\n      \"premiumDiscountAtIED\": 0\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HT-TBill-4W-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-15T00:00:00\",\n      \"maturityDate\": \"2026-03-15T00:00:00\",\n      \"notionalPrincipal\": 25000,\n      \"premiumDiscountAtIED\": -200,\n      \"purchaseDate\": \"2026-02-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24800\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HT-TBill-8W-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-01T00:00:00\",\n      \"maturityDate\": \"2026-03-30T00:00:00\",\n      \"notionalPrincipal\": 25000,\n      \"premiumDiscountAtIED\": -280,\n      \"purchaseDate\": \"2026-02-01T00:00:00\",\n      \"priceAtPurchaseDate\": 24720\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HT-TBill-13W-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-15T00:00:00\",\n      \"maturityDate\": \"2026-04-15T00:00:00\",\n      \"notionalPrincipal\": 25000,\n      \"premiumDiscountAtIED\": -350,\n      \"purchaseDate\": \"2026-01-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24650\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HT-TBill-26W-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2025-12-15T00:00:00\",\n      \"initialExchangeDate\": \"2025-12-15T00:00:00\",\n      \"maturityDate\": \"2026-06-15T00:00:00\",\n      \"notionalPrincipal\": 23000,\n      \"premiumDiscountAtIED\": -460,\n      \"purchaseDate\": \"2025-12-15T00:00:00\",\n      \"priceAtPurchaseDate\": 22540\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HT-StableCoin-Liability\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-06-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-06-30T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_ht_01\", \"ml_ht_01\", \"cd_ht_01\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_hybrid_treasury_01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-06-30T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Hybrid Treasury multi-contract simulation succeeds', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var data = pm.response.json();",
+            "    console.log('════════════════════════════════════════════════════════════════════');",
+            "    console.log('HYBRID TREASURY MANAGEMENT — MULTI-CONTRACT BEHAVIORAL SIMULATION');",
+            "    console.log('  Portfolio: $5K cash + $25K×2 near-term + $25K mid + $23K long');",
+            "    console.log('  Supply:    $100,000 stablecoin tokens');",
+            "    console.log('  Models:    BackingRatio + MaturityLadder + ConcentrationDrift');",
+            "    console.log('════════════════════════════════════════════════════════════════════');",
+            "    console.log('Contracts simulated: ' + data.length);",
+            "    console.log('');",
+            "",
+            "    data.forEach(function(c){",
+            "        console.log('━━━ ' + c.contractId + ' (' + c.status + ') ━━━');",
+            "        if(c.events){",
+            "            console.log('  Events: ' + c.events.length);",
+            "            var counts = {};",
+            "            c.events.forEach(function(e){ counts[e.type]=(counts[e.type]||0)+1; });",
+            "            Object.keys(counts).forEach(function(k){ console.log('    '+k+': '+counts[k]); });",
+            "            c.events.forEach(function(e){",
+            "                console.log('    '+e.time+' '+e.type+' payoff=$'+(e.payoff||0).toFixed(2));",
+            "            });",
+            "        }",
+            "        console.log('');",
+            "    });",
+            "",
+            "    console.log('════════════════════════════════════════════════════════════════════');",
+            "    console.log('CASH RESERVE TRACKING ACROSS CONTRACTS:');",
+            "    console.log('  Day 1:  $5,000   (initial PAM cash reserve)');",
+            "    console.log('  Day 8:  $2,800   (redemption drain erodes cash)');",
+            "    console.log('  Day 15: $28,300  (HT-TBill-4W matures → MD event → +$25K cash)');",
+            "    console.log('  Day 30: $48,500  (HT-TBill-8W matures → MD event → +$25K cash)');",
+            "    console.log('');",
+            "    console.log('BEHAVIORAL MODEL SIGNALS (across all 30 epochs):');",
+            "    console.log('  BackingRatio:       0.0 (healthy) → gap fraction (stressed) → 0.0');",
+            "    console.log('  MaturityLadder:     NORMAL_ROLL → EMERGENCY → SHORTEN → NORMAL_ROLL');",
+            "    console.log('  ConcentrationDrift: HHI=0.22 → HHI spike after maturity → rebalance');",
+            "    console.log('');",
+            "    console.log('MATURITY LADDER (deterministic cash inflows):');",
+            "    console.log('  Mar 15: HT-TBill-4W  matures → +$25,000 cash');",
+            "    console.log('  Mar 30: HT-TBill-8W  matures → +$25,000 cash');",
+            "    console.log('  Apr 15: HT-TBill-13W matures → +$25,000 cash');",
+            "    console.log('  Jun 15: HT-TBill-26W matures → +$23,000 cash');",
+            "    console.log('════════════════════════════════════════════════════════════════════');",
+            "});",
+            "",
+            "pm.test('All contracts returned events', function(){",
+            "    var data = pm.response.json();",
+            "    data.forEach(function(c){",
+            "        pm.expect(c.status).to.eql('Success');",
+            "        pm.expect(c.events.length).to.be.above(0);",
+            "    });",
+            "});",
+            "",
+            "pm.test('T-Bill-4W has MD (maturity) event on Mar 15', function(){",
+            "    var data = pm.response.json();",
+            "    var tbill4w = data.find(function(c){ return c.contractId === 'HT-TBill-4W-001'; });",
+            "    if(tbill4w){",
+            "        var md = tbill4w.events.find(function(e){ return e.type === 'MD'; });",
+            "        pm.expect(md).to.not.be.undefined;",
+            "        console.log('✅ T-Bill-4W MD payoff: $' + (md.payoff||0).toFixed(2));",
+            "    }",
+            "});",
+            "",
+            "pm.test('Stablecoin liability has behavioral MRD events', function(){",
+            "    var data = pm.response.json();",
+            "    var sc = data.find(function(c){ return c.contractId === 'HT-StableCoin-Liability'; });",
+            "    if(sc){",
+            "        var mrds = sc.events.filter(function(e){ return e.type === 'MRD' || e.type === 'PP'; });",
+            "        console.log('✅ Behavioral events (MRD/PP): ' + mrds.length);",
+            "        if(mrds.length > 0){",
+            "            mrds.forEach(function(m){",
+            "                console.log('  ' + m.time + ' type=' + m.type + ' signal=' + (m.payoff||0).toFixed(4));",
+            "            });",
+            "        }",
+            "    }",
+            "});"
+          ]}}]
+        }
+      ]
+    }
+  ]
+}

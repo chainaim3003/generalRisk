@@ -1,0 +1,400 @@
+{
+  "info": {
+    "name": "HT-CentralCashPool-CLM-Mirror-TimeEpoch-BiWeekly-10",
+    "_postman_id": "ht-v14-8m-pool-alloc-breach",
+    "description": "HT v14 — $8M Pool, Allocation Breach + Spot Sell Trigger\n\n  CHANGES FROM v13:\n  1. Initial cash pool raised from $3M to $8M.\n     CASH-PAM-3M: NP=$8,000,000, discount=-$8,000,000, IED=Feb-28.\n\n  2. BTC allocation bands narrowed to match $8M portfolio reality:\n     min=20%, target=25%, max=30%\n     Rationale:\n       Pre-deployment (Feb-28):  0 BTC → alloc = 0%\n       After CLM-Lending IED:    20 BTC×$50K = $1M / $8M = 12.5%\n       After CLM-SpotTrade IED:  40 BTC×$50K = $2M / $8M = 25.0%  ← at target\n       Mar-15 ($52K):  2.08M / 8.09M = 25.7%  ← rising\n       Mar-31 ($55K):  2.20M / 8.21M = 26.8%  ← rising\n       Apr-15 ($58K):  2.32M / 8.33M = 27.8%  ← rising\n       Apr-30 ($62K):  2.48M / 8.49M = 29.2%  ← approaching 30%\n       May-15 ($68K):  2.72M / 8.73M = 31.2%  ← BREACH → SELL FIRES\n       After sell:     alloc returns to 25% target\n\n  3. Mirror model initialNotionalPrincipal updated to $8,000,000.\n\n  4. PORTFOLIO_NAV_01 recalculated: NAV = 40×BTC_price + $6,011,887\n     ($6,011,887 = $1M T-Bills at face + $5,011,887 cash residual after deployments)\n\n  5. LiquidityBuffer thresholds scaled: min=$150K, target=$300K.\n\n  6. OUTFLOWS_01 ops base scaled for $8M portfolio in derive script.\n\n  T-BILL LADDER (unchanged):\n    TBILL-3mo-400K: $400K face, MD=Jun-01, discount=$3,680\n    TBILL-4mo-350K: $350K face, MD=Jul-01, discount=$4,321\n    TBILL-5mo-250K: $250K face, MD=Aug-01, discount=$3,886\n    Total purchase: $988,113  |  Residual in pool: $5,011,887\n\n  ALLOCATION NARRATIVE:\n    Feb-28  CASH-PAM IED    → pool $8M established, BTC alloc = 0%\n    Mar-01  CLM×2 IEDs      → $1M+$1M deployed, 40 BTC, alloc = 25%\n    Mar→Apr                 → BTC rises, alloc drifts 25%→29%\n    May-15  BREACH 30%      → ad_btc01_spot fires SELL signal\n                               CLM-SpotTrade PP reduces NP, cash returned\n                               alloc trimmed back toward 25% target\n    May→Aug                 → stable, T-Bill ladder unwinds Jun/Jul/Aug\n\n  STEPS: 11  SCENARIO: ht_v14_8m_pool_scn01  CONTRACTS: 6",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 BTC_SPOT_01 — addReferenceIndex",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('01 BTC_SPOT_01 registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('01 BTC_SPOT_01 : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addReferenceIndex"]},
+        "body": {"mode": "raw", "raw": "{\n  \"riskFactorID\": \"BTC_SPOT_01\",\n  \"marketObjectCode\": \"BTC_USD_SPOT\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 49500},\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 50000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 52000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 55000},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 58000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 62000},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 68000},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 75000},\n    {\"time\": \"2026-06-01T00:00:00\", \"value\": 75500},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 85000},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 90000},\n    {\"time\": \"2026-07-01T00:00:00\", \"value\": 89000},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 84000},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 78000},\n    {\"time\": \"2026-08-01T00:00:00\", \"value\": 77500},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 72000},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 65000}\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "02 PORTFOLIO_NAV_01 — addReferenceIndex",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "// NAV = 40 BTC × spot_price + $6,011,887 (T-Bills $1M + cash residual $5,011,887)",
+        "// Cash residual = $8M pool - $2M CLMs - $988,113 T-Bill purchases = $5,011,887",
+        "// Feb-28 special: $8,000,000 (pure cash, 0 BTC deployed yet)",
+        "// Mar-01: 40×50,000 + 6,011,887 = $8,011,887",
+        "// May-15: 40×68,000 + 6,011,887 = $8,731,887 → alloc 31.2% → BREACH 30% → SELL",
+        "pm.test('02 PORTFOLIO_NAV_01 registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('02 PORTFOLIO_NAV_01 : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addReferenceIndex"]},
+        "body": {"mode": "raw", "raw": "{\n  \"riskFactorID\": \"PORTFOLIO_NAV_01\",\n  \"marketObjectCode\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 8000000},\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 8011887},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 8091887},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 8211887},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 8331887},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 8491887},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 8731887},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 9011887},\n    {\"time\": \"2026-06-01T00:00:00\", \"value\": 9031887},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 9411887},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 9611887},\n    {\"time\": \"2026-07-01T00:00:00\", \"value\": 9571887},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 9371887},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 9131887},\n    {\"time\": \"2026-08-01T00:00:00\", \"value\": 9111887},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 8891887},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 8611887}\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "03 HURDLE_RATE_01 — addReferenceIndex",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('03 HURDLE_RATE_01 registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('03 HURDLE_RATE_01 : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addReferenceIndex"]},
+        "body": {"mode": "raw", "raw": "{\n  \"riskFactorID\": \"HURDLE_RATE_01\",\n  \"marketObjectCode\": \"HURDLE_RATE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 0.075},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 0.080},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 0.085},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 0.085}\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "04 Derive & Register Risk Factors from Contracts",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ═══════════════════════════════════════════════════════════════════",
+              "// SINGLE SOURCE OF TRUTH — T-Bill + CLM contract definitions",
+              "// $8M pool: CLMs $2M total, T-Bills $988,113, residual $5,011,887",
+              "// ═══════════════════════════════════════════════════════════════════",
+              "var tbills = [",
+              "  { id: 'TBILL-3mo-400K', maturityDate: '2026-06-01T00:00:00', face: 400000, purchasePrice: 396320 },",
+              "  { id: 'TBILL-4mo-350K', maturityDate: '2026-07-01T00:00:00', face: 350000, purchasePrice: 345679 },",
+              "  { id: 'TBILL-5mo-250K', maturityDate: '2026-08-01T00:00:00', face: 250000, purchasePrice: 246114 }",
+              "];",
+              "",
+              "// ── CLM parameters ───────────────────────────────────────────────",
+              "var clmLendingNP   = 1000000;",
+              "var clmLendingRate = 0.03;",
+              "var clmInterestMo  = clmLendingNP * clmLendingRate / 12;  // $2,500/month",
+              "var clmInterestBiWk = clmInterestMo / 2;                   // $1,250/biweek",
+              "",
+              "// ── Derive TBILL_MAT_01 ──────────────────────────────────────────",
+              "var tbillMatData = [{ time: '2026-03-01T00:00:00', value: 0 }];",
+              "tbills.forEach(function(t) {",
+              "  tbillMatData.push({ time: t.maturityDate, value: t.face });",
+              "});",
+              "",
+              "// ── Derive scf schedule (maturity inflows only) ──────────────────",
+              "var scfSchedule = [];",
+              "var scfMonTimes = [];",
+              "tbills.forEach(function(t) {",
+              "  scfSchedule.push({ time: t.maturityDate, amountUSD: t.face });",
+              "  scfMonTimes.push(t.maturityDate);",
+              "});",
+              "",
+              "// ── Derive OUTFLOWS_01 (ops scaled for $8M portfolio) ────────────",
+              "// Ops base scaled ~2.67x from v13 $3M values. CLM interest added.",
+              "var opsBase = [",
+              "  { time: '2026-03-01T00:00:00', ops: 75000  },",
+              "  { time: '2026-03-31T00:00:00', ops: 75000  },",
+              "  { time: '2026-04-30T00:00:00', ops: 90000  },",
+              "  { time: '2026-05-31T00:00:00', ops: 115000 },",
+              "  { time: '2026-06-15T00:00:00', ops: 235000 },",
+              "  { time: '2026-06-30T00:00:00', ops: 355000 },",
+              "  { time: '2026-07-15T00:00:00', ops: 155000 },",
+              "  { time: '2026-07-31T00:00:00', ops: 115000 },",
+              "  { time: '2026-08-31T00:00:00', ops: 75000  }",
+              "];",
+              "var outflowsData = opsBase.map(function(o) {",
+              "  return { time: o.time, value: o.ops + clmInterestBiWk };",
+              "});",
+              "",
+              "// ── Summary log ──────────────────────────────────────────────────",
+              "var totalFace     = tbills.reduce(function(s,t){ return s+t.face; }, 0);",
+              "var totalPurchase = tbills.reduce(function(s,t){ return s+t.purchasePrice; }, 0);",
+              "var residual      = 8000000 - 2000000 - totalPurchase;",
+              "console.log('[Derive] Pool=$8M  CLMs=$2M  T-Bills=$' + totalPurchase.toLocaleString() + '  Residual=$' + residual.toLocaleString());",
+              "console.log('[Derive] T-Bill yield=$' + (totalFace-totalPurchase).toLocaleString() + '  CLM interest/biweek=$' + clmInterestBiWk);",
+              "console.log('[Derive] Alloc bands: min=20% target=25% max=30%');",
+              "console.log('[Derive] Breach fires at ~$64K BTC (May-15 @$68K in price path)');",
+              "console.log('[Derive] TBILL_MAT_01: ' + JSON.stringify(tbillMatData));",
+              "console.log('[Derive] scf: ' + JSON.stringify(scfSchedule));",
+              "console.log('[Derive] OUTFLOWS_01: ' + JSON.stringify(outflowsData));",
+              "",
+              "// ── POST all three ────────────────────────────────────────────────",
+              "var host = pm.collectionVariables.get('model_host') || 'localhost';",
+              "var port = pm.collectionVariables.get('model_port') || '8082';",
+              "var base = 'http://' + host + ':' + port;",
+              "",
+              "pm.sendRequest({",
+              "  url: base + '/addReferenceIndex', method: 'POST',",
+              "  header: {'Content-Type': 'application/json'},",
+              "  body: { mode: 'raw', raw: JSON.stringify({",
+              "    riskFactorID: 'OUTFLOWS_01', marketObjectCode: 'PROJECTED_OUTFLOWS',",
+              "    base: 1.0, data: outflowsData",
+              "  })}",
+              "}, function(err1, res1) {",
+              "  var s1 = err1 ? 'ERR:'+err1 : String(res1.code);",
+              "  pm.environment.set('derive_outflows_status', s1);",
+              "  console.log('[Derive] OUTFLOWS_01 POST: ' + s1);",
+              "",
+              "  pm.sendRequest({",
+              "    url: base + '/addReferenceIndex', method: 'POST',",
+              "    header: {'Content-Type': 'application/json'},",
+              "    body: { mode: 'raw', raw: JSON.stringify({",
+              "      riskFactorID: 'TBILL_MAT_01', marketObjectCode: 'TBILL_MATURITY_SCHEDULE',",
+              "      base: 1.0, data: tbillMatData",
+              "    })}",
+              "  }, function(err2, res2) {",
+              "    var s2 = err2 ? 'ERR:'+err2 : String(res2.code);",
+              "    pm.environment.set('derive_tbillmat_status', s2);",
+              "    console.log('[Derive] TBILL_MAT_01 POST: ' + s2);",
+              "",
+              "    pm.sendRequest({",
+              "      url: base + '/addScheduledCashFlowModel', method: 'POST',",
+              "      header: {'Content-Type': 'application/json'},",
+              "      body: { mode: 'raw', raw: JSON.stringify({",
+              "        riskFactorId: 'scf_tbill_flows_01',",
+              "        cashFlowSchedule: scfSchedule,",
+              "        monitoringEventTimes: scfMonTimes",
+              "      })}",
+              "    }, function(err3, res3) {",
+              "      var s3 = err3 ? 'ERR:'+err3 : String(res3.code);",
+              "      pm.environment.set('derive_scf_status', s3);",
+              "      console.log('[Derive] scf_tbill_flows_01 POST: ' + s3);",
+              "    });",
+              "  });",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('04 server reachable for derived POST', function() {",
+              "  pm.expect(pm.response.code).to.be.oneOf([200,404,405]);",
+              "});",
+              "var s1 = pm.environment.get('derive_outflows_status') || '(pending)';",
+              "var s2 = pm.environment.get('derive_tbillmat_status') || '(pending)';",
+              "var s3 = pm.environment.get('derive_scf_status')      || '(pending)';",
+              "pm.test('04 OUTFLOWS_01 derived+posted (200)',      function() { pm.expect(s1).to.equal('200'); });",
+              "pm.test('04 TBILL_MAT_01 derived+posted (200)',     function() { pm.expect(s2).to.equal('200'); });",
+              "pm.test('04 scf_tbill_flows_01 derived+posted (200)', function() { pm.expect(s3).to.equal('200'); });",
+              "console.log('04 Derived: OUTFLOWS=' + s1 + ' TBILL_MAT=' + s2 + ' SCF=' + s3);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {"raw": "http://localhost:8082/", "protocol": "http", "host": ["localhost"], "port": "8082", "path": [""]},
+        "description": "Prerequest derives OUTFLOWS_01, TBILL_MAT_01, scf_tbill_flows_01 from T-Bill definitions and POSTs all three. GET ping is a no-op."
+      },
+      "response": []
+    },
+    {
+      "name": "05 ad_btc01 SOURCE LENDING — addAllocationDriftModel",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "// Bands: min=20% target=25% max=30%",
+        "// Narrative: 0% (Feb-28) → 12.5% (after CLM-Lending IED) → 25% (after CLM-Spot IED)",
+        "// → rises with BTC price → 29.2% (Apr-30) → 31.2% BREACH (May-15) → SELL → ~25%",
+        "pm.test('05 ad_btc01 SOURCE LENDING registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('05 ad_btc01 (LENDING SOURCE) : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addAllocationDriftModel", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addAllocationDriftModel"]},
+        "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"ad_btc01\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.25,\n  \"maxAllocation\": 0.30,\n  \"minAllocation\": 0.20,\n  \"positionQuantity\": 20.0,\n  \"initialNotionalPrincipal\": 1000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": false,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "06 ad_btc01_spot SOURCE SPOT — addAllocationDriftModel",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "// Spot CLM: P1D notice — liquidates first when overweight. Sell fires May-15.",
+        "pm.test('06 ad_btc01_spot SOURCE SPOT registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('06 ad_btc01_spot (SPOT SOURCE) : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addAllocationDriftModel", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addAllocationDriftModel"]},
+        "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"ad_btc01_spot\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.25,\n  \"maxAllocation\": 0.30,\n  \"minAllocation\": 0.20,\n  \"positionQuantity\": 20.0,\n  \"initialNotionalPrincipal\": 1000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": false,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "07 ad_btc01_mirror LENDING MIRROR — addAllocationDriftModel",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "// Mirror routes LENDING CLM recall signals into CASH-PAM NP.",
+        "// initialNotionalPrincipal = $8,000,000 (full pool NP).",
+        "pm.test('07 ad_btc01_mirror LENDING MIRROR registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('07 ad_btc01_mirror (LENDING MIRROR) : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addAllocationDriftModel", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addAllocationDriftModel"]},
+        "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"ad_btc01_mirror\",\n  \"mirrorSourceModelId\": \"ad_btc01\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.25,\n  \"maxAllocation\": 0.30,\n  \"minAllocation\": 0.20,\n  \"positionQuantity\": 0.0,\n  \"initialNotionalPrincipal\": 8000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": false,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "08 ad_btc01_spot_mirror SPOT MIRROR — addAllocationDriftModel",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "// Mirror routes SPOT CLM recall/sell signals into CASH-PAM NP.",
+        "pm.test('08 ad_btc01_spot_mirror SPOT MIRROR registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('08 ad_btc01_spot_mirror (SPOT MIRROR) : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addAllocationDriftModel", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addAllocationDriftModel"]},
+        "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"ad_btc01_spot_mirror\",\n  \"mirrorSourceModelId\": \"ad_btc01_spot\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.25,\n  \"maxAllocation\": 0.30,\n  \"minAllocation\": 0.20,\n  \"positionQuantity\": 0.0,\n  \"initialNotionalPrincipal\": 8000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": false,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "09 lb_tr01 LiquidityBuffer — addLiquidityBufferModel",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "// Thresholds scaled for $8M pool (was $50K/$100K for $3M pool).",
+        "pm.test('09 lb_tr01 registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('09 lb_tr01 : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addLiquidityBufferModel", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addLiquidityBufferModel"]},
+        "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"lb_tr01\",\n  \"projectedOutflowsMOC\": \"PROJECTED_OUTFLOWS\",\n  \"tbillMaturityScheduleMOC\": \"TBILL_MATURITY_SCHEDULE\",\n  \"minBufferUSD\": 150000,\n  \"targetBufferUSD\": 300000,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "10 Scenario ht_v14_8m_pool_scn01 — addScenario",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('10 Scenario ht_v14_8m_pool_scn01 registered OK', function() { pm.response.to.have.status(200); pm.expect(pm.response.text()).to.include('added'); });",
+        "console.log('10 Scenario ht_v14_8m_pool_scn01 : ' + pm.response.code + ' ' + pm.response.text().trim());"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost"], "port": "8082", "path": ["addScenario"]},
+        "body": {"mode": "raw", "raw": "{\n  \"scenarioID\": \"ht_v14_8m_pool_scn01\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"BTC_SPOT_01\",          \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"PORTFOLIO_NAV_01\",      \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HURDLE_RATE_01\",        \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"OUTFLOWS_01\",           \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"TBILL_MAT_01\",          \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"ad_btc01\",              \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"ad_btc01_spot\",         \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"ad_btc01_mirror\",       \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"ad_btc01_spot_mirror\",  \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"lb_tr01\",               \"riskFactorType\": \"LiquidityBufferModel\"},\n    {\"riskFactorID\": \"scf_tbill_flows_01\",    \"riskFactorType\": \"ScheduledCashFlowModel\"}\n  ]\n}"}
+      },
+      "response": []
+    },
+    {
+      "name": "11 scenarioSimulation — ht_v14_8m_pool_scn01",
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "// ─────────────────────────────────────────────────────────────────────",
+        "// v14 $8M Pool — Allocation Breach + Spot Sell Trigger",
+        "// ─────────────────────────────────────────────────────────────────────",
+        "// ORDERING:",
+        "//   Feb-28  CASH-PAM-3M IED   → pool $8M, IED cash=$0 (pre-funded)",
+        "//   Mar-01  CLM-Lending IED   → -$1,000,000, alloc now 12.5%",
+        "//   Mar-01  CLM-Spot IED      → -$1,000,000, alloc now 25.0%",
+        "//   Mar-01  T-Bill×3 IEDs     → -$988,113,  residual $5,011,887",
+        "//",
+        "// BREACH EXPECTED at May-15:",
+        "//   40×$68K = $2.72M / $8.73M NAV = 31.2% > 30% maxAllocation",
+        "//   ad_btc01_spot fires SELL signal on CLM-SpotTrade-20 PP event",
+        "//   CLM NP reduces by recall amount → CASH-PAM NP increases via mirror",
+        "// ─────────────────────────────────────────────────────────────────────",
+        "pm.test('11 Simulation returned 200', function() { pm.response.to.have.status(200); });",
+        "try {",
+        "  var body = pm.response.json();",
+        "  var contracts = Array.isArray(body) ? body : (body.results || body.contracts || []);",
+        "  console.log('v14 $8M Pool — Contracts in response: ' + contracts.length);",
+        "  contracts.forEach(function(c) {",
+        "    var id = c.contractId || c.contractID || '(unknown)';",
+        "    var events = c.events || c.cashFlows || [];",
+        "    var ppEvents = events.filter(function(e){ return (e.type||e.eventType)==='PP'||(e.type||e.eventType)==='PRD'; });",
+        "    var ppNonZero = ppEvents.filter(function(e){ return Math.abs(e.payoff||e.amount||0) > 0.01; });",
+        "    var totalPP = ppEvents.reduce(function(s,e){ return s+(e.payoff||e.amount||0); }, 0);",
+        "    var totalAll = events.reduce(function(s,e){ return s+(e.payoff||e.amount||0); }, 0);",
+        "    console.log('[' + id + '] events=' + events.length + ' PP=' + ppEvents.length +",
+        "      ' PP_nonzero=' + ppNonZero.length +",
+        "      ' ppNet=$' + Math.round(totalPP).toLocaleString() +",
+        "      ' totalNet=$' + Math.round(totalAll).toLocaleString());",
+        "    events.forEach(function(e){",
+        "      var t   = (e.time||e.date||'').toString().substring(0,10);",
+        "      var typ = e.type||e.eventType||'';",
+        "      var pay = e.payoff||e.amount||0;",
+        "      if (Math.abs(pay) > 0.01)",
+        "        console.log('  ' + t + ' [' + typ + '] $' + (pay>0?'+':'') + Math.round(pay).toLocaleString());",
+        "    });",
+        "  });",
+        "  // CASH-PAM NP tracker",
+        "  var pam = contracts.filter(function(c){ return (c.contractId||c.contractID||'').indexOf('CASH-PAM')>=0; })[0];",
+        "  if (pam) {",
+        "    console.log('');",
+        "    console.log('CASH-PAM-3M NP track (start=$8,000,000 at Feb-28):');",
+        "    var np = 8000000;",
+        "    (pam.events||pam.cashFlows||[]).forEach(function(e){",
+        "      var typ = e.type||e.eventType||'';",
+        "      var pay = Math.round(e.payoff||e.amount||0);",
+        "      var t   = (e.time||'').toString().substring(0,10);",
+        "      if ((typ==='PP'||typ==='PRD') && Math.abs(pay) > 0.01) {",
+        "        np -= pay;",
+        "        var tag = pay>0 ? '← SELL proceeds / T-Bill inflow' : '← outflow';",
+        "        console.log('  ' + t + ' [' + typ + '] pay=$' + pay.toLocaleString() + '  NP≈$' + np.toLocaleString() + '  ' + tag);",
+        "      }",
+        "    });",
+        "    console.log('  → MD NP = $' + np.toLocaleString() + ' returned at Aug-31');",
+        "  }",
+        "  // Allocation drift — check for non-zero PP on CLMs (the sell signal)",
+        "  console.log('');",
+        "  console.log('Allocation breach check (expect non-zero PP on CLM-SpotTrade-20 at May-15):');",
+        "  ['BTC-CLM-SpotTrade-20','BTC-CLM-Lending-20'].forEach(function(id){",
+        "    var clm = contracts.filter(function(c){ return (c.contractId||c.contractID||'')=== id; })[0];",
+        "    if (clm) {",
+        "      var ppNZ = (clm.events||[]).filter(function(e){",
+        "        return ((e.type||e.eventType)==='PP'||(e.type||e.eventType)==='PRD') && Math.abs(e.payoff||e.amount||0)>0.01;",
+        "      });",
+        "      if (ppNZ.length > 0) {",
+        "        ppNZ.forEach(function(e){",
+        "          var t = (e.time||'').toString().substring(0,10);",
+        "          console.log('  SELL SIGNAL → ' + id + ' [' + t + '] PP=$' + Math.round(e.payoff||e.amount||0).toLocaleString());",
+        "        });",
+        "      } else {",
+        "        console.log('  ' + id + ': no non-zero PP (no sell triggered)');",
+        "      }",
+        "    }",
+        "  });",
+        "  // T-Bill yield",
+        "  console.log('');",
+        "  console.log('T-Bill yield summary:');",
+        "  ['TBILL-3mo-400K','TBILL-4mo-350K','TBILL-5mo-250K'].forEach(function(id){",
+        "    var tb = contracts.filter(function(c){ return (c.contractId||c.contractID||'').indexOf(id)>=0; })[0];",
+        "    if (tb) {",
+        "      var evs = tb.events||tb.cashFlows||[];",
+        "      var ied = evs.filter(function(e){ return (e.type||e.eventType)==='IED'; })[0];",
+        "      var md  = evs.filter(function(e){ return (e.type||e.eventType)==='MD';  })[0];",
+        "      var iedPay = ied ? Math.round(ied.payoff||ied.amount||0) : 0;",
+        "      var mdPay  = md  ? Math.round(md.payoff||md.amount||0)   : 0;",
+        "      console.log('  ' + id + ': IED=$' + iedPay.toLocaleString() + ' MD=$' + mdPay.toLocaleString() + ' yield=$' + (mdPay+iedPay).toLocaleString());",
+        "    }",
+        "  });",
+        "} catch(e) {",
+        "  console.log('Response parse error: ' + e.message);",
+        "}"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost"], "port": "8083", "path": ["rf2", "scenarioSimulation"]},
+        "body": {"mode": "raw", "raw": "{\n  \"contracts\": [\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"BTC-CLM-Lending-20\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"LendingPlatform01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.03,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P7D\",\n      \"treasuryModels\": [\"ad_btc01\"]\n    },\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"BTC-CLM-SpotTrade-20\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"SpotDesk01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\"ad_btc01_spot\"]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"CASH-PAM-3M\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"TreasuryOps01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-28T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"notionalPrincipal\": 8000000.0,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"premiumDiscountAtIED\": -8000000.0,\n      \"feeRate\": 0.0,\n      \"treasuryModels\": [\n        \"ad_btc01_mirror\",\n        \"ad_btc01_spot_mirror\",\n        \"scf_tbill_flows_01\",\n        \"lb_tr01\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-3mo-400K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-06-01T00:00:00\",\n      \"notionalPrincipal\": 400000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -3680\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-4mo-350K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-07-01T00:00:00\",\n      \"notionalPrincipal\": 350000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -4321\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-5mo-250K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-01T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -3886\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"ht_v14_8m_pool_scn01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-08-31T00:00:00\",\n  \"monitoringTimes\": [\n    \"2026-02-28T00:00:00\",\n    \"2026-03-01T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"}
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {"key": "model_host", "value": "localhost", "type": "string"},
+    {"key": "model_port", "value": "8082",      "type": "string"},
+    {"key": "sim_host",   "value": "localhost", "type": "string"},
+    {"key": "sim_port",   "value": "8083",      "type": "string"}
+  ]
+}

@@ -1,0 +1,319 @@
+{
+  "info": {
+    "_postman_id": "ht-ad-lb-6mo-001",
+    "name": "HybridTreasury-AllocationDrift-LiquidityBuffer-6mo-Monthly",
+    "description": "ACTUS Hybrid Treasury: ALLOCATION DRIFT + LIQUIDITY BUFFER (6-month, monthly corrections).\n\nTWO hybrid treasury behavioral models run simultaneously:\n  1. AllocationDriftModel (5.1) — monitors BTC allocation vs 20% target\n  2. LiquidityBufferModel (5.2) — monitors fiat cash buffer vs $3M minimum\n\nScenario: 6-month BTC rally & correction with quarterly AP stress:\n  Portfolio: $10M hybrid (50% fiat, 30% USDC, 20% BTC)\n  BTC position: 40 BTC starting at $50K ($2M = 20% allocation)\n  BTC trajectory: $50K → $90K peak (month 4) → $65K cooldown\n  AP stress: Normal $200K/mo → $800K in June (quarterly tax + AP burst)\n\nMONTHLY CORRECTION SCHEDULE (6 checkpoints):\n  Mar 31: BTC $55K → allocation 21.6% → WITHIN BAND → 0.0\n  Apr 30: BTC $62K → allocation 23.7% → APPROACHING LIMIT → 0.0\n  May 31: BTC $75K → allocation 27.3% → BREACHES 25% → DRIFT FIRES\n  Jun 30: BTC $90K → allocation 31.0% → HEAVY OVERWEIGHT + LIQUIDITY FIRES\n  Jul 31: BTC $78K → allocation 28.1% → STILL OVERWEIGHT\n  Aug 31: BTC $65K → allocation 24.5% → BACK IN BAND → 0.0\n\nContract: STK representing 40 BTC position over 6 months\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add BTC_USD_SPOT (6-month rally & correction)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"BTC_SPOT_01\",\"marketObjectCode\":\"BTC_USD_SPOT\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":50000},{\"time\":\"2026-03-15T00:00:00\",\"value\":52000},{\"time\":\"2026-03-31T00:00:00\",\"value\":55000},{\"time\":\"2026-04-15T00:00:00\",\"value\":58000},{\"time\":\"2026-04-30T00:00:00\",\"value\":62000},{\"time\":\"2026-05-15T00:00:00\",\"value\":68000},{\"time\":\"2026-05-31T00:00:00\",\"value\":75000},{\"time\":\"2026-06-15T00:00:00\",\"value\":85000},{\"time\":\"2026-06-30T00:00:00\",\"value\":90000},{\"time\":\"2026-07-15T00:00:00\",\"value\":84000},{\"time\":\"2026-07-31T00:00:00\",\"value\":78000},{\"time\":\"2026-08-15T00:00:00\",\"value\":72000},{\"time\":\"2026-08-31T00:00:00\",\"value\":65000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('BTC_USD_SPOT added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ BTC_SPOT_01: 13 semi-monthly data points (Mar-Aug 2026)');",
+        "    console.log('   $50K → $90K peak (Jun) → $65K cooldown (Aug)');",
+        "    console.log('   40 BTC position: $2M → $3.6M peak → $2.6M');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add PORTFOLIO_TOTAL_VALUE (tracks portfolio NAV)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"PORTFOLIO_NAV_01\",\"marketObjectCode\":\"PORTFOLIO_TOTAL_VALUE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":10000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":10080000},{\"time\":\"2026-03-31T00:00:00\",\"value\":10200000},{\"time\":\"2026-04-15T00:00:00\",\"value\":10320000},{\"time\":\"2026-04-30T00:00:00\",\"value\":10480000},{\"time\":\"2026-05-15T00:00:00\",\"value\":10720000},{\"time\":\"2026-05-31T00:00:00\",\"value\":11000000},{\"time\":\"2026-06-15T00:00:00\",\"value\":11400000},{\"time\":\"2026-06-30T00:00:00\",\"value\":11600000},{\"time\":\"2026-07-15T00:00:00\",\"value\":11360000},{\"time\":\"2026-07-31T00:00:00\",\"value\":11120000},{\"time\":\"2026-08-15T00:00:00\",\"value\":10880000},{\"time\":\"2026-08-31T00:00:00\",\"value\":10600000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PORTFOLIO_TOTAL_VALUE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ PORTFOLIO_NAV_01: $10M → $11.6M peak → $10.6M');",
+        "    console.log('   NAV rises with BTC rally, falls with correction');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add PROJECTED_OUTFLOWS (AP + quarterly tax stress)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"OUTFLOWS_01\",\"marketObjectCode\":\"PROJECTED_OUTFLOWS\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":200000},{\"time\":\"2026-03-31T00:00:00\",\"value\":200000},{\"time\":\"2026-04-30T00:00:00\",\"value\":250000},{\"time\":\"2026-05-31T00:00:00\",\"value\":300000},{\"time\":\"2026-06-15T00:00:00\",\"value\":650000},{\"time\":\"2026-06-30T00:00:00\",\"value\":800000},{\"time\":\"2026-07-15T00:00:00\",\"value\":650000},{\"time\":\"2026-07-31T00:00:00\",\"value\":500000},{\"time\":\"2026-08-31T00:00:00\",\"value\":250000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PROJECTED_OUTFLOWS added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ OUTFLOWS_01: Normal $200-300K/mo');",
+        "    console.log('   June stress: $800K (quarterly tax + AP burst)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add TBILL_MATURITY_SCHEDULE (staggered T-bill maturities)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"TBILL_MAT_01\",\"marketObjectCode\":\"TBILL_MATURITY_SCHEDULE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0},{\"time\":\"2026-03-31T00:00:00\",\"value\":500000},{\"time\":\"2026-04-30T00:00:00\",\"value\":0},{\"time\":\"2026-05-31T00:00:00\",\"value\":500000},{\"time\":\"2026-06-30T00:00:00\",\"value\":250000},{\"time\":\"2026-07-31T00:00:00\",\"value\":500000},{\"time\":\"2026-08-31T00:00:00\",\"value\":0}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TBILL_MATURITY_SCHEDULE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ TBILL_MAT_01: Staggered T-bill maturity ladder');",
+        "    console.log('   Mar: $500K, May: $500K, Jun: $250K, Jul: $500K');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add AllocationDriftModel (ad_btc01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addAllocationDriftModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addAllocationDriftModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ad_btc01\",\"spotPriceMOC\":\"BTC_USD_SPOT\",\"portfolioTotalValueMOC\":\"PORTFOLIO_TOTAL_VALUE\",\"targetAllocation\":0.20,\"maxAllocation\":0.25,\"minAllocation\":0.15,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AllocationDriftModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ad_btc01: AllocationDriftModel (6 monthly checkpoints)');",
+        "    console.log('   target=20%, band=[15%, 25%]');",
+        "    console.log('   May 31: 27.3% → BREACH | Jun 30: 31.0% → HEAVY | Jul 31: 28.1% → OVER');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add LiquidityBufferModel (lb_tr01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addLiquidityBufferModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addLiquidityBufferModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"lb_tr01\",\"projectedOutflowsMOC\":\"PROJECTED_OUTFLOWS\",\"tbillMaturityScheduleMOC\":\"TBILL_MATURITY_SCHEDULE\",\"minBufferUSD\":3000000,\"targetBufferUSD\":3500000,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('LiquidityBufferModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ lb_tr01: LiquidityBufferModel (6 monthly checkpoints)');",
+        "    console.log('   minBuffer=$3M, targetBuffer=$3.5M');",
+        "    console.log('   Jun 30: $3.5M - $800K + $250K = $2.95M → BELOW $3M → FIRES');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7. Add 6-Month Treasury Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"ht_btc_6mo_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BTC_SPOT_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"PORTFOLIO_NAV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"OUTFLOWS_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"TBILL_MAT_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ad_btc01\",\"riskFactorType\":\"AllocationDriftModel\"},{\"riskFactorID\":\"lb_tr01\",\"riskFactorType\":\"LiquidityBufferModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ ht_btc_6mo_scn01: 4 indexes + 2 behavioral models');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8a. Verify AllocationDriftModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findAllocationDriftModel/ad_btc01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findAllocationDriftModel", "ad_btc01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AllocationDriftModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('ad_btc01');",
+        "    pm.expect(d.targetAllocation).to.eql(0.20);",
+        "    console.log('✅ ad_btc01: target=' + d.targetAllocation + ' max=' + d.maxAllocation + ' min=' + d.minAllocation);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8b. Verify LiquidityBufferModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findLiquidityBufferModel/lb_tr01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findLiquidityBufferModel", "lb_tr01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('LiquidityBufferModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('lb_tr01');",
+        "    pm.expect(d.minBufferUSD).to.eql(3000000);",
+        "    console.log('✅ lb_tr01: minBuffer=$' + d.minBufferUSD + ' targetBuffer=$' + d.targetBufferUSD);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8c. Verify Scenario",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findScenario/ht_btc_6mo_scn01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findScenario", "ht_btc_6mo_scn01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    var types = d.riskFactorDescriptors.map(function(r){return r.riskFactorType;});",
+        "    pm.expect(types).to.include('AllocationDriftModel');",
+        "    pm.expect(types).to.include('LiquidityBufferModel');",
+        "    console.log('✅ Scenario: ' + d.riskFactorDescriptors.length + ' descriptors');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "9. Run 6-Month Treasury Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"STK\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"BTC-Position-40\",\"cycleAnchorDateOfDividend\":\"2026-03-31T00:00:00\",\"cycleOfDividend\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-08-31T00:00:00\",\"notionalPrincipal\":40,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"ad_btc01\",\"lb_tr01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"ht_btc_6mo_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-08-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('6-month treasury simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('═'.repeat(72));",
+        "    console.log('HYBRID TREASURY 6-MONTH: ALLOCATION DRIFT + LIQUIDITY BUFFER');",
+        "    console.log('  Contract: BTC-Position-40 (40 BTC, STK, Mar-Aug 2026)');",
+        "    console.log('  Portfolio: $10M hybrid (50% fiat, 30% USDC, 20% BTC)');",
+        "    console.log('═'.repeat(72));",
+        "    console.log('Total events: ' + events.length);",
+        "    var counts = {};",
+        "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "    Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+        "    console.log('');",
+        "    console.log('══ MONTHLY BEHAVIORAL CHECKPOINTS ══');",
+        "    console.log('  Mar 31: BTC $55K  → alloc 21.6% → OK');",
+        "    console.log('  Apr 30: BTC $62K  → alloc 23.7% → OK (approaching)');",
+        "    console.log('  May 31: BTC $75K  → alloc 27.3% → ⚠️ DRIFT FIRES');",
+        "    console.log('  Jun 30: BTC $90K  → alloc 31.0% → ⚠️ DRIFT + LIQUIDITY');",
+        "    console.log('  Jul 31: BTC $78K  → alloc 28.1% → ⚠️ STILL OVER');",
+        "    console.log('  Aug 31: BTC $65K  → alloc 24.5% → back in band');",
+        "    console.log('');",
+        "    var mrds = events.filter(function(e){return e.type==='MRD'||e.type==='PP';});",
+        "    if(mrds.length>0){",
+        "        console.log('  ACTUAL MRD/PP EVENTS:');",
+        "        mrds.forEach(function(m){",
+        "            console.log('    '+m.time.substring(0,10)+' type='+m.type+' payoff='+m.payoff.toFixed(4)+' notional='+m.nominalValue.toFixed(4));",
+        "        });",
+        "    }",
+        "    console.log('');",
+        "    console.log('══ ALL EVENTS ══');",
+        "    events.forEach(function(e){",
+        "        console.log('  '+e.time.substring(0,10)+' '+e.type+'  payoff='+e.payoff.toFixed(2)+'  notional='+e.nominalValue.toFixed(2));",
+        "    });",
+        "    console.log('═'.repeat(72));",
+        "});",
+        "pm.test('Events generated', function(){",
+        "    pm.expect(pm.response.json()[0].events.length).to.be.above(0);",
+        "});"
+      ]}}]
+    }
+  ]
+}

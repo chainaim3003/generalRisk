@@ -1,0 +1,254 @@
+{
+  "info": {
+    "_postman_id": "ht-mc-clm-csh-ad-lb-6mo-002",
+    "name": "HT-MC-BTC-CLM-CSH-AllocDrift-LiqBuffer-6m0",
+    "description": "ACTUS Hybrid Treasury v2: Semantic Fix — CSH for LiquidityBuffer\n\nFIX: LiquidityBufferModel detached from CLM (BTC position) and\nreattached to a proper CSH (Cash) contract representing fiat reserves.\n\nPrevious bug: LB was attached to CLM, treating BTC lending principal\n($2M) as 'cash balance'. This caused cascading depletion:\n  $2M → $1.3M → $591K → $165K → $0 in 4 months.\nLB was draining the BTC position to 'replenish' a fictional cash\nshortfall, while AllocationDrift tried to buy back BTC (tug-of-war).\n\nFix: Separate concerns correctly:\n  CLM (BTC)  → AllocationDriftModel only (monitors BTC allocation %)\n  CSH (fiat) → LiquidityBufferModel only (monitors cash buffer health)\n  PAM (T-bills) → no behavioral models (deterministic maturity)\n\nCSH contract represents the $500K operational cash reserve.\nLB parameters scaled to match: minBuffer=$200K, targetBuffer=$350K.\nLB reads actual fiat NP, compares against projected outflows, and\nsignals T-bill liquidation only when the REAL cash position is short.\n\nCross-contract cash flow: ACTUS contracts are independent. BTC sale\nproceeds (CLM PP payoff) do not automatically increase CSH NP.\nHowever, both models read shared reference indexes. In production,\nPORTFOLIO_TOTAL_VALUE would be updated between simulation runs to\nreflect actual cash position changes.\n\nPortfolio (6 contracts):\n  Contract 1: CLM  — 40 BTC ($2M @ $50K) lent at 3% APY\n  Contract 2: CSH  — $500K operational fiat cash reserve\n  Contract 3: PAM  — T-Bill #1 $500K, matures Mar 31\n  Contract 4: PAM  — T-Bill #2 $500K, matures May 31\n  Contract 5: PAM  — T-Bill #3 $250K, matures Jun 30\n  Contract 6: PAM  — T-Bill #4 $500K, matures Jul 31",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add BTC_USD_SPOT (6-month rally & correction)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"BTC_SPOT_01\",\"marketObjectCode\":\"BTC_USD_SPOT\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":50000},{\"time\":\"2026-03-15T00:00:00\",\"value\":52000},{\"time\":\"2026-03-31T00:00:00\",\"value\":55000},{\"time\":\"2026-04-15T00:00:00\",\"value\":58000},{\"time\":\"2026-04-30T00:00:00\",\"value\":62000},{\"time\":\"2026-05-15T00:00:00\",\"value\":68000},{\"time\":\"2026-05-31T00:00:00\",\"value\":75000},{\"time\":\"2026-06-15T00:00:00\",\"value\":85000},{\"time\":\"2026-06-30T00:00:00\",\"value\":90000},{\"time\":\"2026-07-15T00:00:00\",\"value\":84000},{\"time\":\"2026-07-31T00:00:00\",\"value\":78000},{\"time\":\"2026-08-15T00:00:00\",\"value\":72000},{\"time\":\"2026-08-31T00:00:00\",\"value\":65000}]}"
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('BTC_USD_SPOT added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ BTC_SPOT_01: 13 semi-monthly points (Mar-Aug 2026)');",
+        "    console.log('   $50K → $90K peak (Jun) → $65K cooldown (Aug)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add PORTFOLIO_TOTAL_VALUE (tracks portfolio NAV)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"PORTFOLIO_NAV_01\",\"marketObjectCode\":\"PORTFOLIO_TOTAL_VALUE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":10000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":10080000},{\"time\":\"2026-03-31T00:00:00\",\"value\":10200000},{\"time\":\"2026-04-15T00:00:00\",\"value\":10320000},{\"time\":\"2026-04-30T00:00:00\",\"value\":10480000},{\"time\":\"2026-05-15T00:00:00\",\"value\":10720000},{\"time\":\"2026-05-31T00:00:00\",\"value\":11000000},{\"time\":\"2026-06-15T00:00:00\",\"value\":11400000},{\"time\":\"2026-06-30T00:00:00\",\"value\":11600000},{\"time\":\"2026-07-15T00:00:00\",\"value\":11360000},{\"time\":\"2026-07-31T00:00:00\",\"value\":11120000},{\"time\":\"2026-08-15T00:00:00\",\"value\":10880000},{\"time\":\"2026-08-31T00:00:00\",\"value\":10600000}]}"
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PORTFOLIO_TOTAL_VALUE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ PORTFOLIO_NAV_01: $10M → $11.6M peak → $10.6M');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add PROJECTED_OUTFLOWS (AP + quarterly tax stress)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"OUTFLOWS_01\",\"marketObjectCode\":\"PROJECTED_OUTFLOWS\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":100000},{\"time\":\"2026-03-31T00:00:00\",\"value\":100000},{\"time\":\"2026-04-30T00:00:00\",\"value\":120000},{\"time\":\"2026-05-31T00:00:00\",\"value\":150000},{\"time\":\"2026-06-15T00:00:00\",\"value\":300000},{\"time\":\"2026-06-30T00:00:00\",\"value\":450000},{\"time\":\"2026-07-15T00:00:00\",\"value\":200000},{\"time\":\"2026-07-31T00:00:00\",\"value\":150000},{\"time\":\"2026-08-31T00:00:00\",\"value\":100000}]}"
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PROJECTED_OUTFLOWS added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ OUTFLOWS_01: Normal $100-150K/mo, June stress $450K (tax quarter)');",
+        "    console.log('   Scaled for $500K operational cash reserve');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add TBILL_MATURITY_SCHEDULE",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"TBILL_MAT_01\",\"marketObjectCode\":\"TBILL_MATURITY_SCHEDULE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0},{\"time\":\"2026-03-31T00:00:00\",\"value\":500000},{\"time\":\"2026-04-30T00:00:00\",\"value\":0},{\"time\":\"2026-05-31T00:00:00\",\"value\":500000},{\"time\":\"2026-06-30T00:00:00\",\"value\":250000},{\"time\":\"2026-07-31T00:00:00\",\"value\":500000},{\"time\":\"2026-08-31T00:00:00\",\"value\":0}]}"
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TBILL_MATURITY_SCHEDULE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ TBILL_MAT_01: T-bill maturity schedule for LiquidityBufferModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add AllocationDriftModel (ad_btc01) — CLM mode",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addAllocationDriftModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addAllocationDriftModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ad_btc01\",\"spotPriceMOC\":\"BTC_USD_SPOT\",\"portfolioTotalValueMOC\":\"PORTFOLIO_TOTAL_VALUE\",\"targetAllocation\":0.20,\"maxAllocation\":0.25,\"minAllocation\":0.15,\"positionQuantity\":40.0,\"initialNotionalPrincipal\":2000000.0,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}"
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AllocationDriftModel added (CLM mode)', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ad_btc01: AllocationDriftModel — CLM MODE');",
+        "    console.log('   positionQuantity=40 BTC, initialNotionalPrincipal=$2M');",
+        "    console.log('   target=20%, band=[15%, 25%]');",
+        "    console.log('   Now ONLY on CLM contract (not CSH)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add LiquidityBufferModel (lb_tr01) — scaled for $500K CSH",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addLiquidityBufferModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addLiquidityBufferModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"lb_tr01\",\"projectedOutflowsMOC\":\"PROJECTED_OUTFLOWS\",\"tbillMaturityScheduleMOC\":\"TBILL_MATURITY_SCHEDULE\",\"minBufferUSD\":200000,\"targetBufferUSD\":350000,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}"
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('LiquidityBufferModel added (scaled for CSH)', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ lb_tr01: LiquidityBufferModel — NOW ON CSH (not CLM)');",
+        "    console.log('   minBuffer=$200K, targetBuffer=$350K (scaled for $500K cash)');",
+        "    console.log('   Reads REAL fiat cash NP, not BTC lending principal');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7. Add 6-Month Multi-Contract Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"ht_mc_clm_csh_6mo_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BTC_SPOT_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"PORTFOLIO_NAV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"OUTFLOWS_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"TBILL_MAT_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ad_btc01\",\"riskFactorType\":\"AllocationDriftModel\"},{\"riskFactorID\":\"lb_tr01\",\"riskFactorType\":\"LiquidityBufferModel\"}]}"
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CLM+CSH scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ht_mc_clm_csh_6mo_scn01: 4 indexes + 2 behavioral models');",
+        "    console.log('   AllocationDrift → CLM (BTC)');",
+        "    console.log('   LiquidityBuffer → CSH (fiat)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run 6-Contract Portfolio Simulation (CLM + CSH + 4 PAM)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"CLM\",\"contractID\":\"BTC-CLM-Lending-40\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"counterpartyID\":\"LendingPlatform01\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"notionalPrincipal\":2000000,\"nominalInterestRate\":0.03,\"dayCountConvention\":\"A365\",\"cycleOfInterestPayment\":\"P1ML0\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"maturityDate\":\"2026-08-31T00:00:00\",\"xDayNotice\":\"P7D\",\"treasuryModels\":[\"ad_btc01\"]},{\"contractType\":\"CSH\",\"contractID\":\"FIAT-CASH-RESERVE-500K\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"currency\":\"USD\",\"notionalPrincipal\":500000,\"treasuryModels\":[\"lb_tr01\"]},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-3mo-500K-Mar\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-01-01T00:00:00\",\"initialExchangeDate\":\"2026-01-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-5mo-500K-May\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-01-01T00:00:00\",\"initialExchangeDate\":\"2026-01-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-4mo-250K-Jun\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-01T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-06-30T00:00:00\",\"notionalPrincipal\":250000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-5mo-500K-Jul\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-01T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-07-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0}],\"scenarioDescriptor\":{\"scenarioID\":\"ht_mc_clm_csh_6mo_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-08-31T00:00:00\",\"monitoringTimes\":[]}"
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('6-contract portfolio simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.length).to.eql(6);",
+        "    console.log('═'.repeat(80));",
+        "    console.log('HYBRID TREASURY v2: CLM + CSH — SEMANTIC FIX');",
+        "    console.log('═'.repeat(80));",
+        "    console.log('');",
+        "    console.log('PORTFOLIO (6 ACTUS contracts):');",
+        "    console.log('  1. CLM  BTC-CLM-Lending-40      40 BTC ($2M) @ 3% → ad_btc01 ONLY');",
+        "    console.log('  2. CSH  FIAT-CASH-RESERVE-500K  $500K fiat cash → lb_tr01 ONLY');",
+        "    console.log('  3. PAM  TBILL-3mo-500K-Mar      $500K matures Mar 31');",
+        "    console.log('  4. PAM  TBILL-5mo-500K-May      $500K matures May 31');",
+        "    console.log('  5. PAM  TBILL-4mo-250K-Jun      $250K matures Jun 30');",
+        "    console.log('  6. PAM  TBILL-5mo-500K-Jul      $500K matures Jul 31');",
+        "    console.log('');",
+        "    console.log('FIX: LiquidityBuffer now reads REAL fiat NP ($500K),');",
+        "    console.log('     not BTC lending principal ($2M). No more cascading drain.');",
+        "    console.log('');",
+        "    console.log('═'.repeat(80));",
+        "    data.forEach(function(contractResult, idx){",
+        "        var events = contractResult.events || [];",
+        "        var counts = {};",
+        "        events.forEach(function(e){ counts[e.type]=(counts[e.type]||0)+1; });",
+        "        console.log('');",
+        "        console.log('── CONTRACT ' + (idx+1) + ': ' + (contractResult.contractId || contractResult.contractID) + ' ──');",
+        "        console.log('   Status: ' + contractResult.status);",
+        "        if (contractResult.status === 'Failure') {",
+        "            console.log('   ERROR: ' + contractResult.message);",
+        "        } else {",
+        "            console.log('   Total events: ' + events.length);",
+        "            var typeStr = Object.keys(counts).map(function(k){return k+':'+counts[k];}).join(', ');",
+        "            console.log('   Event types: ' + typeStr);",
+        "            events.forEach(function(e){",
+        "                var np = e.nominalValue !== undefined ? e.nominalValue.toFixed(2) : 'n/a';",
+        "                var rate = e.nominalRate !== undefined ? e.nominalRate.toFixed(4) : 'n/a';",
+        "                console.log('   '+e.time.substring(0,10)+' '+e.type+'  payoff='+e.payoff.toFixed(2)+'  notional='+np+'  rate='+rate);",
+        "            });",
+        "        }",
+        "    });",
+        "    console.log('');",
+        "    console.log('═'.repeat(80));",
+        "    console.log('EXPECTED BEHAVIOR:');",
+        "    console.log('  CLM: AllocationDrift monitors BTC % — no LB interference');",
+        "    console.log('       BTC stable or mild rebalancing, NP preserved');",
+        "    console.log('  CSH: LiquidityBuffer monitors fiat — fires on real cash shortfall');",
+        "    console.log('       Mar-May: buffer OK ($500K - $100-150K > $200K min)');",
+        "    console.log('       Jun: tax stress ($450K outflows) may trigger shortfall');",
+        "    console.log('       Jul-Aug: normalizes as outflows drop');",
+        "    console.log('═'.repeat(80));",
+        "});",
+        "pm.test('All 6 contracts succeeded', function(){",
+        "    var data = pm.response.json();",
+        "    data.forEach(function(r){ pm.expect(r.status).to.eql('Success'); });",
+        "});"
+      ]}}]
+    }
+  ]
+}

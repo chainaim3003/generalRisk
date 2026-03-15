@@ -1,0 +1,287 @@
+{
+  "info": {
+    "_postman_id": "ht-ps-rd-90d-001",
+    "name": "HybridTreasury-PegStress-RegulatoryDeRisk-90d",
+    "description": "ACTUS Hybrid Treasury: PEG STRESS + REGULATORY DE-RISK (90-day, weekly monitoring).\n\nTWO hybrid treasury behavioral models run simultaneously:\n  1. PegStressModel (5.3) — monitors USDC peg deviation, triggers diversification to RLUSD/fiat\n  2. RegulatoryDeRiskModel (5.4) — monitors US_REGULATORY_STRESS composite, stages BTC liquidation\n\nScenario: Dual shock — USDC de-peg event (inspired by SVB March 2023) + US regulatory crackdown:\n  Portfolio: $10M hybrid (50% fiat, 30% USDC = $3M, 20% BTC = $2M)\n  USDC deviation: 0% → 3% peak (week 4) → recovery\n  RLUSD deviation: 0% → 0.2% (mild sympathy) → 0% (flight-to-quality benefits RLUSD)\n  Regulatory stress: 0 → 0.8 peak (week 6, SEC enforcement + GENIUS Act uncertainty) → 0.3 fade\n  BTC market depth: High ($500M/day) → Thin ($80M/day at stress peak) → Recovery\n\nKEY DYNAMICS:\n  Weeks 1-2:  No stress → both models return 0.0\n  Week 3:     USDC deviates 0.8% → PegStress triggers alert (>0.5% threshold)\n  Week 4:     USDC 3% de-peg → PegStress: shift $1.5M USDC → RLUSD/fiat\n              (Action Model #2: diversify when deviation > 0.5%)\n  Week 5:     Regulatory stress 0.65 → approaching 0.7 threshold\n  Week 6:     Regulatory stress 0.8 → RegulatoryDeRisk fires: staged 20%/day liquidation\n              BUT market depth only $80M → slows to 12.5%/day (8-day plan)\n  Weeks 7-10: Stress subsides, PegStress stops, RegulatoryDeRisk may halt mid-liquidation\n  Weeks 11-13: Recovery — both models back to 0.0\n\nContracts: CLM for USDC position + STK for BTC position\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add USDC_PEG_DEVIATION (de-peg event)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"USDC_DEV_01\",\"marketObjectCode\":\"USDC_PEG_DEVIATION\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.003},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.008},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.030},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.025},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.015},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.008},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.004},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.002},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.001},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.0005},{\"time\":\"2026-05-24T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.0}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('USDC_PEG_DEVIATION added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ USDC_DEV_01: 0% → 3% peak (week 4) → 0% recovery');",
+        "    console.log('   Inspired by SVB/USDC March 2023 ($3.3B frozen)');",
+        "    console.log('   Crosses 0.5% threshold at week 3 → PegStress activates');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add RLUSD_PEG_DEVIATION (mild sympathy)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"RLUSD_DEV_01\",\"marketObjectCode\":\"RLUSD_PEG_DEVIATION\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.0005},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.002},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.0015},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.001},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.0005},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-24T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.0}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('RLUSD_PEG_DEVIATION added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ RLUSD_DEV_01: 0% → 0.2% sympathy → 0% (stays within 0.5%)');",
+        "    console.log('   RLUSD benefits from flight-to-quality during USDC stress');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add US_REGULATORY_STRESS (enforcement + policy uncertainty)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"REG_STRESS_01\",\"marketObjectCode\":\"US_REGULATORY_STRESS\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.1},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.15},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.25},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.40},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.55},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.65},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.80},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.75},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.65},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.50},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.40},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.35},{\"time\":\"2026-05-24T00:00:00\",\"value\":0.30},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.25}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('US_REGULATORY_STRESS added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ REG_STRESS_01: 0.1 → 0.8 peak (week 6) → 0.25 fade');",
+        "    console.log('   Crosses 0.7 threshold at week 6 → RegulatoryDeRisk fires');",
+        "    console.log('   Scenario: SEC enforcement + GENIUS Act uncertainty');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add BTC_MARKET_DEPTH (liquidity dries up during stress)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"BTC_DEPTH_01\",\"marketObjectCode\":\"BTC_MARKET_DEPTH\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":500000000},{\"time\":\"2026-03-08T00:00:00\",\"value\":480000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":400000000},{\"time\":\"2026-03-22T00:00:00\",\"value\":250000000},{\"time\":\"2026-03-29T00:00:00\",\"value\":150000000},{\"time\":\"2026-04-05T00:00:00\",\"value\":100000000},{\"time\":\"2026-04-12T00:00:00\",\"value\":80000000},{\"time\":\"2026-04-19T00:00:00\",\"value\":120000000},{\"time\":\"2026-04-26T00:00:00\",\"value\":200000000},{\"time\":\"2026-05-03T00:00:00\",\"value\":300000000},{\"time\":\"2026-05-10T00:00:00\",\"value\":380000000},{\"time\":\"2026-05-17T00:00:00\",\"value\":420000000},{\"time\":\"2026-05-24T00:00:00\",\"value\":460000000},{\"time\":\"2026-05-31T00:00:00\",\"value\":500000000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('BTC_MARKET_DEPTH added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ BTC_DEPTH_01: $500M/day → $80M/day trough → recovery');",
+        "    console.log('   When depth < $100M → slows liquidation from 20%/day to 12.5%/day');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add PegStressModel (ps_usdc01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addPegStressModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addPegStressModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ps_usdc01\",\"primaryPegDeviationMOC\":\"USDC_PEG_DEVIATION\",\"altPegDeviationMOC\":\"RLUSD_PEG_DEVIATION\",\"pegDeviationThreshold\":0.005,\"criticalDeviation\":0.03,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-29T00:00:00\",\"2026-04-05T00:00:00\",\"2026-04-12T00:00:00\",\"2026-04-19T00:00:00\",\"2026-04-26T00:00:00\",\"2026-05-03T00:00:00\",\"2026-05-10T00:00:00\",\"2026-05-17T00:00:00\",\"2026-05-24T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PegStressModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ps_usdc01: PegStressModel (14 weekly checkpoints)');",
+        "    console.log('   primary=USDC, alt=RLUSD');",
+        "    console.log('   pegDeviationThreshold=0.5%, criticalDeviation=3%');",
+        "    console.log('   If USDC>0.5% AND RLUSD<0.5% → diversify USDC→RLUSD');",
+        "    console.log('   If BOTH>0.5% → shift to fiat');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add RegulatoryDeRiskModel (rd_btc01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addRegulatoryDeRiskModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addRegulatoryDeRiskModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"rd_btc01\",\"regulatoryStressMOC\":\"US_REGULATORY_STRESS\",\"marketDepthMOC\":\"BTC_MARKET_DEPTH\",\"regulatoryThreshold\":0.7,\"dailyLiquidationFraction\":0.20,\"maxDays\":8,\"minMarketDepth\":100000000,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-29T00:00:00\",\"2026-04-05T00:00:00\",\"2026-04-12T00:00:00\",\"2026-04-19T00:00:00\",\"2026-04-26T00:00:00\",\"2026-05-03T00:00:00\",\"2026-05-10T00:00:00\",\"2026-05-17T00:00:00\",\"2026-05-24T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('RegulatoryDeRiskModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ rd_btc01: RegulatoryDeRiskModel (14 weekly checkpoints)');",
+        "    console.log('   regulatoryThreshold=0.7, dailyLiquidation=20%, maxDays=8');",
+        "    console.log('   minMarketDepth=$100M → if depth<$100M, slows to 12.5%/day');",
+        "    console.log('   If stress subsides below 0.7 mid-liquidation → STOPS');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7. Add Dual-Shock 90-Day Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"ht_pegstress_regrisk_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"USDC_DEV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"RLUSD_DEV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"REG_STRESS_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"BTC_DEPTH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ps_usdc01\",\"riskFactorType\":\"PegStressModel\"},{\"riskFactorID\":\"rd_btc01\",\"riskFactorType\":\"RegulatoryDeRiskModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Dual-shock scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ ht_pegstress_regrisk_scn01: 4 indexes + 2 behavioral models');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8a. Verify PegStressModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findPegStressModel/ps_usdc01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findPegStressModel", "ps_usdc01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PegStressModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('ps_usdc01');",
+        "    pm.expect(d.pegDeviationThreshold).to.eql(0.005);",
+        "    console.log('✅ ps_usdc01: pegThresh='+d.pegDeviationThreshold+' critical='+d.criticalDeviation);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8b. Verify RegulatoryDeRiskModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findRegulatoryDeRiskModel/rd_btc01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findRegulatoryDeRiskModel", "rd_btc01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('RegulatoryDeRiskModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('rd_btc01');",
+        "    pm.expect(d.regulatoryThreshold).to.eql(0.7);",
+        "    console.log('✅ rd_btc01: regThresh='+d.regulatoryThreshold+' dailyLiq='+d.dailyLiquidationFraction+' maxDays='+d.maxDays);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "9. Run Dual-Shock 90-Day Simulation (USDC CLM)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"CLM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"USDC-Position-3M\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":3000000,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"ps_usdc01\",\"rd_btc01\"]},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"STK\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"BTC-Position-Reg\",\"cycleAnchorDateOfDividend\":\"2026-03-31T00:00:00\",\"cycleOfDividend\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":40,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"ps_usdc01\",\"rd_btc01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"ht_pegstress_regrisk_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-05-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Dual-shock simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    console.log('═'.repeat(72));",
+        "    console.log('DUAL SHOCK: PEG STRESS + REGULATORY DE-RISK (90 days)');",
+        "    console.log('  Contracts: USDC-Position-3M (CLM) + BTC-Position-Reg (STK)');",
+        "    console.log('═'.repeat(72));",
+        "    data.forEach(function(c, i){",
+        "        console.log('');",
+        "        console.log('CONTRACT ' + (i+1) + ': ' + c.contractId + ' (status=' + c.status + ')');",
+        "        console.log('  Events: ' + c.events.length);",
+        "        var counts = {};",
+        "        c.events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "        Object.keys(counts).forEach(function(k){console.log('    '+k+': '+counts[k]);});",
+        "        var mrds = c.events.filter(function(e){return e.type==='MRD'||e.type==='PP';});",
+        "        if(mrds.length>0){",
+        "            console.log('  BEHAVIORAL EVENTS:');",
+        "            mrds.forEach(function(m){",
+        "                console.log('    '+m.time.substring(0,10)+' '+m.type+' payoff='+m.payoff.toFixed(4));",
+        "            });",
+        "        }",
+        "    });",
+        "    console.log('═'.repeat(72));",
+        "});",
+        "pm.test('Both contracts simulated', function(){",
+        "    pm.expect(pm.response.json().length).to.eql(2);",
+        "});"
+      ]}}]
+    }
+  ]
+}

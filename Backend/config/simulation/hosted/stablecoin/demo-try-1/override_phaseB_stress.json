@@ -1,0 +1,13 @@
+{
+  "overrideActive": true,
+  "description": "PHASE B — STRESS: $16,000 cash withdrawn for regulatory compliance payment. Drops backing below 100% and liquidity below 20%. Simulates real-world operational outflow that a simple reserves-vs-supply check would miss until too late.",
+  "portfolioAdjustments": [
+    {
+      "contractID": "cash-reserve-001",
+      "newNotionalPrincipal": 4000,
+      "reason": "Cash withdrawn — $16,000 regulatory compliance payment to state authority"
+    }
+  ],
+  "contracts": [],
+  "earlyLiquidations": []
+}

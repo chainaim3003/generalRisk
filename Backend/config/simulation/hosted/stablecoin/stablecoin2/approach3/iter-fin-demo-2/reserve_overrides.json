@@ -1,0 +1,7 @@
+{
+  "overrideActive": false,
+  "description": "Default state — no interventions. Phase A uses base_portfolio.json tokenSupply (100K = first mint ask with 0 circulating).",
+  "portfolioAdjustments": [],
+  "contracts": [],
+  "earlyLiquidations": []
+}

@@ -1,0 +1,277 @@
+{
+  "info": {
+    "_postman_id": "ht-fvc-is-6mo-001",
+    "name": "HybridTreasury-FairValueCompliance-IntegratedStress-6mo",
+    "description": "ACTUS Hybrid Treasury: FAIR VALUE COMPLIANCE + INTEGRATED STRESS (6-month, quarterly+weekly).\n\nTWO hybrid treasury behavioral models run simultaneously:\n  1. FairValueComplianceModel (5.7) — FASB ASU 2023-08 fair value + MSCI exclusion monitoring\n  2. IntegratedStressModel (5.8) — composite multi-domain stress with cascade amplification\n\nScenario: MSTR-style treasury with quarterly FASB reporting + multi-domain stress cascade:\n  BTC fair value: $50K → $90K → $65K (same trajectory as sim #1)\n  MSCI exclusion probability: 5% → 25% peak → 10% recovery\n  Composite stress index: Combines crypto crash + regulatory + peg stress + tariff\n    Index range: 0.0 (calm) → 1.0 (maximum stress)\n    Low threshold: 0.3 (normal operations)\n    High threshold: 0.6 (cascade amplification kicks in)\n\nKEY DYNAMICS:\n  Q1 Report (Mar 31):\n    BTC fair value $55K (up 10% from $50K) → gain = $200K on 40 BTC\n    MSCI exclusion prob 8% → below 15% threshold → no action\n    Composite stress 0.15 → below 0.3 → no stress signal\n\n  Q2 Report (Jun 30):\n    BTC fair value $90K (up 80%) → gain = $1.6M → material (>5% of portfolio)\n    MSCI exclusion prob 25% → ABOVE 15% threshold → COMPLIANCE ALERT\n    Composite stress 0.72 → ABOVE 0.6 → CASCADE: amplifier = 0.72 × 1.5 = 1.08\n    IntegratedStress fires: all sub-models should tighten thresholds by 8%\n\n  Stress timeline:\n    Weeks 1-6: Calm → 0.0\n    Weeks 7-10: Crypto rally triggers regulatory concern → 0.35 → AllocationDrift more sensitive\n    Weeks 12-16: USDC de-peg + regulatory crackdown → 0.72 peak → CASCADE\n    Weeks 17-20: Subsides → 0.45 → lingering caution\n    Weeks 21-26: Recovery → 0.15 → normal\n\nContracts: STK for BTC position (quarterly FASB + weekly stress)\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add BTC_FAIR_VALUE (quarterly mark-to-market)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"BTC_FV_01\",\"marketObjectCode\":\"BTC_FAIR_VALUE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":50000},{\"time\":\"2026-03-31T00:00:00\",\"value\":55000},{\"time\":\"2026-04-30T00:00:00\",\"value\":62000},{\"time\":\"2026-05-31T00:00:00\",\"value\":75000},{\"time\":\"2026-06-30T00:00:00\",\"value\":90000},{\"time\":\"2026-07-31T00:00:00\",\"value\":78000},{\"time\":\"2026-08-31T00:00:00\",\"value\":65000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('BTC_FAIR_VALUE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ BTC_FV_01: $50K → $90K peak → $65K (FASB ASU 2023-08 mark-to-market)');",
+        "    console.log('   40 BTC: Q1 gain $200K | Q2 gain $1.6M (material) | recovery loss');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add MSCI_EXCLUSION_PROB (index exclusion risk)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"MSCI_EXCL_01\",\"marketObjectCode\":\"MSCI_EXCLUSION_PROB\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.05},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.08},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.12},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.18},{\"time\":\"2026-06-30T00:00:00\",\"value\":0.25},{\"time\":\"2026-07-31T00:00:00\",\"value\":0.18},{\"time\":\"2026-08-31T00:00:00\",\"value\":0.10}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('MSCI_EXCLUSION_PROB added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ MSCI_EXCL_01: 5% → 25% peak → 10% (inspired by MSTR/BMNR scare)');",
+        "    console.log('   Crosses 15% threshold at month 4 → FairValue compliance alert');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add COMPOSITE_STRESS_INDEX (multi-domain stress)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"COMP_STRESS_01\",\"marketObjectCode\":\"COMPOSITE_STRESS_INDEX\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.05},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.08},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.10},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.12},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.15},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.20},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.28},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.35},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.42},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.50},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.58},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.65},{\"time\":\"2026-05-24T00:00:00\",\"value\":0.72},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.70},{\"time\":\"2026-06-07T00:00:00\",\"value\":0.65},{\"time\":\"2026-06-14T00:00:00\",\"value\":0.58},{\"time\":\"2026-06-21T00:00:00\",\"value\":0.50},{\"time\":\"2026-06-28T00:00:00\",\"value\":0.45},{\"time\":\"2026-07-05T00:00:00\",\"value\":0.38},{\"time\":\"2026-07-12T00:00:00\",\"value\":0.30},{\"time\":\"2026-07-19T00:00:00\",\"value\":0.25},{\"time\":\"2026-07-26T00:00:00\",\"value\":0.20},{\"time\":\"2026-08-02T00:00:00\",\"value\":0.18},{\"time\":\"2026-08-09T00:00:00\",\"value\":0.15},{\"time\":\"2026-08-16T00:00:00\",\"value\":0.12},{\"time\":\"2026-08-23T00:00:00\",\"value\":0.10},{\"time\":\"2026-08-31T00:00:00\",\"value\":0.08}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('COMPOSITE_STRESS_INDEX added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ COMP_STRESS_01: 27 weekly data points (Mar-Aug 2026)');",
+        "    console.log('   0.05 calm → 0.72 peak (week 13) → 0.08 recovery');",
+        "    console.log('   Crosses 0.3 (low) at week 8 → all sub-models tighten');",
+        "    console.log('   Crosses 0.6 (high) at week 12 → CASCADE AMPLIFICATION');",
+        "    console.log('   cascade = stress × 1.5 multiplier → all models extra-sensitive');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add FairValueComplianceModel (fvc_btc01, quarterly)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addFairValueComplianceModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addFairValueComplianceModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"fvc_btc01\",\"assetFairValueMOC\":\"BTC_FAIR_VALUE\",\"msciExclusionProbMOC\":\"MSCI_EXCLUSION_PROB\",\"msciThreshold\":0.15,\"materialityThreshold\":0.05,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-08-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FairValueComplianceModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ fvc_btc01: FairValueComplianceModel (3 quarterly checkpoints)');",
+        "    console.log('   FASB ASU 2023-08: mark-to-market for crypto holdings');",
+        "    console.log('   msciThreshold=15% (MSCI exclusion probability alert)');",
+        "    console.log('   materialityThreshold=5% (fair value change vs portfolio)');",
+        "    console.log('');",
+        "    console.log('   Q1 (Mar 31): gain=10%, MSCI=8% → OK');",
+        "    console.log('   Q2 (Jun 30): gain=80%, MSCI=25% → ⚠️ BOTH FIRE');",
+        "    console.log('   Q3 (Aug 31): loss from peak, MSCI=10% → recovery');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add IntegratedStressModel (is_port01, weekly)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addIntegratedStressModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addIntegratedStressModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"is_port01\",\"compositeStressIndexMOC\":\"COMPOSITE_STRESS_INDEX\",\"lowThreshold\":0.3,\"highThreshold\":0.6,\"cascadeMultiplier\":1.5,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-29T00:00:00\",\"2026-04-05T00:00:00\",\"2026-04-12T00:00:00\",\"2026-04-19T00:00:00\",\"2026-04-26T00:00:00\",\"2026-05-03T00:00:00\",\"2026-05-10T00:00:00\",\"2026-05-17T00:00:00\",\"2026-05-24T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-07T00:00:00\",\"2026-06-14T00:00:00\",\"2026-06-21T00:00:00\",\"2026-06-28T00:00:00\",\"2026-07-05T00:00:00\",\"2026-07-12T00:00:00\",\"2026-07-19T00:00:00\",\"2026-07-26T00:00:00\",\"2026-08-02T00:00:00\",\"2026-08-09T00:00:00\",\"2026-08-16T00:00:00\",\"2026-08-23T00:00:00\",\"2026-08-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('IntegratedStressModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ is_port01: IntegratedStressModel (27 weekly checkpoints)');",
+        "    console.log('   lowThreshold=0.3 → tighten sub-model thresholds');",
+        "    console.log('   highThreshold=0.6 → CASCADE amplification (×1.5)');",
+        "    console.log('   Integrates: crypto crash + reg stress + peg + tariff');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add FairValue+Stress Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"ht_fvc_stress_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BTC_FV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"MSCI_EXCL_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"COMP_STRESS_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"fvc_btc01\",\"riskFactorType\":\"FairValueComplianceModel\"},{\"riskFactorID\":\"is_port01\",\"riskFactorType\":\"IntegratedStressModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FairValue+Stress scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ ht_fvc_stress_scn01: 3 indexes + 2 behavioral models');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7a. Verify FairValueComplianceModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findFairValueComplianceModel/fvc_btc01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findFairValueComplianceModel", "fvc_btc01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FairValueComplianceModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('fvc_btc01');",
+        "    pm.expect(d.msciThreshold).to.eql(0.15);",
+        "    console.log('✅ fvc_btc01: msciThresh='+d.msciThreshold+' materialityThresh='+d.materialityThreshold);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7b. Verify IntegratedStressModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findIntegratedStressModel/is_port01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findIntegratedStressModel", "is_port01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('IntegratedStressModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('is_port01');",
+        "    pm.expect(d.cascadeMultiplier).to.eql(1.5);",
+        "    console.log('✅ is_port01: low='+d.lowThreshold+' high='+d.highThreshold+' cascade='+d.cascadeMultiplier);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run FairValue+Stress 6-Month Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"STK\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"BTC-MSTR-Style-40\",\"cycleAnchorDateOfDividend\":\"2026-03-31T00:00:00\",\"cycleOfDividend\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-08-31T00:00:00\",\"notionalPrincipal\":40,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"fvc_btc01\",\"is_port01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"ht_fvc_stress_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-08-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FairValue+Stress simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('═'.repeat(72));",
+        "    console.log('FAIR VALUE COMPLIANCE + INTEGRATED STRESS (6 months)');",
+        "    console.log('  FASB ASU 2023-08 | MSCI exclusion | Multi-domain cascade');",
+        "    console.log('  Contract: BTC-MSTR-Style-40 (40 BTC, STK)');",
+        "    console.log('═'.repeat(72));",
+        "    console.log('Total events: ' + events.length);",
+        "    var counts = {};",
+        "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "    Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+        "    console.log('');",
+        "    console.log('══ QUARTERLY FASB CHECKPOINTS ══');",
+        "    console.log('  Q1 (Mar 31): FV=$55K (+10%) | MSCI=8% → OK');",
+        "    console.log('  Q2 (Jun 30): FV=$90K (+80%) | MSCI=25% → ⚠️ BOTH FIRE');",
+        "    console.log('  Q3 (Aug 31): FV=$65K (down from peak) | MSCI=10% → recovery');",
+        "    console.log('');",
+        "    console.log('══ STRESS CASCADE TIMELINE ══');",
+        "    console.log('  Weeks 1-7:  stress<0.3 → normal operations');",
+        "    console.log('  Week 8:     stress=0.35 → above LOW → sub-models tighten');",
+        "    console.log('  Week 12:    stress=0.65 → above HIGH → CASCADE (×1.5)');",
+        "    console.log('  Week 13:    stress=0.72 → PEAK CASCADE = 1.08 amplifier');",
+        "    console.log('  Week 20:    stress=0.25 → below LOW → normal resumes');",
+        "    console.log('');",
+        "    var mrds = events.filter(function(e){return e.type==='MRD'||e.type==='PP';});",
+        "    if(mrds.length>0){",
+        "        console.log('  BEHAVIORAL EVENTS:');",
+        "        mrds.forEach(function(m){",
+        "            console.log('    '+m.time.substring(0,10)+' '+m.type+' payoff='+m.payoff.toFixed(4));",
+        "        });",
+        "    }",
+        "    console.log('═'.repeat(72));",
+        "});",
+        "pm.test('Events generated', function(){",
+        "    pm.expect(pm.response.json()[0].events.length).to.be.above(0);",
+        "});"
+      ]}}]
+    }
+  ]
+}

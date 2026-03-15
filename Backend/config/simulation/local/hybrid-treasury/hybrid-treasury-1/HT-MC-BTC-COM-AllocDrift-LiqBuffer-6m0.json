@@ -1,0 +1,282 @@
+{
+  "info": {
+    "_postman_id": "ht-mc-com-ad-lb-6mo-001",
+    "name": "HT-MC-BTC-COM-AllocDrift-LiqBuffer-6mo",
+    "description": "ACTUS Hybrid Treasury: MULTI-CONTRACT PORTFOLIO SIMULATION (Path A — COM)\n\nBTC modeled as COM (Commodity) instead of STK (Stock).\nCOM is the semantically correct ACTUS contract type for BTC:\n  - BTC is classified as a commodity (CFTC designation)\n  - No dividend cycle (BTC does not pay dividends)\n  - Pure spot position: quantity × market price = position value\n  - PRD event captures purchase cashflow: -quantity × priceAtPurchaseDate\n  - TD event captures sale cashflow: +quantity × priceAtTermination\n  - marketObjectCode links to BTC_USD_SPOT for mark-to-market\n  - Behavioral models provide monitoring (no fake DV heartbeat needed)\n\nPortfolio:\n  Contract 1: COM  — 40 BTC position ($2M at $50K) [behavioral: ad_btc01, lb_tr01]\n  Contract 2: PAM  — T-Bill #1 $500K zero-coupon, matures Mar 31\n  Contract 3: PAM  — T-Bill #2 $500K zero-coupon, matures May 31\n  Contract 4: PAM  — T-Bill #3 $250K zero-coupon, matures Jun 30\n  Contract 5: PAM  — T-Bill #4 $500K zero-coupon, matures Jul 31\n\nT-Bill ladder total: $1.75M (part of the $3M USDC/reserves bucket)\nRemaining portfolio: $5M fiat cash + $1.25M USDC (still as reference indexes)\n\nBehavioral models:\n  1. AllocationDriftModel (ad_btc01) — monitors BTC allocation vs 20% target\n     Reads BTC_USD_SPOT × positionQuantity / PORTFOLIO_TOTAL_VALUE\n     Triggers PP events when allocation breaches [15%, 25%] band\n  2. LiquidityBufferModel (lb_tr01) — monitors fiat cash buffer vs $3M minimum\n     Reads PROJECTED_OUTFLOWS vs TBILL_MATURITY_SCHEDULE\n     Triggers PP events when projected buffer < $3M\n\nScenario: 6-month BTC rally & correction with quarterly AP stress\n  BTC trajectory: $50K → $90K peak (month 4) → $65K cooldown\n  AP stress: Normal $200K/mo → $800K in June (quarterly tax + AP burst)\n\nCOM vs STK changes:\n  - contractType: COM (was STK)\n  - Removed: cycleAnchorDateOfDividend, cycleOfDividend (COM has no dividends)\n  - Added: marketObjectCode = BTC_USD_SPOT (links contract to spot price index)\n  - Kept: quantity=40, priceAtPurchaseDate=50000, marketValueObserved=50000\n  - Kept: treasuryModels=[ad_btc01, lb_tr01] (behavioral monitoring unchanged)\n\nCash flow semantics (COM uses STK payoff functions):\n  PRD: payoff = -roleSign × quantity × priceAtPurchaseDate = -1 × 40 × $50K = -$2,000,000\n  PP:  payoff computed by behavioral model (rebalance buy/sell signal)\n  TD:  payoff = +roleSign × quantity × priceAtTermination (if termination set)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add BTC_USD_SPOT (6-month rally & correction)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"BTC_SPOT_01\",\"marketObjectCode\":\"BTC_USD_SPOT\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":50000},{\"time\":\"2026-03-15T00:00:00\",\"value\":52000},{\"time\":\"2026-03-31T00:00:00\",\"value\":55000},{\"time\":\"2026-04-15T00:00:00\",\"value\":58000},{\"time\":\"2026-04-30T00:00:00\",\"value\":62000},{\"time\":\"2026-05-15T00:00:00\",\"value\":68000},{\"time\":\"2026-05-31T00:00:00\",\"value\":75000},{\"time\":\"2026-06-15T00:00:00\",\"value\":85000},{\"time\":\"2026-06-30T00:00:00\",\"value\":90000},{\"time\":\"2026-07-15T00:00:00\",\"value\":84000},{\"time\":\"2026-07-31T00:00:00\",\"value\":78000},{\"time\":\"2026-08-15T00:00:00\",\"value\":72000},{\"time\":\"2026-08-31T00:00:00\",\"value\":65000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('BTC_USD_SPOT added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ BTC_SPOT_01: 13 semi-monthly data points (Mar-Aug 2026)');",
+        "    console.log('   $50K → $90K peak (Jun) → $65K cooldown (Aug)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add PORTFOLIO_TOTAL_VALUE (tracks portfolio NAV)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"PORTFOLIO_NAV_01\",\"marketObjectCode\":\"PORTFOLIO_TOTAL_VALUE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":10000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":10080000},{\"time\":\"2026-03-31T00:00:00\",\"value\":10200000},{\"time\":\"2026-04-15T00:00:00\",\"value\":10320000},{\"time\":\"2026-04-30T00:00:00\",\"value\":10480000},{\"time\":\"2026-05-15T00:00:00\",\"value\":10720000},{\"time\":\"2026-05-31T00:00:00\",\"value\":11000000},{\"time\":\"2026-06-15T00:00:00\",\"value\":11400000},{\"time\":\"2026-06-30T00:00:00\",\"value\":11600000},{\"time\":\"2026-07-15T00:00:00\",\"value\":11360000},{\"time\":\"2026-07-31T00:00:00\",\"value\":11120000},{\"time\":\"2026-08-15T00:00:00\",\"value\":10880000},{\"time\":\"2026-08-31T00:00:00\",\"value\":10600000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PORTFOLIO_TOTAL_VALUE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ PORTFOLIO_NAV_01: $10M → $11.6M peak → $10.6M');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add PROJECTED_OUTFLOWS (AP + quarterly tax stress)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"OUTFLOWS_01\",\"marketObjectCode\":\"PROJECTED_OUTFLOWS\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":200000},{\"time\":\"2026-03-31T00:00:00\",\"value\":200000},{\"time\":\"2026-04-30T00:00:00\",\"value\":250000},{\"time\":\"2026-05-31T00:00:00\",\"value\":300000},{\"time\":\"2026-06-15T00:00:00\",\"value\":650000},{\"time\":\"2026-06-30T00:00:00\",\"value\":800000},{\"time\":\"2026-07-15T00:00:00\",\"value\":650000},{\"time\":\"2026-07-31T00:00:00\",\"value\":500000},{\"time\":\"2026-08-31T00:00:00\",\"value\":250000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PROJECTED_OUTFLOWS added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ OUTFLOWS_01: Normal $200-300K/mo, June stress $800K');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add TBILL_MATURITY_SCHEDULE (kept for LiquidityBufferModel compatibility)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"TBILL_MAT_01\",\"marketObjectCode\":\"TBILL_MATURITY_SCHEDULE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0},{\"time\":\"2026-03-31T00:00:00\",\"value\":500000},{\"time\":\"2026-04-30T00:00:00\",\"value\":0},{\"time\":\"2026-05-31T00:00:00\",\"value\":500000},{\"time\":\"2026-06-30T00:00:00\",\"value\":250000},{\"time\":\"2026-07-31T00:00:00\",\"value\":500000},{\"time\":\"2026-08-31T00:00:00\",\"value\":0}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TBILL_MATURITY_SCHEDULE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ TBILL_MAT_01: Reference index kept for LiquidityBufferModel');",
+        "    console.log('   NOW ALSO modeled as real PAM contracts (T-Bill #1-#4)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add AllocationDriftModel (ad_btc01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addAllocationDriftModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addAllocationDriftModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ad_btc01\",\"spotPriceMOC\":\"BTC_USD_SPOT\",\"portfolioTotalValueMOC\":\"PORTFOLIO_TOTAL_VALUE\",\"targetAllocation\":0.20,\"maxAllocation\":0.25,\"minAllocation\":0.15,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AllocationDriftModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ad_btc01: AllocationDriftModel (6 monthly checkpoints)');",
+        "    console.log('   target=20%, band=[15%, 25%]');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add LiquidityBufferModel (lb_tr01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addLiquidityBufferModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addLiquidityBufferModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"lb_tr01\",\"projectedOutflowsMOC\":\"PROJECTED_OUTFLOWS\",\"tbillMaturityScheduleMOC\":\"TBILL_MATURITY_SCHEDULE\",\"minBufferUSD\":3000000,\"targetBufferUSD\":3500000,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('LiquidityBufferModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ lb_tr01: LiquidityBufferModel (6 monthly checkpoints)');",
+        "    console.log('   minBuffer=$3M, targetBuffer=$3.5M');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7. Add 6-Month Multi-Contract Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"ht_mc_6mo_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BTC_SPOT_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"PORTFOLIO_NAV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"OUTFLOWS_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"TBILL_MAT_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ad_btc01\",\"riskFactorType\":\"AllocationDriftModel\"},{\"riskFactorID\":\"lb_tr01\",\"riskFactorType\":\"LiquidityBufferModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Multi-contract scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ ht_mc_6mo_scn01: 4 indexes + 2 behavioral models');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run Multi-Contract Portfolio Simulation (COM + 4×PAM)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"COM\",\"contractID\":\"BTC-COM-Position-40\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"counterpartyID\":\"CustodyProvider01\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"purchaseDate\":\"2026-03-01T00:00:00\",\"priceAtPurchaseDate\":50000,\"marketValueObserved\":50000,\"marketObjectCode\":\"BTC_USD_SPOT\",\"quantity\":40,\"treasuryModels\":[\"ad_btc01\",\"lb_tr01\"]},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-3mo-500K-Mar\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-01-01T00:00:00\",\"initialExchangeDate\":\"2026-01-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-5mo-500K-May\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-01-01T00:00:00\",\"initialExchangeDate\":\"2026-01-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-4mo-250K-Jun\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-01T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-06-30T00:00:00\",\"notionalPrincipal\":250000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-5mo-500K-Jul\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-01T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-07-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0}],\"scenarioDescriptor\":{\"scenarioID\":\"ht_mc_6mo_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-08-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Multi-contract portfolio simulation (COM)', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.length).to.eql(5);",
+        "    console.log('═'.repeat(80));",
+        "    console.log('HYBRID TREASURY 6-MONTH: PATH A — COM (Commodity) BTC POSITION');",
+        "    console.log('═'.repeat(80));",
+        "    console.log('');",
+        "    console.log('PORTFOLIO COMPOSITION (5 ACTUS contracts):');",
+        "    console.log('  1. COM  BTC-COM-Position-40   40 BTC ($2M @ $50K)  [behavioral: ad_btc01, lb_tr01]');",
+        "    console.log('       → No dividend cycle (BTC is a commodity, not equity)');",
+        "    console.log('       → marketObjectCode=BTC_USD_SPOT for mark-to-market');",
+        "    console.log('       → Monitoring via behavioral model MRD/PP callouts only');",
+        "    console.log('  2. PAM  TBILL-3mo-500K-Mar   $500K zero-coupon    matures Mar 31');",
+        "    console.log('  3. PAM  TBILL-5mo-500K-May   $500K zero-coupon    matures May 31');",
+        "    console.log('  4. PAM  TBILL-4mo-250K-Jun   $250K zero-coupon    matures Jun 30');",
+        "    console.log('  5. PAM  TBILL-5mo-500K-Jul   $500K zero-coupon    matures Jul 31');",
+        "    console.log('  ───────────────────────────────────────────────────────────');",
+        "    console.log('  T-Bill ladder: $1.75M total across 4 staggered maturities');",
+        "    console.log('  Remaining: $5M fiat + $1.25M USDC (reference indexes)');",
+        "    console.log('');",
+        "    console.log('EXPECTED COM CASH FLOWS:');",
+        "    console.log('  PRD: -quantity × priceAtPurchase = -40 × $50,000 = -$2,000,000 (buy)');",
+        "    console.log('  PP:  behavioral model rebalance signal (sell/buy BTC to restore allocation)');",
+        "    console.log('  TD:  +quantity × priceAtTermination (if termination date set)');",
+        "    console.log('');",
+        "    console.log('═'.repeat(80));",
+        "    data.forEach(function(contractResult, idx){",
+        "        var events = contractResult.events || [];",
+        "        var counts = {};",
+        "        events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "        console.log('');",
+        "        console.log('── CONTRACT ' + (idx+1) + ': ' + contractResult.contractId + ' (' + contractResult.status + ') ──');",
+        "        console.log('   Total events: ' + events.length);",
+        "        var typeStr = Object.keys(counts).map(function(k){return k+':'+counts[k];}).join(', ');",
+        "        console.log('   Event types: ' + typeStr);",
+        "        if(contractResult.status === 'Failure'){",
+        "            console.log('   ⚠ ERROR: ' + (contractResult.message || 'unknown'));",
+        "        }",
+        "        console.log('');",
+        "        events.forEach(function(e){",
+        "            var line = '   ' + e.time.substring(0,10) + ' ' + e.type;",
+        "            line += '  payoff=' + (e.payoff !== undefined ? e.payoff.toFixed(2) : 'N/A');",
+        "            line += '  notional=' + (e.nominalValue !== undefined ? e.nominalValue.toFixed(2) : 'N/A');",
+        "            if(idx === 0 && e.type === 'PRD'){",
+        "                line += '  ← BUY 40 BTC × $50K';",
+        "            }",
+        "            if(idx === 0 && e.type === 'PP'){",
+        "                line += '  ← behavioral rebalance';",
+        "            }",
+        "            if(idx === 0 && e.type === 'TD'){",
+        "                line += '  ← SELL at market price';",
+        "            }",
+        "            if(idx > 0 && e.type === 'MD'){",
+        "                line += '  ← T-Bill maturity (principal repaid)';",
+        "            }",
+        "            console.log(line);",
+        "        });",
+        "    });",
+        "    console.log('');",
+        "    console.log('═'.repeat(80));",
+        "    console.log('KEY OBSERVATIONS (COM vs STK):');",
+        "    console.log('  • COM has NO dividend events — semantically correct for BTC');",
+        "    console.log('  • PRD event: 40 × $50,000 = $2,000,000 purchase cashflow');",
+        "    console.log('  • PP events injected by AllocationDriftModel at monthly checkpoints');",
+        "    console.log('  • Jun 30 critical: BTC@$90K → allocation=31% → sell signal expected');",
+        "    console.log('  • T-Bills generate real ACTUS MD events with principal repayment');",
+        "    console.log('  • Commodity.apply() uses AA day-count, no business day adjustment');",
+        "    console.log('  • feeRate null-safe: COM parse does not set feeRate, STF_PP_rf2 handles null');",
+        "    console.log('═'.repeat(80));",
+        "});",
+        "pm.test('All 5 contracts succeeded', function(){",
+        "    var data = pm.response.json();",
+        "    data.forEach(function(r){ pm.expect(r.status).to.eql('Success'); });",
+        "});"
+      ]}}]
+    }
+  ]
+}

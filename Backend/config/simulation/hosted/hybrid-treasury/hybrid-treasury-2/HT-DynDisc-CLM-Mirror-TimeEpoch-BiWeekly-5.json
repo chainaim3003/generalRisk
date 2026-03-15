@@ -1,0 +1,685 @@
+{
+  "info": {
+    "name": "HT-DynDisc-CLM-Mirror-TimeEpoch-BiWeekly-5",
+    "_postman_id": "ht-v9-consolidated-reserve-collection",
+    "description": "HT v9 — Consolidated Reserve: Dynamic Discount CLM + Mirror PAM + LiquidityBuffer. Bi-weekly monitoring epochs Mar-01 to Aug-31 2026.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 BTC_SPOT_01 — addReferenceIndex",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 01 BTC_SPOT_01 ────────────────────────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 01 addReferenceIndex  │  BTC_SPOT_01  (BTC_USD_SPOT)');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "var pts = [",
+              "  {t:'2026-03-01',v:50000},{t:'2026-03-15',v:52000},{t:'2026-03-31',v:55000},",
+              "  {t:'2026-04-15',v:58000},{t:'2026-04-30',v:62000},{t:'2026-05-15',v:68000},",
+              "  {t:'2026-05-31',v:75000},{t:'2026-06-15',v:85000},{t:'2026-06-30',v:90000},",
+              "  {t:'2026-07-15',v:84000},{t:'2026-07-31',v:78000},{t:'2026-08-15',v:72000},",
+              "  {t:'2026-08-31',v:65000}",
+              "];",
+              "console.log('  BTC/USD Spot Price Series (' + pts.length + ' points):');",
+              "var maxV = Math.max.apply(null, pts.map(function(p){return p.v;}));",
+              "pts.forEach(function(p) {",
+              "  var bar = Array(Math.round(p.v/maxV*24)+1).join('█');",
+              "  var peak = p.v === maxV ? ' ◄ PEAK' : '';",
+              "  console.log('  ' + p.t + ' │ $' + p.v.toLocaleString().padStart(6) + '  ' + bar + peak);",
+              "});",
+              "var gain = Math.round((maxV/pts[0].v-1)*100);",
+              "console.log('');",
+              "console.log('  Start $' + pts[0].v.toLocaleString() + ' → Peak $' + maxV.toLocaleString() + ' (+' + gain + '%) → End $' + pts[pts.length-1].v.toLocaleString());",
+              "pm.test('01 BTC_SPOT_01 registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorID\": \"BTC_SPOT_01\",\n  \"marketObjectCode\": \"BTC_USD_SPOT\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 50000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 52000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 55000},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 58000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 62000},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 68000},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 75000},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 85000},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 90000},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 84000},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 78000},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 72000},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 65000}\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 PORTFOLIO_NAV_01 — addReferenceIndex",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 02 PORTFOLIO_NAV_01 ───────────────────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 02 addReferenceIndex  │  PORTFOLIO_NAV_01  (PORTFOLIO_TOTAL_VALUE)');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "var pts = [",
+              "  {t:'2026-03-01',v:10000000},{t:'2026-03-15',v:10080000},{t:'2026-03-31',v:10200000},",
+              "  {t:'2026-04-15',v:10320000},{t:'2026-04-30',v:10480000},{t:'2026-05-15',v:10720000},",
+              "  {t:'2026-05-31',v:11000000},{t:'2026-06-15',v:11400000},{t:'2026-06-30',v:11600000},",
+              "  {t:'2026-07-15',v:11360000},{t:'2026-07-31',v:11120000},{t:'2026-08-15',v:10880000},",
+              "  {t:'2026-08-31',v:10600000}",
+              "];",
+              "console.log('  Portfolio Total NAV Series:');",
+              "var base = pts[0].v;",
+              "pts.forEach(function(p) {",
+              "  var pct = ((p.v/base-1)*100).toFixed(1);",
+              "  var sign = pct >= 0 ? '+' : '';",
+              "  console.log('  ' + p.t + ' │ $' + (p.v/1e6).toFixed(3) + 'M  (' + sign + pct + '%)');",
+              "});",
+              "var peak = pts.reduce(function(a,b){return a.v>b.v?a:b;});",
+              "console.log('');",
+              "console.log('  Peak NAV : $' + (peak.v/1e6).toFixed(2) + 'M on ' + peak.t + ' | End: $' + (pts[pts.length-1].v/1e6).toFixed(2) + 'M');",
+              "pm.test('02 PORTFOLIO_NAV_01 registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorID\": \"PORTFOLIO_NAV_01\",\n  \"marketObjectCode\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 10000000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 10080000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 10200000},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 10320000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 10480000},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 10720000},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 11000000},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 11400000},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 11600000},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 11360000},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 11120000},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 10880000},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 10600000}\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 OUTFLOWS_01 — addReferenceIndex",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 03 OUTFLOWS_01 ────────────────────────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 03 addReferenceIndex  │  OUTFLOWS_01  (PROJECTED_OUTFLOWS)');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "var pts = [",
+              "  {t:'2026-03-01',v:100000},{t:'2026-03-31',v:100000},{t:'2026-04-30',v:120000},",
+              "  {t:'2026-05-31',v:150000},{t:'2026-06-15',v:300000},{t:'2026-06-30',v:450000},",
+              "  {t:'2026-07-15',v:200000},{t:'2026-07-31',v:150000},{t:'2026-08-31',v:100000}",
+              "];",
+              "var total = pts.reduce(function(s,p){return s+p.v;},0);",
+              "console.log('  Projected Outflows Schedule:');",
+              "pts.forEach(function(p) {",
+              "  var alert = p.v >= 300000 ? '  ⚠ STRESS' : (p.v >= 150000 ? '  △ ELEVATED' : '');",
+              "  var bar = Array(Math.round(p.v/450000*20)+1).join('▓');",
+              "  console.log('  ' + p.t + ' │ $' + p.v.toLocaleString().padStart(7) + '  ' + bar + alert);",
+              "});",
+              "console.log('');",
+              "console.log('  Total Outflows : $' + total.toLocaleString() + ' over 6 months');",
+              "console.log('  ⚠  Jun-15 ($300K) and Jun-30 ($450K) are liquidity stress points');",
+              "pm.test('03 OUTFLOWS_01 registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorID\": \"OUTFLOWS_01\",\n  \"marketObjectCode\": \"PROJECTED_OUTFLOWS\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 100000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 100000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 120000},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 150000},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 300000},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 450000},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 200000},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 150000},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 100000}\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 TBILL_MAT_01 — addReferenceIndex",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 04 TBILL_MAT_01 ───────────────────────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 04 addReferenceIndex  │  TBILL_MAT_01  (TBILL_MATURITY_SCHEDULE)');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "var pts = [",
+              "  {t:'2026-03-01',v:0},{t:'2026-03-31',v:500000},{t:'2026-04-30',v:0},",
+              "  {t:'2026-05-31',v:500000},{t:'2026-06-30',v:250000},{t:'2026-07-31',v:500000},",
+              "  {t:'2026-08-31',v:0}",
+              "];",
+              "var total = pts.reduce(function(s,p){return s+p.v;},0);",
+              "console.log('  T-Bill Maturity Cash Inflows (feeds LiquidityBuffer lb_tr01):');",
+              "pts.forEach(function(p) {",
+              "  var note = p.v > 0 ? '  ← CASH IN from maturing T-Bill' : '  (no maturity)';",
+              "  console.log('  ' + p.t + ' │ $' + p.v.toLocaleString().padStart(7) + note);",
+              "});",
+              "console.log('');",
+              "console.log('  Total T-Bill Proceeds : $' + total.toLocaleString());",
+              "console.log('  Contracts mapped → TBILL-3mo-500K-Mar, TBILL-5mo-500K-May, TBILL-4mo-250K-Jun, TBILL-5mo-500K-Jul');",
+              "pm.test('04 TBILL_MAT_01 registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorID\": \"TBILL_MAT_01\",\n  \"marketObjectCode\": \"TBILL_MATURITY_SCHEDULE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\",  \"value\": 0},\n    {\"time\": \"2026-03-31T00:00:00\",  \"value\": 500000},\n    {\"time\": \"2026-04-30T00:00:00\",  \"value\": 0},\n    {\"time\": \"2026-05-31T00:00:00\",  \"value\": 500000},\n    {\"time\": \"2026-06-30T00:00:00\",  \"value\": 250000},\n    {\"time\": \"2026-07-31T00:00:00\",  \"value\": 500000},\n    {\"time\": \"2026-08-31T00:00:00\",  \"value\": 0}\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 BUYER_CASH_01 — addReferenceIndex",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 05 BUYER_CASH_01 ──────────────────────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 05 addReferenceIndex  │  BUYER_CASH_01  (BUYER_CASH)');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "var pts = [",
+              "  {t:'2026-02-28',v:2750000},{t:'2026-03-15',v:2750000},{t:'2026-03-31',v:3250000},",
+              "  {t:'2026-04-15',v:3250000},{t:'2026-04-30',v:3250000},{t:'2026-05-14',v:3250000},",
+              "  {t:'2026-05-15',v:3360511},{t:'2026-05-30',v:3360511},{t:'2026-05-31',v:3972581},",
+              "  {t:'2026-06-14',v:3972581},{t:'2026-06-15',v:4093144},{t:'2026-06-29',v:4093144},",
+              "  {t:'2026-06-30',v:4442448},{t:'2026-07-15',v:4442448},{t:'2026-07-31',v:4942448},",
+              "  {t:'2026-08-15',v:4942448},{t:'2026-08-31',v:4942448}",
+              "];",
+              "var base = pts[0].v;",
+              "var end  = pts[pts.length-1].v;",
+              "console.log('  Buyer Cash Accumulation (stepwise, ' + pts.length + ' control points):');",
+              "var prev = null;",
+              "pts.forEach(function(p) {",
+              "  var delta = prev !== null && p.v !== prev ? '  ▲ +$' + (p.v-prev).toLocaleString() : '';",
+              "  console.log('  ' + p.t + ' │ $' + (p.v/1e6).toFixed(4) + 'M' + delta);",
+              "  prev = p.v;",
+              "});",
+              "console.log('');",
+              "console.log('  Start: $' + (base/1e6).toFixed(3) + 'M  →  End: $' + (end/1e6).toFixed(3) + 'M');",
+              "console.log('  Total accumulation: +$' + ((end-base)/1e3).toFixed(0) + 'K  (+' + Math.round((end/base-1)*100) + '%)');",
+              "pm.test('05 BUYER_CASH_01 registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorID\": \"BUYER_CASH_01\",\n  \"marketObjectCode\": \"BUYER_CASH\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 2750000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 2750000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 3250000},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 3250000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 3250000},\n    {\"time\": \"2026-05-14T00:00:00\", \"value\": 3250000},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 3360511},\n    {\"time\": \"2026-05-30T00:00:00\", \"value\": 3360511},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 3972581},\n    {\"time\": \"2026-06-14T00:00:00\", \"value\": 3972581},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 4093144},\n    {\"time\": \"2026-06-29T00:00:00\", \"value\": 4093144},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 4442448},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 4442448},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 4942448},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 4942448},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 4942448}\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 HURDLE_RATE_01 — addReferenceIndex",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 06 HURDLE_RATE_01 ─────────────────────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 06 addReferenceIndex  │  HURDLE_RATE_01  (HURDLE_RATE)');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "var pts = [",
+              "  {t:'2026-02-01',v:0.075},",
+              "  {t:'2026-03-09',v:0.080},",
+              "  {t:'2026-04-08',v:0.085},",
+              "  {t:'2026-06-30',v:0.085}",
+              "];",
+              "console.log('  Hurdle Rate Step Schedule:');",
+              "pts.forEach(function(p) {",
+              "  var bar = Array(Math.round(p.v*200)+1).join('█');",
+              "  console.log('  ' + p.t + ' │ ' + (p.v*100).toFixed(1) + '%  ' + bar);",
+              "});",
+              "console.log('');",
+              "console.log('  Rate stepped: 7.5% → 8.0% (Mar-09) → 8.5% (Apr-08, held through Jun-30)');",
+              "console.log('  CLM nominal rate is 3.0% — well below hurdle, funding is accretive');",
+              "pm.test('06 HURDLE_RATE_01 registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorID\": \"HURDLE_RATE_01\",\n  \"marketObjectCode\": \"HURDLE_RATE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-01T00:00:00\", \"value\": 0.075},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 0.080},\n    {\"time\": \"2026-04-08T00:00:00\", \"value\": 0.085},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 0.085}\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 ad_btc01 SOURCE — addAllocationDriftModel",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 07 ad_btc01 AllocationDriftModel (SOURCE) ─────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 07 addAllocationDriftModel  │  ad_btc01  [SOURCE]');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "console.log('  Model Parameters:');",
+              "console.log('  ├─ spotPriceMOC         : BTC_USD_SPOT');",
+              "console.log('  ├─ portfolioValueMOC    : PORTFOLIO_TOTAL_VALUE');",
+              "console.log('  ├─ positionQuantity     : 40.0 BTC');",
+              "console.log('  ├─ initialNotional      : $2,000,000');",
+              "console.log('  ├─ targetAllocation     : 20%');",
+              "console.log('  ├─ band                 : [15% min  ←→  25% max]');",
+              "console.log('  ├─ signalMultiplier     : 1.0  (no leverage)');",
+              "console.log('  └─ useFixedQuantity     : false  (dynamic rebalancing)');",
+              "console.log('');",
+              "console.log('  Monitoring Epochs (12 bi-weekly):');",
+              "console.log('  Mar-15, Mar-31, Apr-15, Apr-30, May-15, May-31,');",
+              "console.log('  Jun-15, Jun-30, Jul-15, Jul-31, Aug-15, Aug-31');",
+              "console.log('');",
+              "console.log('  BTC Value Projection (40 BTC × spot):');",
+              "var spots = [{t:'Mar-01',p:50000},{t:'Mar-15',p:52000},{t:'Mar-31',p:55000},",
+              "             {t:'Apr-15',p:58000},{t:'Apr-30',p:62000},{t:'May-15',p:68000},",
+              "             {t:'May-31',p:75000},{t:'Jun-15',p:85000},{t:'Jun-30',p:90000},",
+              "             {t:'Jul-15',p:84000},{t:'Jul-31',p:78000},{t:'Aug-15',p:72000}];",
+              "var navs  = [10000000,10080000,10200000,10320000,10480000,10720000,",
+              "             11000000,11400000,11600000,11360000,11120000,10880000];",
+              "spots.forEach(function(s,i) {",
+              "  var val  = 40 * s.p;",
+              "  var alloc = (val / navs[i] * 100).toFixed(1);",
+              "  var flag = val/navs[i] > 0.25 ? ' ▲ ABOVE MAX → RECALL SIGNAL' :",
+              "             val/navs[i] < 0.15 ? ' ▼ BELOW MIN → BUY SIGNAL' : '';",
+              "  console.log('  ' + s.t + ' │ 40×$' + s.p.toLocaleString() + '=$' + (val/1e6).toFixed(3) + 'M  alloc=' + alloc + '%' + flag);",
+              "});",
+              "pm.test('07 ad_btc01 SOURCE registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addAllocationDriftModel",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addAllocationDriftModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorId\": \"ad_btc01\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.20,\n  \"maxAllocation\": 0.25,\n  \"minAllocation\": 0.15,\n  \"positionQuantity\": 40.0,\n  \"initialNotionalPrincipal\": 2000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": false,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "08 ad_btc01_mirror MIRROR — addAllocationDriftModel",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 08 ad_btc01_mirror AllocationDriftModel (MIRROR) ──────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 08 addAllocationDriftModel  │  ad_btc01_mirror  [MIRROR → ad_btc01]');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "console.log('  Model Parameters:');",
+              "console.log('  ├─ mirrorSourceModelId  : ad_btc01  (receives identical signals)');",
+              "console.log('  ├─ spotPriceMOC         : BTC_USD_SPOT');",
+              "console.log('  ├─ portfolioValueMOC    : PORTFOLIO_TOTAL_VALUE');",
+              "console.log('  ├─ positionQuantity     : 0.0  (starts empty, driven by mirror)');",
+              "console.log('  ├─ initialNotional      : $3,000,000');",
+              "console.log('  ├─ targetAllocation     : 20%  (same band as source)');",
+              "console.log('  ├─ band                 : [15% min  ←→  25% max]');",
+              "console.log('  └─ signalMultiplier     : 1.0  (1:1 mirror)');",
+              "console.log('');",
+              "console.log('  Role in architecture:');",
+              "console.log('  ├─ Attached to PAM contract CASH-PAM-3M (the reserve vehicle)');",
+              "console.log('  ├─ When SOURCE (ad_btc01) recalls principal from CLM,');",
+              "console.log('  │   MIRROR receives corresponding inflows into the PAM reserve');",
+              "console.log('  └─ Net effect: CLM outflow → PAM reserve inflow (cash recycling)');",
+              "pm.test('08 ad_btc01_mirror MIRROR registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addAllocationDriftModel",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addAllocationDriftModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorId\": \"ad_btc01_mirror\",\n  \"mirrorSourceModelId\": \"ad_btc01\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.2,\n  \"maxAllocation\": 0.25,\n  \"minAllocation\": 0.15,\n  \"positionQuantity\": 0.0,\n  \"initialNotionalPrincipal\": 3000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": false,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "09 lb_tr01 LiquidityBuffer — addLiquidityBufferModel",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 09 lb_tr01 LiquidityBufferModel ───────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 09 addLiquidityBufferModel  │  lb_tr01');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "console.log('  Model Parameters:');",
+              "console.log('  ├─ projectedOutflowsMOC     : PROJECTED_OUTFLOWS  (OUTFLOWS_01)');",
+              "console.log('  ├─ tbillMaturityScheduleMOC : TBILL_MATURITY_SCHEDULE  (TBILL_MAT_01)');",
+              "console.log('  ├─ minBufferUSD             : $200,000');",
+              "console.log('  └─ targetBufferUSD          : $350,000');",
+              "console.log('');",
+              "console.log('  Buffer vs Outflow Coverage Analysis:');",
+              "var epochs = [",
+              "  {t:'Mar-15',out:0,     tbill:0,      note:''},",
+              "  {t:'Mar-31',out:100000, tbill:500000, note:'T-Bill matures → buffer replenished'},",
+              "  {t:'Apr-15',out:0,     tbill:0,      note:''},",
+              "  {t:'Apr-30',out:120000, tbill:0,      note:'Outflow only, no T-Bill'},",
+              "  {t:'May-15',out:0,     tbill:0,      note:''},",
+              "  {t:'May-31',out:150000, tbill:500000, note:'T-Bill matures → buffer OK'},",
+              "  {t:'Jun-15',out:300000, tbill:0,      note:'⚠ Stress — no T-Bill, large outflow'},",
+              "  {t:'Jun-30',out:450000, tbill:250000, note:'⚠ Net deficit $200K — buffer trigger'},",
+              "  {t:'Jul-15',out:200000, tbill:0,      note:'Recovering'},",
+              "  {t:'Jul-31',out:150000, tbill:500000, note:'T-Bill matures → buffer restored'},",
+              "  {t:'Aug-15',out:0,     tbill:0,      note:''},",
+              "  {t:'Aug-31',out:100000, tbill:0,      note:''}",
+              "];",
+              "epochs.forEach(function(e) {",
+              "  var net = e.tbill - e.out;",
+              "  var status = net < 0 ? '🔴' : (e.out > 0 ? '🟡' : '🟢');",
+              "  var netStr = net !== 0 ? '  net=' + (net>0?'+':'') + '$' + net.toLocaleString() : '';",
+              "  var note = e.note ? '  ← ' + e.note : '';",
+              "  console.log('  ' + e.t + ' │ ' + status + ' out=$' + e.out.toLocaleString() + '  tbill=$' + e.tbill.toLocaleString() + netStr + note);",
+              "});",
+              "pm.test('09 lb_tr01 registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addLiquidityBufferModel",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addLiquidityBufferModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"riskFactorId\": \"lb_tr01\",\n  \"projectedOutflowsMOC\": \"PROJECTED_OUTFLOWS\",\n  \"tbillMaturityScheduleMOC\": \"TBILL_MATURITY_SCHEDULE\",\n  \"minBufferUSD\": 200000,\n  \"targetBufferUSD\": 350000,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10 Scenario ht_v9_consolidated_reserve_scn01 — addScenario",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 10 addScenario ────────────────────────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 10 addScenario  │  ht_v9_consolidated_reserve_scn01');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  Body   : ' + pm.response.text().trim());",
+              "console.log('');",
+              "console.log('  Scenario assembles 9 risk factors:');",
+              "var rfs = [",
+              "  {id:'BTC_SPOT_01',       type:'ReferenceIndex',      role:'BTC/USD price curve (13 bi-weekly pts)'},",
+              "  {id:'PORTFOLIO_NAV_01',  type:'ReferenceIndex',      role:'Total portfolio NAV ($10M–$11.6M)'},",
+              "  {id:'OUTFLOWS_01',       type:'ReferenceIndex',      role:'Projected outflows (peak $450K Jun-30)'},",
+              "  {id:'TBILL_MAT_01',      type:'ReferenceIndex',      role:'T-Bill maturities ($1.75M total)'},",
+              "  {id:'BUYER_CASH_01',     type:'ReferenceIndex',      role:'Cash accumulation ($2.75M→$4.94M)'},",
+              "  {id:'HURDLE_RATE_01',    type:'ReferenceIndex',      role:'Hurdle rate (7.5%→8.5%)'},",
+              "  {id:'ad_btc01',         type:'AllocationDriftModel', role:'SOURCE drift model on CLM (40 BTC, 20% target)'},",
+              "  {id:'ad_btc01_mirror',  type:'AllocationDriftModel', role:'MIRROR model on PAM reserve ($3M notional)'},",
+              "  {id:'lb_tr01',          type:'LiquidityBufferModel', role:'Buffer guard ($200K min / $350K target)'}",
+              "];",
+              "rfs.forEach(function(r) {",
+              "  console.log('  ├─ [' + r.type + ']');",
+              "  console.log('  │   ' + r.id + ' → ' + r.role);",
+              "});",
+              "console.log('');",
+              "console.log('  ✔ All 9 risk factors registered. Scenario ready for simulation.');",
+              "pm.test('10 Scenario registered OK', function() {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.include('added');",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addScenario",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8082", "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"scenarioID\": \"ht_v9_consolidated_reserve_scn01\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"BTC_SPOT_01\",       \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"PORTFOLIO_NAV_01\",   \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"OUTFLOWS_01\",        \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"TBILL_MAT_01\",       \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"BUYER_CASH_01\",      \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HURDLE_RATE_01\",     \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"ad_btc01\",           \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"ad_btc01_mirror\",    \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"lb_tr01\",            \"riskFactorType\": \"LiquidityBufferModel\"}\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11 scenarioSimulation — ht_v9_consolidated_reserve_scn01",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ── 11 scenarioSimulation ─────────────────────────────────────────────",
+              "var DIV = '═══════════════════════════════════════════════════════════';",
+              "var SEP = '───────────────────────────────────────────────────────────';",
+              "console.log(DIV);",
+              "console.log('► 11 scenarioSimulation  │  ht_v9_consolidated_reserve_scn01');",
+              "console.log(SEP);",
+              "console.log('  HTTP   : ' + pm.response.code + ' ' + pm.response.status);",
+              "console.log('  simulateTo  : 2026-08-31  │  12 monitoring epochs');",
+              "console.log('');",
+              "pm.test('11 Simulation returned 200', function() {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "try {",
+              "  var body = pm.response.json();",
+              "  var contracts = Array.isArray(body) ? body : (body.results || body.contracts || []);",
+              "  console.log('  Contracts in response : ' + contracts.length);",
+              "  contracts.forEach(function(c) {",
+              "    var id     = c.contractId || c.contractID || '(unknown)';",
+              "    var events = c.events || c.cashFlows || [];",
+              "    console.log('');",
+              "    console.log('  ┌─ Contract : ' + id + '  (' + events.length + ' events)');",
+              "    var totalPay = 0;",
+              "    events.forEach(function(e) {",
+              "      var t    = e.time || e.date || e.eventDate || '';",
+              "      var type = e.type || e.eventType || '';",
+              "      var pay  = typeof e.payoff !== 'undefined' ? e.payoff :",
+              "                 typeof e.amount !== 'undefined' ? e.amount : null;",
+              "      if (pay !== null) totalPay += pay;",
+              "      var sign = pay > 0 ? '+' : '';",
+              "      var payStr = pay !== null ? '  $' + sign + Number(pay).toLocaleString(undefined,{maximumFractionDigits:2}) : '';",
+              "      var flag = type === 'PP' || type === 'PRD' ? ' ← RECALL' :",
+              "                 type === 'MD' ? ' ← MATURITY' :",
+              "                 type === 'IED' ? ' ← PRINCIPAL' :",
+              "                 type === 'IP' ? ' ← INTEREST' : '';",
+              "      console.log('  │  ' + (t+'').substring(0,10) + ' [' + type + ']' + payStr + flag);",
+              "    });",
+              "    console.log('  └─ Net payoff : $' + totalPay.toLocaleString(undefined,{maximumFractionDigits:2}));",
+              "  });",
+              "} catch(e) {",
+              "  console.log('  ⚠ Response body is large / non-JSON chunk. Open Postman response panel to inspect full payload.');",
+              "  console.log('  Hint: look for IED, IP, PP/PRD (CLM recalls), MD events per contract.');",
+              "}",
+              "console.log('');",
+              "console.log('  Contract summary expected:');",
+              "var summary = [",
+              "  {id:'CASH-RESERVE-SEED',   type:'CSH', note:'IED +$2.75M, MD -$2.75M'},",
+              "  {id:'BTC-CLM-Lending-40',  type:'CLM', note:'IED +$2M, monthly IP ~$5K, PP recalls when BTC alloc>25%'},",
+              "  {id:'CASH-PAM-3M',         type:'PAM', note:'IED -$1M (net after -$2M discount), mirror inflows, MD +$3M'},",
+              "  {id:'TBILL-3mo-500K-Mar',  type:'PAM', note:'MD +$500K on 2026-03-31'},",
+              "  {id:'TBILL-5mo-500K-May',  type:'PAM', note:'MD +$500K on 2026-05-31'},",
+              "  {id:'TBILL-4mo-250K-Jun',  type:'PAM', note:'MD +$250K on 2026-06-30'},",
+              "  {id:'TBILL-5mo-500K-Jul',  type:'PAM', note:'MD +$500K on 2026-07-31'}",
+              "];",
+              "summary.forEach(function(s) {",
+              "  console.log('  [' + s.type + '] ' + s.id + ' → ' + s.note);",
+              "});",
+              "console.log(DIV);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://34.203.247.32:8083/rf2/scenarioSimulation",
+          "protocol": "http", "host": ["34.203.247.32"], "port": "8083", "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"contracts\": [\n    {\n      \"contractType\": \"CSH\",\n      \"contractID\": \"CASH-RESERVE-SEED\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"Treasury\",\n      \"creatorID\": \"OurCo\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"notionalPrincipal\": 2750000.0,\n      \"premiumDiscountAtIED\": 0\n    },\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"BTC-CLM-Lending-40\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"LendingPlatform01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 2000000,\n      \"nominalInterestRate\": 0.03,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P7D\",\n      \"treasuryModels\": [\n        \"ad_btc01\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"CASH-PAM-3M\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"TreasuryOps01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"notionalPrincipal\": 3000000.0,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"premiumDiscountAtIED\": -2000000.0,\n      \"feeRate\": 0.0,\n      \"treasuryModels\": [\n        \"ad_btc01_mirror\",\n        \"lb_tr01\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-3mo-500K-Mar\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-01T00:00:00\",\n      \"maturityDate\": \"2026-03-31T00:00:00\",\n      \"notionalPrincipal\": 500000,\n      \"nominalInterestRate\": 0.0,\n      \"premiumDiscountAtIED\": 0\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-5mo-500K-May\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-01T00:00:00\",\n      \"maturityDate\": \"2026-05-31T00:00:00\",\n      \"notionalPrincipal\": 500000,\n      \"nominalInterestRate\": 0.0,\n      \"premiumDiscountAtIED\": 0\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-4mo-250K-Jun\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-06-30T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"nominalInterestRate\": 0.0,\n      \"premiumDiscountAtIED\": 0\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-5mo-500K-Jul\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-07-31T00:00:00\",\n      \"notionalPrincipal\": 500000,\n      \"nominalInterestRate\": 0.0,\n      \"premiumDiscountAtIED\": 0\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"ht_v9_consolidated_reserve_scn01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-08-31T00:00:00\",\n  \"monitoringTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}"
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    { "key": "model_host", "value": "34.203.247.32", "type": "string" },
+    { "key": "model_port", "value": "8082",      "type": "string" },
+    { "key": "sim_host",   "value": "34.203.247.32", "type": "string" },
+    { "key": "sim_port",   "value": "8083",      "type": "string" }
+  ]
+}

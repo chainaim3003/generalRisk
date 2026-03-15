@@ -1,0 +1,644 @@
+{
+  "info": {
+    "name": "DynDisc-FactoringDecision-30d-TimeEpoch",
+    "_postman_id": "factoring-decision-30d-epoch-v2",
+    "description": "FactoringDecision 3-channel cost comparison with time-epoch cashflow tracking.\nMirrors DynDisc2-MultiContract-AR-AP-Cash-timeepoch-mulfun-3 structure.\n\nInvoice: $100K PAM, Mar-01\u2192Mar-31 (30d). 30 daily monitoring PP events.\nCSH CASH-RESERVE-001: $1,000 opening reserve (IED 2026-02-05).\n\nScenario 1 (factoring_inv004): bank=12% APR, reverse=6% APR\n  \u2192 discount APR 24.3% >> reverse 6% \u2192 LOSES every day \u2192 MD=$100,000 at maturity\n\nScenario 2 (factoring_inv005): bank=30% APR, reverse=25% APR\n  \u2192 discount APR 24.3% < both \u2192 WINS Day 1 \u2192 PP=$98,066.67 on Mar-02\n\nEPOCH TABLE (buyer cash perspective):\n  Ep0  2026-02-05  CSH           +$1,000.00   balance=$1,000.00\n  Ep1  2026-03-02  INV-005 DISC  -$98,066.67  balance=-$97,066.67\n  Ep2  2026-03-31  INV-004 NONE  -$100,000.00 balance=-$197,066.67\n  Discount saving: $1,933.33 (vs face $200,000)\n\nAll payoffs verified against ACTUS engine console output.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "riskServiceUrl",
+      "value": "http://34.203.247.32:8082",
+      "type": "string"
+    },
+    {
+      "key": "actusUrl",
+      "value": "http://34.203.247.32:8083",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1 - Factoring Decision Models",
+      "item": [
+        {
+          "name": "Add factoring_inv004 (bank=12% rev=6% \u2192 discount LOSES)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"factoring_inv004\",\n  \"invoiceDate\": \"2026-03-01T00:00:00\",\n  \"dueDate\": \"2026-03-31T00:00:00\",\n  \"notionalAmount\": 100000.0,\n  \"discountFunctionType\": \"LINEAR\",\n  \"maxDiscountRate\": 0.02,\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"bankFactoringRateAnnualized\": 0.12,\n  \"reverseFactoringRateAnnualized\": 0.06,\n  \"monitoringEventTimes\": [\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{riskServiceUrl}}/addFactoringDecisionModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addFactoringDecisionModel"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());",
+                  "console.log('  factoring_inv004: bank=12% APR | reverse=6% APR | discount LINEAR max=2%');",
+                  "console.log('  Decision: discount APR (24.3%) >> reverse (6%) \u2192 discount LOSES every day');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add factoring_inv005 (bank=30% rev=25% \u2192 discount WINS)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"factoring_inv005\",\n  \"invoiceDate\": \"2026-03-01T00:00:00\",\n  \"dueDate\": \"2026-03-31T00:00:00\",\n  \"notionalAmount\": 100000.0,\n  \"discountFunctionType\": \"LINEAR\",\n  \"maxDiscountRate\": 0.02,\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"bankFactoringRateAnnualized\": 0.3,\n  \"reverseFactoringRateAnnualized\": 0.25,\n  \"monitoringEventTimes\": [\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{riskServiceUrl}}/addFactoringDecisionModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addFactoringDecisionModel"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());",
+                  "console.log('  factoring_inv005: bank=30% APR | reverse=25% APR | discount LINEAR max=2%');",
+                  "console.log('  Decision: discount APR (24.3%) < bank (30%) and reverse (25%) \u2192 discount WINS');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 - Scenarios",
+      "item": [
+        {
+          "name": "Add Scenario dyndisc_factoring_30d",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc_factoring_30d\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"factoring_inv004\",\n      \"riskFactorType\": \"FactoringDecision\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc_factoring_highrate_30d",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc_factoring_highrate_30d\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"factoring_inv005\",\n      \"riskFactorType\": \"FactoringDecision\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc_factoring_cash_reserve (CSH \u2014 no risk factors)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc_factoring_cash_reserve\",\n  \"riskFactorDescriptors\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 - Verify (GET checks)",
+      "item": [
+        {
+          "name": "Verify factoring_inv004 (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{riskServiceUrl}}/findFactoringDecisionModel/factoring_inv004",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "findFactoringDecisionModel/factoring_inv004"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var d = pm.response.json();",
+                  "console.log('[factoring_inv004 confirmed] bank=' + d.bankFactoringRateAnnualized + '  reverse=' + d.reverseFactoringRateAnnualized + '  maxDisc=' + d.maxDiscountRate);",
+                  "pm.test('factoring_inv004 bankRate=0.12',   function () { pm.expect(d.bankFactoringRateAnnualized).to.eql(0.12); });",
+                  "pm.test('factoring_inv004 reverseRate=0.06',function () { pm.expect(d.reverseFactoringRateAnnualized).to.eql(0.06); });",
+                  "pm.test('factoring_inv004 maxDisc=0.02',    function () { pm.expect(d.maxDiscountRate).to.eql(0.02); });",
+                  "pm.test('factoring_inv004 30 monitoring times', function () { pm.expect(d.monitoringEventTimes.length).to.eql(30); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify factoring_inv005 (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{riskServiceUrl}}/findFactoringDecisionModel/factoring_inv005",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "findFactoringDecisionModel/factoring_inv005"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var d = pm.response.json();",
+                  "console.log('[factoring_inv005 confirmed] bank=' + d.bankFactoringRateAnnualized + '  reverse=' + d.reverseFactoringRateAnnualized + '  maxDisc=' + d.maxDiscountRate);",
+                  "pm.test('factoring_inv005 bankRate=0.30',   function () { pm.expect(d.bankFactoringRateAnnualized).to.eql(0.30); });",
+                  "pm.test('factoring_inv005 reverseRate=0.25',function () { pm.expect(d.reverseFactoringRateAnnualized).to.eql(0.25); });",
+                  "pm.test('factoring_inv005 maxDisc=0.02',    function () { pm.expect(d.maxDiscountRate).to.eql(0.02); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Scenario dyndisc_factoring_30d (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{riskServiceUrl}}/findScenario/dyndisc_factoring_30d",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "findScenario/dyndisc_factoring_30d"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var d = pm.response.json();",
+                  "console.log('[dyndisc_factoring_30d] riskFactorDescriptors: ' + JSON.stringify(d.riskFactorDescriptors));",
+                  "pm.test('dyndisc_factoring_30d has FactoringDecision', function () {",
+                  "  pm.expect(d.riskFactorDescriptors[0].riskFactorType).to.eql('FactoringDecision');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Scenario dyndisc_factoring_highrate_30d (GET)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{riskServiceUrl}}/findScenario/dyndisc_factoring_highrate_30d",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "findScenario/dyndisc_factoring_highrate_30d"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var d = pm.response.json();",
+                  "console.log('[dyndisc_factoring_highrate_30d] riskFactorDescriptors: ' + JSON.stringify(d.riskFactorDescriptors));",
+                  "pm.test('dyndisc_factoring_highrate_30d has FactoringDecision', function () {",
+                  "  pm.expect(d.riskFactorDescriptors[0].riskFactorType).to.eql('FactoringDecision');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4 - Cash Reserve (CSH $1,000 opening \u2014 Epoch 0)",
+      "item": [
+        {
+          "name": "EPOCH 0 | 2026-02-05 | CASH-RESERVE-001 [CSH initial $1,000 \u2014 opens reserve]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"CSH\",\n      \"statusDate\": \"2026-02-04T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"CASH-RESERVE-001\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-04T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-05T00:00:00\",\n      \"maturityDate\": \"2026-06-30T00:00:00\",\n      \"notionalPrincipal\": 1000.0,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"Treasury\",\n      \"creatorID\": \"BuyerXYZ\"\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc_factoring_cash_reserve\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-06-30T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('CASH-RESERVE-001 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "var r = data[0];",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('EPOCH 0  |  2026-02-05  |  CASH-RESERVE-001');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (CSH)');",
+                  "console.log('SCENARIO : ' + r.scenarioId);",
+                  "console.log('STATUS   : ' + r.status);",
+                  "console.log('EVENTS   : ' + r.events.length + ' (CSH always returns empty \u2014 correct ACTUS behaviour)');",
+                  "console.log('RESERVE  : $1,000.00 established as opening balance at IED 2026-02-05');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "console.log('  EPOCH BALANCE after Ep0: $1,000.00');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "pm.test('CSH events array is empty (correct ACTUS behaviour)', function () { pm.expect(r.events.length).to.eql(0); });",
+                  "pm.test('CSH status=Success', function () { pm.expect(r.status).to.eql('Success'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5 - Simulations (ACTUS) \u2014 Time Epoch Cashflow",
+      "item": [
+        {
+          "name": "EPOCH 1 | 2026-03-02 | INV-2026-005-FACTORING-HR [DISC WINS \u2192 PP=$98,066.67 saving=$1,933.33]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"INV-2026-005-FACTORING-HR\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-03-31T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierMNO\",\n      \"creatorID\": \"BuyerXYZ\",\n      \"discountingModels\": [\n        \"factoring_inv005\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc_factoring_highrate_30d\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-31T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('INV-2026-005-FACTORING-HR status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('EPOCH 1  |  2026-03-02  |  INV-2026-005-FACTORING-HR');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPA \u2014 FactoringDecision)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('FACTORING: LINEAR  maxDisc=2%  bank=30% APR  reverse=25% APR');",
+                  "console.log('EXPECTED : discount APR 24.3% < bank 30% < reverse 25% \u2192 DISC WINS Day 1');",
+                  "console.log('EXPECTED : effRate=1.9333%  PP=$98,066.67  saving=$1,933.33');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "var ied    = events.find(function(e){ return e.type==='IED'; });",
+                  "var pp_all = events.filter(function(e){ return e.type==='PP'; });",
+                  "var settle = pp_all.find(function(e){ return e.payoff > 0; });",
+                  "var md     = events.find(function(e){ return e.type==='MD'; });",
+                  "var ip     = events.find(function(e){ return e.type==='IP'; });",
+                  "// Print IED",
+                  "console.log('  [IED]  ' + ied.time + '  payoff=' + ied.payoff.toFixed(4) + '  nomVal=' + ied.nominalValue.toFixed(2) + '  \u2190 invoice originated');",
+                  "// Print settlement PP",
+                  "if (settle) {",
+                  "  var disc = 100000 - settle.payoff;",
+                  "  console.log('  [PP]   ' + settle.time + '  payoff=' + settle.payoff.toFixed(4) + '  nomVal=' + settle.nominalValue.toFixed(2) + '  \u2190 FACTORING DECISION: EARLY SETTLE (discount wins)');",
+                  "  console.log('           effRate=1.9333%  discount=$' + disc.toFixed(4) + '  saving=$' + disc.toFixed(2));",
+                  "} else {",
+                  "  console.log('  \u274c No settlement PP found');",
+                  "}",
+                  "// Summarise remaining 29 monitoring PPs",
+                  "var rest = pp_all.filter(function(e){ return e.payoff === 0; });",
+                  "console.log('  [PP\u00d7' + rest.length + '] post-settle monitoring events \u2192 all payoff=0.0  \u2190 contract closed');",
+                  "// Print IP and MD",
+                  "if (ip)  console.log('  [IP]   ' + ip.time  + '  payoff=' + ip.payoff.toFixed(4)  + '  nomVal=' + ip.nominalValue.toFixed(2));",
+                  "if (md)  console.log('  [MD]   ' + md.time  + '  payoff=' + md.payoff.toFixed(4)  + '  nomVal=' + md.nominalValue.toFixed(2) + '  \u2190 MD=$0 confirms early settle complete');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "console.log('  COST COMPARISON (Day 1, 29d remaining):');",
+                  "console.log('    Discount cost : $100K \u00d7 1.9333% = $1,933  (APR 24.3%) \u2190 CHEAPEST');",
+                  "console.log('    Bank factoring: $100K \u00d7 30% \u00d7 29/365 = $2,384');",
+                  "console.log('    Rev factoring : $100K \u00d7 25% \u00d7 29/365 = $1,986');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "console.log('  EPOCH 1 CASH FLOW (buyer pays discounted amount):');",
+                  "var ep1_outflow = settle ? settle.payoff : 0;",
+                  "console.log('    Outflow: -$' + ep1_outflow.toFixed(2) + ' on 2026-03-02');",
+                  "console.log('    EPOCH BALANCE: $1,000.00 - $' + ep1_outflow.toFixed(2) + ' = $' + (1000 - ep1_outflow).toFixed(2));",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "var expected_pp = 100000 * (1 - 0.02 * 29 / 30);",
+                  "pm.test('INV-005 settlement PP on 2026-03-02', function () {",
+                  "  pm.expect(settle).to.not.be.undefined;",
+                  "  pm.expect(settle.time).to.include('2026-03-02');",
+                  "});",
+                  "pm.test('INV-005 PP.payoff \u2248 $98,066.67', function () {",
+                  "  pm.expect(Math.abs(settle.payoff - expected_pp)).to.be.below(0.01);",
+                  "});",
+                  "pm.test('INV-005 post-settle PP all zero (29 events)', function () {",
+                  "  rest.forEach(function(e){ pm.expect(e.payoff).to.eql(0); });",
+                  "});",
+                  "pm.test('INV-005 MD.payoff=0 (contract closed by early settlement)', function () {",
+                  "  pm.expect(md.payoff).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EPOCH 2 | 2026-03-31 | INV-2026-004-FACTORING [DISC LOSES \u2192 MD=$100,000 at maturity]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"INV-2026-004-FACTORING\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-03-31T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierJKL\",\n      \"creatorID\": \"BuyerXYZ\",\n      \"discountingModels\": [\n        \"factoring_inv004\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc_factoring_30d\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-31T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('INV-2026-004-FACTORING status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('EPOCH 2  |  2026-03-31  |  INV-2026-004-FACTORING');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPA \u2014 FactoringDecision)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('FACTORING: LINEAR  maxDisc=2%  bank=12% APR  reverse=6% APR');",
+                  "console.log('EXPECTED : discount APR 24.3% >> reverse 6% \u2192 DISC LOSES \u2014 no early settle');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "var ied    = events.find(function(e){ return e.type==='IED'; });",
+                  "var pp_all = events.filter(function(e){ return e.type==='PP'; });",
+                  "var settle = pp_all.find(function(e){ return e.payoff > 0; });",
+                  "var md     = events.find(function(e){ return e.type==='MD'; });",
+                  "var ip     = events.find(function(e){ return e.type==='IP'; });",
+                  "// Print IED",
+                  "console.log('  [IED]  ' + ied.time + '  payoff=' + ied.payoff.toFixed(4) + '  nomVal=' + ied.nominalValue.toFixed(2) + '  \u2190 invoice originated');",
+                  "// All 30 PPs are monitoring-only (payoff=0)",
+                  "console.log('  [PP\u00d7' + pp_all.length + '] Mar-02\u2192Mar-31 monitoring events \u2192 all payoff=0.0  \u2190 discount never cheapest');",
+                  "if (ip)  console.log('  [IP]   ' + ip.time  + '  payoff=' + ip.payoff.toFixed(4)  + '  nomVal=' + ip.nominalValue.toFixed(2));",
+                  "if (md)  console.log('  [MD]   ' + md.time  + '  payoff=' + md.payoff.toFixed(4)  + '  nomVal=' + md.nominalValue.toFixed(2) + '  \u2190 full face at maturity (no discount applied)');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "console.log('  COST COMPARISON (Day 1, 29d remaining):');",
+                  "console.log('    Discount cost : $100K \u00d7 1.9333% = $1,933  (APR 24.3%)');",
+                  "console.log('    Bank factoring: $100K \u00d7 12% \u00d7 29/365 = $953');",
+                  "console.log('    Rev factoring : $100K \u00d7 6% \u00d7 29/365  = $477  \u2190 CHEAPEST every day');",
+                  "console.log('    \u2192 Supplier uses reverse factoring; buyer pays full face at maturity');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "console.log('  EPOCH 2 CASH FLOW (buyer pays full face at maturity):');",
+                  "console.log('    Outflow: -$' + md.payoff.toFixed(2) + ' on 2026-03-31');",
+                  "var bal_after_ep1 = 1000 - 98066.6667;",
+                  "console.log('    EPOCH BALANCE: $' + bal_after_ep1.toFixed(2) + ' - $' + md.payoff.toFixed(2) + ' = $' + (bal_after_ep1 - md.payoff).toFixed(2));",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "console.log('  \u2550\u2550 FINAL EPOCH SUMMARY \u2550\u2550');",
+                  "console.log('  Ep0  2026-02-05  CASH-RESERVE-001           CSH              +$1,000.00   balance=$1,000.00');",
+                  "console.log('  Ep1  2026-03-02  INV-2026-005-FACTORING-HR  DISC WINS EARLY  -$98,066.67  balance=-$97,066.67');",
+                  "console.log('  Ep2  2026-03-31  INV-2026-004-FACTORING      NO DISC MATURITY -$100,000.00 balance=-$197,066.67');",
+                  "console.log('  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "console.log('  Total invoices at face : $200,000.00');",
+                  "console.log('  Total actually paid    : $198,066.67  ($98,066.67 + $100,000.00)');",
+                  "console.log('  Discount saving        : $1,933.33   (INV-005 settled early at 1.9333%)');",
+                  "console.log('  Low-water mark         : -$197,066.67 (after Ep2)');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "pm.test('INV-004 no settlement PP (all 30 PP.payoff=0)', function () {",
+                  "  pp_all.forEach(function(e){ pm.expect(e.payoff).to.eql(0); });",
+                  "});",
+                  "pm.test('INV-004 MD.payoff = $100,000 (full face at maturity)', function () {",
+                  "  pm.expect(Math.abs(md.payoff - 100000)).to.be.below(0.01);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

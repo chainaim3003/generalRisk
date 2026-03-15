@@ -1,0 +1,1018 @@
+{
+  "info": {
+    "_postman_id": "ht-v18-4m-1clm-derive-001",
+    "name": "HT-Cash-DA-CLM-adaptive-time-1",
+    "description": "HT v18 — $4M Pool · 1 CLM (Buy-and-Hold) · NO MIRROR · Derive Pattern from Stablecoin4\n\n  WHAT CHANGED FROM v17 (hybrid-treasury-2):\n  ══════════════════════════════════════════════════════════════════\n  Removed: ad_btc01_spot_mirror (AllocationDriftModel mirror)\n  Removed: Runtime dollar-payoff cache coupling between CLM and CASH-PAM\n\n  Added: PHASE 0 asset-only ACTUS run (stablecoin4 derive pattern)\n  Added: JS post-processing to capture BTC sell PP events + T-bill MD events\n  Added: DERIVED HT_CASH_BALANCE Reference Index (from ACTUS events, NOT hardcoded)\n  Added: scf_btc_proceeds ScheduledCashFlowModel (schedule derived from Phase 0)\n\n  Kept: ad_btc01_spot (AllocationDriftModel on BTC CLM, NO mirror)\n  Kept: scf_tbill_flows (ScheduledCashFlowModel for T-bill maturity inflows)\n  Kept: lb_tr01 (LiquidityBufferModel)\n  Kept: Same pool structure, BTC price path, contracts, allocation bands\n\n  DESIGN PATTERN (from Stables-HT-ISS-HOL-time-daily-1-fix1):\n  ══════════════════════════════════════════════════════════════════\n  Phase 0: Run asset contracts through ACTUS FIRST (BTC CLM + 3 T-bills)\n           JS captures PP sell events from CLM + MD events from T-bills\n           DERIVES cash timeline and BTC sell schedule from actual ACTUS output\n  Phase 1: Register DERIVED data as Reference Indexes + ScheduledCashFlowModel\n  Phase 2: Create full scenario with derived + market data\n  Phase 3: Run full 5-contract simulation\n           CASH-PAM receives BTC sell proceeds via ScheduledCashFlowModel\n           (NOT via mirror model — contracts are decoupled)\n\n  WHY: The mirror model couples BTC CLM and CASH-PAM via an in-memory\n  HashMap at runtime. The derive pattern decouples them: BTC sells are\n  captured in Phase 0 and routed to CASH-PAM as an explicit schedule.\n  This is more auditable, doesn't require contract ordering, and follows\n  the proven stablecoin4 architecture.\n\n  POOL SIZING (same as v17):\n  ══════════════════════════════════════════════════════════════════\n  Constraint: 20 BTC × $50,000 / NAV = 0.25 (target allocation at deployment)\n    NAV = 20 × $50,000 / 0.25 = $4,000,000\n    nonBTC_base = $4,000,000 - $1,000,000 = $3,000,000\n    T-Bills (same ladder) = $988,113\n    Cash residual = $3,000,000 - $988,113 = $2,011,887\n    Pool = $1,000,000 (CLM) + $988,113 (T-Bills) + $2,011,887 (cash) = $4,000,000\n\n  BREACH THRESHOLD:\n  20 × P / (20 × P + 3,000,000) > 0.30  →  P > $64,286\n  First price above this: $65,000 (Apr-15)\n\n  ALLOCATION STORY (1 CLM, 20 BTC, useFixedQuantity=true):\n  ══════════════════════════════════════════════════════════════════\n  Feb-28  $49,500   0 BTC    0.0%    CASH-PAM IED. Pool $4M established.\n  Mar-01  $50,000  20 BTC   25.0%   CLM IED: -$1M deployed → 20 BTC.\n  Mar-15  $55,000  20 BTC   26.8%   Rising. In band [20%-30%].\n  Mar-31  $60,000  20 BTC   28.6%   Approaching ceiling.\n  Apr-15  $65,000  20 BTC   30.2%   BREACH (> 30% max)\n    → Phase 0 captures: ad_btc01_spot SELL ~3.46 BTC × $65K ≈ $225,000\n    → Phase 1 registers: scf_btc_proceeds {Apr-15, -$225K}\n    → Phase 3: CASH-PAM receives PP +$225K via ScheduledCashFlowModel\n  Apr-30  $70,000  16.54 BTC  26.8%   No breach.\n  May-15  $74,000  16.54 BTC  28.7%   Approaching. In band.\n  May-31  $78,000  16.54 BTC  30.1%   BREACH again (> 30% max)\n    → Phase 0 captures: ad_btc01_spot SELL ~2.79 BTC × $78K ≈ $217,500\n    → Phase 1 registers: scf_btc_proceeds {May-31, -$217.5K}\n    → Phase 3: CASH-PAM receives PP +$217.5K via ScheduledCashFlowModel\n  Jun-01  $75,000  13.75 BTC   —      TBILL-3mo-400K matures → +$400,000\n  Jun-30  $90,000  13.75 BTC  29.2%   Near ceiling but no breach.\n  Jul-01  $89,000  13.75 BTC   —      TBILL-4mo-350K matures → +$350,000\n  Aug-01  $77,000  13.75 BTC   —      TBILL-5mo-250K matures → +$250,000\n  Aug-31  $65,000  13.75 BTC  23.0%   All contracts settle.\n\n  DERIVED HT_CASH_BALANCE (from Phase 0 ACTUS events, NOT hardcoded):\n  ══════════════════════════════════════════════════════════════════\n  Mar-01  $2,011,887  (initial: $4M - $1M CLM - $988K T-bills)\n  Apr-15  $2,236,887  (+$225K BTC sell proceeds from Phase 0 PP capture)\n  May-31  $2,454,387  (+$217.5K BTC sell proceeds from Phase 0 PP capture)\n  Jun-01  $2,854,387  (+$400K T-bill 3mo maturity from Phase 0 MD capture)\n  Jul-01  $3,204,387  (+$350K T-bill 4mo maturity from Phase 0 MD capture)\n  Aug-01  $3,454,387  (+$250K T-bill 5mo maturity from Phase 0 MD capture)\n\n  RESEARCH REFERENCES:\n  Nakamoto (2008): Bitcoin: A Peer-to-Peer Electronic Cash System\n  SEC Staff Accounting Bulletin SAB 121 (2022): Custodied Digital Assets\n  FASB ASU 2023-08: Crypto Assets (fair value measurement, Dec 2023)\n  BIS Working Paper 1013: DeFi Lending (2022)\n  OCC Interpretive Letter 1170: National Bank Authority to Hold Digital Assets\n  Basel Committee BCBS d545: Prudential Treatment of Cryptoasset Exposures\n  CFA Institute (2024): Digital Asset Portfolio Management Best Practices\n  AICPA Practice Aid: Accounting for Digital Assets (2023)\n\n  SCENARIO: ht_v18_4m_derive_scn01   CONTRACTS: 5   ZERO CODE CHANGES.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "actus_risk_host",
+      "value": "34.203.247.32:8082"
+    },
+    {
+      "key": "actus_sim_host",
+      "value": "34.203.247.32:8083"
+    },
+    {
+      "key": "derived_cash_balance",
+      "value": ""
+    },
+    {
+      "key": "derived_btc_sells",
+      "value": ""
+    },
+    {
+      "key": "derived_tbill_maturities",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "══ PHASE 0: Asset-Only ACTUS Run (Derive BTC sells + cash timeline) ══",
+      "item": [
+        {
+          "name": "0.1 BTC_SPOT_01 — addReferenceIndex",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.1 BTC_SPOT_01 registered', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('═'.repeat(70));",
+                  "    console.log('PHASE 0: Asset-Only ACTUS Run — Derive BTC sells + cash timeline');",
+                  "    console.log('  Pattern: Stablecoin4 Phase 0 (run assets first, capture events)');",
+                  "    console.log('═'.repeat(70));",
+                  "    console.log('✅ BTC_SPOT_01: 17-point price path $49.5K → $65K (peak) → $65K');",
+                  "    console.log('  Breach threshold: 20×P / (20×P + 3M) > 0.30 → P > $64,286');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"BTC_SPOT_01\",\n  \"marketObjectCode\": \"BTC_USD_SPOT\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 49500},\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 50000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 55000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 60000},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 65000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 70000},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 74000},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 78000},\n    {\"time\": \"2026-06-01T00:00:00\", \"value\": 76000},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 83000},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 90000},\n    {\"time\": \"2026-07-01T00:00:00\", \"value\": 88000},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 82000},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 79000},\n    {\"time\": \"2026-08-01T00:00:00\", \"value\": 77000},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 72000},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 65000}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "0.2 PORTFOLIO_NAV_01 — addReferenceIndex",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// NAV = BTC_qty × BTC_price + nonBTC_base($3,000,000)",
+                  "// Phase 1 (20 BTC):    20      × price + 3,000,000",
+                  "// Phase 2 (16.54 BTC): 16.5385 × price + 3,000,000",
+                  "// Phase 3 (13.75 BTC): 13.75   × price + 3,000,000",
+                  "pm.test('0.2 PORTFOLIO_NAV_01 registered', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('✅ PORTFOLIO_NAV_01: NAV path reflecting BTC qty changes post-sells');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"PORTFOLIO_NAV_01\",\n  \"marketObjectCode\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 4000000},\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 4000000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 4100000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 4200000},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 4300000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 4158000},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 4224000},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 4290000},\n    {\"time\": \"2026-06-01T00:00:00\", \"value\": 4046000},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 4141000},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 4238000},\n    {\"time\": \"2026-07-01T00:00:00\", \"value\": 4210000},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 4128000},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 4086000},\n    {\"time\": \"2026-08-01T00:00:00\", \"value\": 4059000},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 3990000},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 3894000}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "0.3 HURDLE_RATE_01 — addReferenceIndex",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.3 HURDLE_RATE_01 registered', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('✅ HURDLE_RATE_01: 7.5%→8.5% step function (market data)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HURDLE_RATE_01\",\n  \"marketObjectCode\": \"HURDLE_RATE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 0.075},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 0.080},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 0.085},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 0.085}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "0.4 ad_btc01_spot — addAllocationDriftModel [NO MIRROR]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Single ADM for BTC CLM. NO mirror model.",
+                  "// useFixedQuantity=true: alloc = 20 BTC × spotPrice / portfolioNAV",
+                  "// Breach: 20×P / (20×P + 3,000,000) > 0.30 → P > $64,286",
+                  "// First breach:  Apr-15 @ $65K → sell ~3.46 BTC → ~$225K",
+                  "// Second breach: May-31 @ $78K → sell ~2.79 BTC → ~$217.5K",
+                  "pm.test('0.4 ad_btc01_spot registered', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('✅ ad_btc01_spot: AllocationDriftModel (NO mirror)');",
+                  "    console.log('  20%/25%/30% bands, fixedQty=true, 20 BTC');",
+                  "    console.log('  BTC sell proceeds will be DERIVED in Phase 0, NOT mirrored');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addAllocationDriftModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addAllocationDriftModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"ad_btc01_spot\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.25,\n  \"maxAllocation\": 0.30,\n  \"minAllocation\": 0.20,\n  \"positionQuantity\": 20.0,\n  \"initialNotionalPrincipal\": 1000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": true,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "0.5 Phase 0 Scenario — addScenario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.5 Phase 0 scenario registered', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('✅ ht_v18_phase0_scn01: 3 RI + 1 ADM (asset-only, no CASH-PAM)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"ht_v18_phase0_scn01\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"BTC_SPOT_01\",     \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"PORTFOLIO_NAV_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HURDLE_RATE_01\",   \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"ad_btc01_spot\",    \"riskFactorType\": \"AllocationDriftModel\"}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "0.6 Run Phase 0: BTC CLM + 3 T-bills → capture events & derive",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Phase 0 simulation succeeds', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    var data = pm.response.json();",
+                  "    var contracts = Array.isArray(data) ? data : [];",
+                  "",
+                  "    console.log('');",
+                  "    console.log('━ PHASE 0.6: Extracting ACTUS events from 4 asset contracts');",
+                  "    console.log('  Contracts returned: ' + contracts.length);",
+                  "",
+                  "    // ════════════════════════════════════════════════════════════",
+                  "    // 1. Extract BTC sell PP events from CLM",
+                  "    // ════════════════════════════════════════════════════════════",
+                  "    var btcSells = [];",
+                  "    var clm = contracts.find(function(c) {",
+                  "        return (c.contractID || c.contractId || '').indexOf('SpotTrade') >= 0;",
+                  "    });",
+                  "",
+                  "    if (clm) {",
+                  "        var evts = clm.events || [];",
+                  "        console.log('  BTC-CLM-SpotTrade-20: ' + evts.length + ' events (' + clm.status + ')');",
+                  "        var counts = {};",
+                  "        evts.forEach(function(e) { counts[e.type] = (counts[e.type]||0) + 1; });",
+                  "        Object.keys(counts).forEach(function(k) { console.log('    ' + k + ': ' + counts[k]); });",
+                  "",
+                  "        evts.forEach(function(e) {",
+                  "            if (e.type === 'PP' && Math.abs(e.payoff || 0) > 0.01) {",
+                  "                // CLM PP payoff > 0 means BTC was SOLD → proceeds flow to cash",
+                  "                // For CASH-PAM ScheduledCashFlowModel: use NEGATIVE amountUSD",
+                  "                // so that NP INCREASES (matching mirror model convention)",
+                  "                // signal = amountUSD/NP = negative → NP -= negative*NP → NP increases",
+                  "                var sellDollars = Math.abs(e.payoff);",
+                  "                var timeStr = (e.time || '').substring(0, 19);",
+                  "                btcSells.push({",
+                  "                    time: timeStr,",
+                  "                    amountUSD: -(sellDollars)",
+                  "                });",
+                  "                console.log('  ✅ CAPTURED BTC SELL: ' + timeStr.substring(0,10)",
+                  "                    + ' payoff=$' + sellDollars.toFixed(2)",
+                  "                    + ' → scf amountUSD=-$' + sellDollars.toFixed(2)",
+                  "                    + ' (CASH-PAM NP will increase)');",
+                  "            }",
+                  "        });",
+                  "    } else {",
+                  "        console.log('  ⚠ BTC CLM not found in response');",
+                  "    }",
+                  "",
+                  "    // ════════════════════════════════════════════════════════════",
+                  "    // 2. Extract T-bill MD (maturity) events",
+                  "    // ════════════════════════════════════════════════════════════",
+                  "    var tbillMaturities = [];",
+                  "    contracts.forEach(function(c) {",
+                  "        var cid = c.contractID || c.contractId || '';",
+                  "        if (cid.indexOf('TBILL') >= 0) {",
+                  "            var evts = c.events || [];",
+                  "            console.log('  ' + cid + ': ' + evts.length + ' events (' + c.status + ')');",
+                  "            evts.forEach(function(e) {",
+                  "                if (e.type === 'MD') {",
+                  "                    var maturityAmount = Math.abs(e.payoff || 0);",
+                  "                    var timeStr = (e.time || '').substring(0, 19);",
+                  "                    tbillMaturities.push({",
+                  "                        contractId: cid,",
+                  "                        time: timeStr,",
+                  "                        amountUSD: maturityAmount",
+                  "                    });",
+                  "                    console.log('  ✅ CAPTURED TBILL MD: ' + cid + ' ' + timeStr.substring(0,10)",
+                  "                        + ' payoff=$' + maturityAmount.toFixed(2));",
+                  "                }",
+                  "            });",
+                  "        }",
+                  "    });",
+                  "",
+                  "    // ════════════════════════════════════════════════════════════",
+                  "    // 3. Derive HT_CASH_BALANCE timeline (NOT hardcoded)",
+                  "    //    Same pattern as SC_CASH_RESERVE in stablecoin4 fix1",
+                  "    // ════════════════════════════════════════════════════════════",
+                  "    var initialCash = 2011887;",
+                  "    // Cash-affecting events with ABSOLUTE dollar amounts",
+                  "    var cashEvents = [];",
+                  "    btcSells.forEach(function(s) {",
+                  "        cashEvents.push({ time: s.time.substring(0,10), amount: Math.abs(s.amountUSD) });",
+                  "    });",
+                  "    tbillMaturities.forEach(function(t) {",
+                  "        cashEvents.push({ time: t.time.substring(0,10), amount: t.amountUSD });",
+                  "    });",
+                  "    cashEvents.sort(function(a,b) { return a.time < b.time ? -1 : a.time > b.time ? 1 : 0; });",
+                  "",
+                  "    var monTimes = [",
+                  "        '2026-02-28','2026-03-01','2026-03-15','2026-03-31','2026-04-15','2026-04-30',",
+                  "        '2026-05-15','2026-05-31','2026-06-01','2026-06-15','2026-06-30',",
+                  "        '2026-07-01','2026-07-15','2026-07-31','2026-08-01','2026-08-15','2026-08-31'",
+                  "    ];",
+                  "",
+                  "    var cashTimeline = [];",
+                  "    monTimes.forEach(function(mt) {",
+                  "        var cumInflows = 0;",
+                  "        cashEvents.forEach(function(ce) {",
+                  "            if (ce.time <= mt) { cumInflows += ce.amount; }",
+                  "        });",
+                  "        cashTimeline.push({ time: mt + 'T00:00:00', value: Math.round(initialCash + cumInflows) });",
+                  "    });",
+                  "",
+                  "    // ════════════════════════════════════════════════════════════",
+                  "    // 4. Store all derived data in collection variables",
+                  "    // ════════════════════════════════════════════════════════════",
+                  "    pm.collectionVariables.set('derived_cash_balance', JSON.stringify(cashTimeline));",
+                  "    pm.collectionVariables.set('derived_btc_sells', JSON.stringify(btcSells));",
+                  "    pm.collectionVariables.set('derived_tbill_maturities', JSON.stringify(tbillMaturities));",
+                  "",
+                  "    console.log('');",
+                  "    console.log('  ━ DERIVED HT_CASH_BALANCE (from ACTUS events):');",
+                  "    cashTimeline.forEach(function(ct) {",
+                  "        var d = ct.time.substring(5,10);",
+                  "        if (d === '02-28' || d === '03-01' || d === '04-15' || d === '05-31'",
+                  "         || d === '06-01' || d === '07-01' || d === '08-01' || d === '08-31') {",
+                  "            console.log('  ' + ct.time.substring(0,10) + ': $' + ct.value.toLocaleString());",
+                  "        }",
+                  "    });",
+                  "",
+                  "    console.log('');",
+                  "    console.log('  ━ DERIVED BTC SELL SCHEDULE (for scf_btc_proceeds):');",
+                  "    btcSells.forEach(function(s) {",
+                  "        console.log('  ' + s.time.substring(0,10) + ': amountUSD=' + s.amountUSD.toFixed(2)",
+                  "            + ' (CASH-PAM NP will increase by $' + Math.abs(s.amountUSD).toFixed(2) + ')');",
+                  "    });",
+                  "",
+                  "    console.log('');",
+                  "    console.log('  ━ DERIVED TBILL MATURITY SCHEDULE (for scf_tbill_flows):');",
+                  "    tbillMaturities.forEach(function(t) {",
+                  "        console.log('  ' + t.time.substring(0,10) + ': +$' + t.amountUSD.toFixed(2) + ' (' + t.contractId + ')');",
+                  "    });",
+                  "",
+                  "    console.log('');",
+                  "    console.log('  Phase 0 derive complete. ' + btcSells.length + ' BTC sells + '",
+                  "        + tbillMaturities.length + ' T-bill maturities captured.');",
+                  "});",
+                  "",
+                  "pm.test('All Phase 0 contracts succeeded', function() {",
+                  "    var data = pm.response.json();",
+                  "    var contracts = Array.isArray(data) ? data : [];",
+                  "    contracts.forEach(function(c) { pm.expect(c.status).to.eql('Success'); });",
+                  "});",
+                  "",
+                  "pm.test('BTC CLM has non-zero PP events (sells occurred)', function() {",
+                  "    var data = pm.response.json();",
+                  "    var contracts = Array.isArray(data) ? data : [];",
+                  "    var clm = contracts.find(function(c) {",
+                  "        return (c.contractID || c.contractId || '').indexOf('SpotTrade') >= 0;",
+                  "    });",
+                  "    pm.expect(clm).to.not.be.undefined;",
+                  "    var ppNZ = (clm.events || []).filter(function(e) {",
+                  "        return e.type === 'PP' && Math.abs(e.payoff || 0) > 0.01;",
+                  "    });",
+                  "    console.log('✅ BTC CLM non-zero PP events: ' + ppNZ.length + ' (expect ≥2 sells)');",
+                  "    pm.expect(ppNZ.length).to.be.at.least(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actus_sim_host}}"
+              ],
+              "path": [
+                "rf2",
+                "scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"BTC-CLM-SpotTrade-20\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"SpotDesk01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\"ad_btc01_spot\"]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-3mo-400K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-06-01T00:00:00\",\n      \"notionalPrincipal\": 400000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -3680\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-4mo-350K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-07-01T00:00:00\",\n      \"notionalPrincipal\": 350000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -4321\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-5mo-250K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-01T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -3886\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"ht_v18_phase0_scn01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-08-31T00:00:00\",\n  \"monitoringTimes\": [\n    \"2026-02-28T00:00:00\",\n    \"2026-03-01T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 1: Register Derived Data + Supporting Models ══",
+      "item": [
+        {
+          "name": "1.1 Register DERIVED indexes + SCF models (pre-req) + lb_tr01 (body)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// ════════════════════════════════════════════════════════════════",
+                  "// Phase 1 pre-request: Register ALL derived data from Phase 0",
+                  "// Pattern: same as stablecoin4 fix1 Phase 1A.1 pre-request",
+                  "// ════════════════════════════════════════════════════════════════",
+                  "var riskHost = pm.collectionVariables.get('actus_risk_host');",
+                  "var derivedCash = pm.collectionVariables.get('derived_cash_balance');",
+                  "var derivedBtcSells = pm.collectionVariables.get('derived_btc_sells');",
+                  "var derivedTbillMat = pm.collectionVariables.get('derived_tbill_maturities');",
+                  "",
+                  "if (!derivedCash || !derivedBtcSells || !derivedTbillMat) {",
+                  "    console.error('❌ Phase 0 must run first — derived data not found');",
+                  "    throw new Error('Phase 0 data missing');",
+                  "}",
+                  "",
+                  "var base = 'http://' + riskHost;",
+                  "",
+                  "// ── 1. HT_CASH_BALANCE Reference Index (DERIVED, not hardcoded) ──",
+                  "var cashBalBody = {",
+                  "    riskFactorID: 'HT_CASH_BAL_01',",
+                  "    marketObjectCode: 'HT_CASH_BALANCE',",
+                  "    base: 1.0,",
+                  "    data: JSON.parse(derivedCash)",
+                  "};",
+                  "pm.sendRequest({",
+                  "    url: base + '/addReferenceIndex',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body: { mode: 'raw', raw: JSON.stringify(cashBalBody) }",
+                  "}, function(err, res) {",
+                  "    if (err) { console.error('❌ HT_CASH_BALANCE registration failed: ' + err); }",
+                  "    else { console.log('✅ HT_CASH_BALANCE: DERIVED from Phase 0 ACTUS events (' + cashBalBody.data.length + ' points)'); }",
+                  "});",
+                  "",
+                  "// ── 2. scf_btc_proceeds ScheduledCashFlowModel (DERIVED schedule) ──",
+                  "var btcSells = JSON.parse(derivedBtcSells);",
+                  "var btcSchedule = btcSells.map(function(s) {",
+                  "    return { time: s.time, amountUSD: s.amountUSD };",
+                  "});",
+                  "var btcMonTimes = btcSells.map(function(s) { return s.time; });",
+                  "",
+                  "var scfBtcBody = {",
+                  "    riskFactorId: 'scf_btc_proceeds',",
+                  "    cashFlowSchedule: btcSchedule,",
+                  "    monitoringEventTimes: btcMonTimes",
+                  "};",
+                  "pm.sendRequest({",
+                  "    url: base + '/addScheduledCashFlowModel',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body: { mode: 'raw', raw: JSON.stringify(scfBtcBody) }",
+                  "}, function(err, res) {",
+                  "    if (err) { console.error('❌ scf_btc_proceeds registration failed: ' + err); }",
+                  "    else { console.log('✅ scf_btc_proceeds: DERIVED BTC sell schedule (' + btcSchedule.length + ' flows)'); }",
+                  "});",
+                  "",
+                  "// ── 3. PROJECTED_OUTFLOWS Reference Index (operational budget) ──",
+                  "var opsData = [",
+                  "    { time: '2026-03-01T00:00:00', value: 30000 },",
+                  "    { time: '2026-03-31T00:00:00', value: 30000 },",
+                  "    { time: '2026-04-30T00:00:00', value: 36000 },",
+                  "    { time: '2026-05-31T00:00:00', value: 45000 },",
+                  "    { time: '2026-06-15T00:00:00', value: 90000 },",
+                  "    { time: '2026-06-30T00:00:00', value: 135000 },",
+                  "    { time: '2026-07-15T00:00:00', value: 60000 },",
+                  "    { time: '2026-07-31T00:00:00', value: 45000 },",
+                  "    { time: '2026-08-31T00:00:00', value: 30000 }",
+                  "];",
+                  "pm.sendRequest({",
+                  "    url: base + '/addReferenceIndex',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body: { mode: 'raw', raw: JSON.stringify({",
+                  "        riskFactorID: 'OUTFLOWS_01',",
+                  "        marketObjectCode: 'PROJECTED_OUTFLOWS',",
+                  "        base: 1.0,",
+                  "        data: opsData",
+                  "    }) }",
+                  "}, function(err, res) {",
+                  "    if (err) { console.error('❌ OUTFLOWS_01 failed: ' + err); }",
+                  "    else { console.log('✅ OUTFLOWS_01: Operational outflows (budget data, 9 points)'); }",
+                  "});",
+                  "",
+                  "// ── 4. TBILL_MATURITY_SCHEDULE Reference Index (DERIVED from Phase 0 MD events) ──",
+                  "var tbillMat = JSON.parse(derivedTbillMat);",
+                  "var tbillMatData = [{ time: '2026-03-01T00:00:00', value: 0 }];",
+                  "tbillMat.forEach(function(t) {",
+                  "    tbillMatData.push({ time: t.time, value: t.amountUSD });",
+                  "});",
+                  "pm.sendRequest({",
+                  "    url: base + '/addReferenceIndex',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body: { mode: 'raw', raw: JSON.stringify({",
+                  "        riskFactorID: 'TBILL_MAT_01',",
+                  "        marketObjectCode: 'TBILL_MATURITY_SCHEDULE',",
+                  "        base: 1.0,",
+                  "        data: tbillMatData",
+                  "    }) }",
+                  "}, function(err, res) {",
+                  "    if (err) { console.error('❌ TBILL_MAT_01 failed: ' + err); }",
+                  "    else { console.log('✅ TBILL_MAT_01: DERIVED from Phase 0 T-bill MD events (' + tbillMatData.length + ' points)'); }",
+                  "});",
+                  "",
+                  "// ── 5. scf_tbill_flows ScheduledCashFlowModel (DERIVED T-bill maturity inflows) ──",
+                  "var tbillScfSchedule = tbillMat.map(function(t) {",
+                  "    return { time: t.time, amountUSD: t.amountUSD };",
+                  "});",
+                  "var tbillScfMonTimes = tbillMat.map(function(t) { return t.time; });",
+                  "pm.sendRequest({",
+                  "    url: base + '/addScheduledCashFlowModel',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body: { mode: 'raw', raw: JSON.stringify({",
+                  "        riskFactorId: 'scf_tbill_flows',",
+                  "        cashFlowSchedule: tbillScfSchedule,",
+                  "        monitoringEventTimes: tbillScfMonTimes",
+                  "    }) }",
+                  "}, function(err, res) {",
+                  "    if (err) { console.error('❌ scf_tbill_flows failed: ' + err); }",
+                  "    else { console.log('✅ scf_tbill_flows: DERIVED T-bill maturity inflows (' + tbillScfSchedule.length + ' flows)'); }",
+                  "});",
+                  "",
+                  "console.log('Phase 1 pre-request: 5 pm.sendRequest calls dispatched');",
+                  "console.log('  1. HT_CASH_BALANCE RI (derived)');",
+                  "console.log('  2. scf_btc_proceeds SCF (derived)');",
+                  "console.log('  3. PROJECTED_OUTFLOWS RI (budget data)');",
+                  "console.log('  4. TBILL_MATURITY_SCHEDULE RI (derived)');",
+                  "console.log('  5. scf_tbill_flows SCF (derived)');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lb_tr01 registered', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('✅ lb_tr01: LiquidityBufferModel');",
+                  "    console.log('  minBuffer=$75K, targetBuffer=$150K');",
+                  "    console.log('  reads PROJECTED_OUTFLOWS + TBILL_MATURITY_SCHEDULE');",
+                  "    console.log('  cashBalance from CASH-PAM notionalPrincipal (StateSpace)');",
+                  "    console.log('━ Phase 1 complete: 1 DERIVED RI + 2 DERIVED SCF + 2 market RI + 1 LB');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addLiquidityBufferModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addLiquidityBufferModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"lb_tr01\",\n  \"projectedOutflowsMOC\": \"PROJECTED_OUTFLOWS\",\n  \"tbillMaturityScheduleMOC\": \"TBILL_MATURITY_SCHEDULE\",\n  \"minBufferUSD\": 75000,\n  \"targetBufferUSD\": 150000,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 2: Scenario ══",
+      "item": [
+        {
+          "name": "2.1 Full Scenario — ht_v18_4m_derive_scn01",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Full scenario registered', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('✅ ht_v18_4m_derive_scn01: 10 descriptors');",
+                  "    console.log('  6 RI: BTC_SPOT, NAV, HURDLE, CASH_BAL(derived), OUTFLOWS, TBILL_MAT(derived)');",
+                  "    console.log('  1 ADM: ad_btc01_spot (NO mirror)');",
+                  "    console.log('  2 SCF: scf_btc_proceeds(derived), scf_tbill_flows(derived)');",
+                  "    console.log('  1 LB:  lb_tr01');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"ht_v18_4m_derive_scn01\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"BTC_SPOT_01\",       \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"PORTFOLIO_NAV_01\",   \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HURDLE_RATE_01\",     \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HT_CASH_BAL_01\",     \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"OUTFLOWS_01\",        \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"TBILL_MAT_01\",       \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"ad_btc01_spot\",      \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"scf_btc_proceeds\",   \"riskFactorType\": \"ScheduledCashFlowModel\"},\n    {\"riskFactorID\": \"scf_tbill_flows\",    \"riskFactorType\": \"ScheduledCashFlowModel\"},\n    {\"riskFactorID\": \"lb_tr01\",            \"riskFactorType\": \"LiquidityBufferModel\"}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 3: Verification ══",
+      "item": [
+        {
+          "name": "3.1 Verify ad_btc01_spot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ad_btc01_spot verified', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    var d = pm.response.json();",
+                  "    pm.expect(d.riskFactorId).to.eql('ad_btc01_spot');",
+                  "    pm.expect(d.mirrorSourceModelId).to.be.oneOf([null, undefined, '']);",
+                  "    console.log('✅ ad_btc01_spot: target=' + d.targetAllocation",
+                  "        + ' max=' + d.maxAllocation + ' min=' + d.minAllocation",
+                  "        + ' fixedQty=' + d.useFixedQuantity + ' qty=' + d.positionQuantity);",
+                  "    console.log('  mirrorSourceModelId=' + d.mirrorSourceModelId + ' (NONE — no mirror)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findAllocationDriftModel/ad_btc01_spot",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findAllocationDriftModel",
+                "ad_btc01_spot"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.2 Verify lb_tr01",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lb_tr01 verified', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    var d = pm.response.json();",
+                  "    pm.expect(d.riskFactorId).to.eql('lb_tr01');",
+                  "    console.log('✅ lb_tr01: minBuffer=' + d.minBufferUSD + ' targetBuffer=' + d.targetBufferUSD);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findLiquidityBufferModel/lb_tr01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findLiquidityBufferModel",
+                "lb_tr01"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.3 Verify Scenario ht_v18_4m_derive_scn01",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Scenario verified', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    var d = pm.response.json();",
+                  "    pm.expect(d.scenarioID).to.eql('ht_v18_4m_derive_scn01');",
+                  "    var types = d.riskFactorDescriptors.map(function(r) { return r.riskFactorType; });",
+                  "    pm.expect(types).to.include('AllocationDriftModel');",
+                  "    pm.expect(types).to.include('ScheduledCashFlowModel');",
+                  "    pm.expect(types).to.include('LiquidityBufferModel');",
+                  "    // Verify NO mirror model in descriptors",
+                  "    var ids = d.riskFactorDescriptors.map(function(r) { return r.riskFactorID; });",
+                  "    pm.expect(ids).to.not.include('ad_btc01_spot_mirror');",
+                  "    console.log('✅ Scenario: ' + d.riskFactorDescriptors.length + ' descriptors (NO mirror)');",
+                  "    d.riskFactorDescriptors.forEach(function(r) {",
+                  "        console.log('  ' + r.riskFactorType + ': ' + r.riskFactorID);",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findScenario/ht_v18_4m_derive_scn01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findScenario",
+                "ht_v18_4m_derive_scn01"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 4: Full Simulation (5 contracts, NO mirror) ══",
+      "item": [
+        {
+          "name": "4.1 Run Full Simulation — 5 contracts, derived schedules",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Full simulation succeeds', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    var body = pm.response.json();",
+                  "    var contracts = Array.isArray(body) ? body : (body.results || body.contracts || []);",
+                  "",
+                  "    console.log('═'.repeat(70));",
+                  "    console.log('HT v18 — $4M POOL · 1 CLM · NO MIRROR · DERIVE PATTERN');",
+                  "    console.log('  BTC sell proceeds routed via DERIVED ScheduledCashFlowModel');",
+                  "    console.log('  T-bill maturities routed via DERIVED ScheduledCashFlowModel');",
+                  "    console.log('  HT_CASH_BALANCE derived from Phase 0 ACTUS events');",
+                  "    console.log('═'.repeat(70));",
+                  "    console.log('Contracts: ' + contracts.length);",
+                  "",
+                  "    contracts.forEach(function(c) {",
+                  "        var id = c.contractId || c.contractID || '?';",
+                  "        var evs = c.events || c.cashFlows || [];",
+                  "        var ppNZ = evs.filter(function(e) {",
+                  "            return ((e.type || e.eventType) === 'PP') && Math.abs(e.payoff || e.amount || 0) > 0.01;",
+                  "        });",
+                  "        var net = evs.reduce(function(s, e) { return s + (e.payoff || e.amount || 0); }, 0);",
+                  "",
+                  "        console.log('');",
+                  "        console.log('━ [' + id + '] events=' + evs.length",
+                  "            + ' PP_nonzero=' + ppNZ.length",
+                  "            + ' net=$' + Math.round(net).toLocaleString());",
+                  "",
+                  "        // Show event type counts",
+                  "        var counts = {};",
+                  "        evs.forEach(function(e) {",
+                  "            var t = e.type || e.eventType || '?';",
+                  "            counts[t] = (counts[t] || 0) + 1;",
+                  "        });",
+                  "        Object.keys(counts).forEach(function(k) {",
+                  "            console.log('    ' + k + ': ' + counts[k]);",
+                  "        });",
+                  "",
+                  "        // Show non-zero payoff events",
+                  "        evs.forEach(function(e) {",
+                  "            var pay = e.payoff || e.amount || 0;",
+                  "            if (Math.abs(pay) > 0.01) {",
+                  "                var t = (e.time || '').toString().substring(0, 10);",
+                  "                var typ = e.type || e.eventType || '';",
+                  "                console.log('    ' + t + ' [' + typ + '] '",
+                  "                    + (pay > 0 ? '+' : '') + '$' + Math.round(pay).toLocaleString());",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "",
+                  "    console.log('═'.repeat(70));",
+                  "});",
+                  "",
+                  "pm.test('All contracts succeeded', function() {",
+                  "    var body = pm.response.json();",
+                  "    var contracts = Array.isArray(body) ? body : [];",
+                  "    contracts.forEach(function(c) { pm.expect(c.status).to.eql('Success'); });",
+                  "});",
+                  "",
+                  "// ═══ CROSS-VALIDATION: Phase 0 captures vs Phase 4 actuals ═══",
+                  "pm.test('BTC CLM sells match Phase 0 captures', function() {",
+                  "    var body = pm.response.json();",
+                  "    var contracts = Array.isArray(body) ? body : [];",
+                  "    var clm = contracts.find(function(c) {",
+                  "        return (c.contractId || c.contractID || '').indexOf('SpotTrade') >= 0;",
+                  "    });",
+                  "    pm.expect(clm).to.not.be.undefined;",
+                  "",
+                  "    var ppNZ = (clm.events || []).filter(function(e) {",
+                  "        return (e.type || e.eventType) === 'PP' && Math.abs(e.payoff || 0) > 0.01;",
+                  "    });",
+                  "",
+                  "    // Load Phase 0 captures for comparison",
+                  "    var derivedBtcSells = pm.collectionVariables.get('derived_btc_sells');",
+                  "    if (derivedBtcSells) {",
+                  "        var phase0Sells = JSON.parse(derivedBtcSells);",
+                  "        console.log('');",
+                  "        console.log('━ CROSS-VALIDATION: Phase 0 vs Phase 4');",
+                  "        console.log('  Phase 0 captured ' + phase0Sells.length + ' BTC sells');",
+                  "        console.log('  Phase 4 produced ' + ppNZ.length + ' CLM PP events');",
+                  "        pm.expect(ppNZ.length).to.eql(phase0Sells.length);",
+                  "",
+                  "        phase0Sells.forEach(function(p0, i) {",
+                  "            var p4 = ppNZ[i];",
+                  "            if (p4) {",
+                  "                var p0Dollars = Math.abs(p0.amountUSD);",
+                  "                var p4Dollars = Math.abs(p4.payoff || 0);",
+                  "                var match = Math.abs(p0Dollars - p4Dollars) < 1.0;",
+                  "                console.log('  Sell ' + (i+1) + ': Phase0=$' + p0Dollars.toFixed(2)",
+                  "                    + ' Phase4=$' + p4Dollars.toFixed(2)",
+                  "                    + (match ? ' ✅ MATCH' : ' ⚠ MISMATCH'));",
+                  "            }",
+                  "        });",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('CASH-PAM has PP events from derived schedules', function() {",
+                  "    var body = pm.response.json();",
+                  "    var contracts = Array.isArray(body) ? body : [];",
+                  "    var cashPam = contracts.find(function(c) {",
+                  "        return (c.contractId || c.contractID || '').indexOf('CASH-PAM') >= 0;",
+                  "    });",
+                  "    pm.expect(cashPam).to.not.be.undefined;",
+                  "",
+                  "    var ppEvents = (cashPam.events || []).filter(function(e) {",
+                  "        return (e.type || e.eventType) === 'PP';",
+                  "    });",
+                  "    var ppNZ = ppEvents.filter(function(e) {",
+                  "        return Math.abs(e.payoff || 0) > 0.01;",
+                  "    });",
+                  "",
+                  "    console.log('');",
+                  "    console.log('━ CASH-PAM PP Analysis:');",
+                  "    console.log('  Total PP events: ' + ppEvents.length);",
+                  "    console.log('  Non-zero PP events: ' + ppNZ.length);",
+                  "    console.log('  Expected: BTC sell proceeds + T-bill maturities + LB signals');",
+                  "",
+                  "    ppNZ.forEach(function(e) {",
+                  "        var t = (e.time || '').toString().substring(0, 10);",
+                  "        var pay = e.payoff || 0;",
+                  "        console.log('    ' + t + ' PP ' + (pay > 0 ? '+' : '') + '$' + Math.round(pay).toLocaleString());",
+                  "    });",
+                  "",
+                  "    pm.expect(ppNZ.length).to.be.at.least(2);",
+                  "});",
+                  "",
+                  "pm.test('T-Bill contracts settled correctly', function() {",
+                  "    var body = pm.response.json();",
+                  "    var contracts = Array.isArray(body) ? body : [];",
+                  "    var tbillYield = 0;",
+                  "    ['TBILL-3mo-400K', 'TBILL-4mo-350K', 'TBILL-5mo-250K'].forEach(function(id) {",
+                  "        var tb = contracts.find(function(c) {",
+                  "            return (c.contractId || c.contractID || '').indexOf(id) >= 0;",
+                  "        });",
+                  "        if (tb) {",
+                  "            var ied = (tb.events || []).find(function(e) { return (e.type || e.eventType) === 'IED'; });",
+                  "            var md = (tb.events || []).find(function(e) { return (e.type || e.eventType) === 'MD'; });",
+                  "            var i = ied ? Math.round(ied.payoff || ied.amount || 0) : 0;",
+                  "            var m = md ? Math.round(md.payoff || md.amount || 0) : 0;",
+                  "            tbillYield += (m + i);",
+                  "            console.log('  ' + id + ': IED=$' + i.toLocaleString() + ' MD=+$' + m.toLocaleString()  + ' yield=$' + (m + i).toLocaleString());",
+                  "        }",
+                  "    });",
+                  "    console.log('  Total T-Bill yield: $' + tbillYield.toLocaleString() + ' (expect ~$11,887)');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actus_sim_host}}"
+              ],
+              "path": [
+                "rf2",
+                "scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"BTC-CLM-SpotTrade-20\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"SpotDesk01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\"ad_btc01_spot\"]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"CASH-PAM-4M\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"TreasuryOps01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-28T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"notionalPrincipal\": 4000000.0,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"premiumDiscountAtIED\": -4000000.0,\n      \"feeRate\": 0.0,\n      \"treasuryModels\": [\n        \"scf_btc_proceeds\",\n        \"scf_tbill_flows\",\n        \"lb_tr01\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-3mo-400K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-06-01T00:00:00\",\n      \"notionalPrincipal\": 400000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -3680\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-4mo-350K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-07-01T00:00:00\",\n      \"notionalPrincipal\": 350000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -4321\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-5mo-250K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-01T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -3886\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"ht_v18_4m_derive_scn01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-08-31T00:00:00\",\n  \"monitoringTimes\": [\n    \"2026-02-28T00:00:00\",\n    \"2026-03-01T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

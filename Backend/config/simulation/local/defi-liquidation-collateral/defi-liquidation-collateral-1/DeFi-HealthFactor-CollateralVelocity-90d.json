@@ -1,0 +1,306 @@
+{
+  "info": {
+    "_postman_id": "defi-hf-cv-90d-001",
+    "name": "DeFi-HealthFactor-CollateralVelocity-90d",
+    "description": "ACTUS DeFi Liquidation: HEALTH FACTOR + COLLATERAL VELOCITY (CHRONOS-SHIELD Aave-style lending).\n\nTWO DeFi liquidation behavioral models run simultaneously:\n  1. HealthFactorModel (8.1) — Multi-asset weighted health factor monitoring\n  2. CollateralVelocityModel (8.2) — Rate-of-decline early warning + defensive repayment\n\nScenario: Aave V3-style DeFi lending position\n  Borrower: $500K USDC loan against hybrid collateral\n  Collateral basket:\n    - 100 ETH (volatile, liquidation threshold 0.825)\n    - 500,000 USDC (stable, liquidation threshold 0.95)\n    - Tokenized invoice $200K (liquidation threshold 0.70)\n  Initial Health Factor: ~2.05 (well-collateralized)\n  Healthy threshold: 1.50 (below this → behavioral adjustment)\n  Target HF: 2.00 (recovery target)\n\nETH Price Scenario (90-day stress):\n  Mar 1:  $2,800 (baseline)\n  Mar 15: $2,500 (-10.7%)\n  Mar 31: $2,100 (-25.0%) ⚠️ HF approaches healthy threshold\n  Apr 15: $1,850 (-33.9%) 🔴 CollateralVelocity triggers aggressive repay\n  Apr 30: $1,700 (-39.3%) 🔴 Cascade zone\n  May 15: $1,900 (+11.8% recovery)\n  May 31: $2,200 (partial recovery)\n\nCollateral Velocity dynamics:\n  safeHorizonDays=30: If velocity implies >30 days to liquidation → no action\n  urgentDays=7: If velocity implies <7 days to liquidation → aggressive repay\n  Between 7-30 days → moderate defensive repayment\n  moderateRepayFraction=0.05 (5% of outstanding)\n  aggressiveRepayFraction=0.15 (15% of outstanding)\n\nReferences:\n  - Lehar & Parlour (2022) BIS Working Paper 1062\n  - Heimbach & Huang (2024) BIS Working Paper 1171\n  - Aave V3 Risk Parameters documentation\n  - Gauntlet Network risk modeling framework\n\nContract: ANN representing DeFi lending position\n  notionalPrincipal = 500000 ($500K USDC loan)\n  nominalInterestRate = 0.065 (Aave variable borrow rate)\n  defiLiquidationModels: [hf_aave01, cv_eth01]\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1a. Add ETH_USD Reference Index (90-day stress scenario)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_USD_01\",\"marketObjectCode\":\"ETH_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":2800.00},{\"time\":\"2026-03-05T00:00:00\",\"value\":2750.00},{\"time\":\"2026-03-08T00:00:00\",\"value\":2650.00},{\"time\":\"2026-03-12T00:00:00\",\"value\":2580.00},{\"time\":\"2026-03-15T00:00:00\",\"value\":2500.00},{\"time\":\"2026-03-19T00:00:00\",\"value\":2400.00},{\"time\":\"2026-03-22T00:00:00\",\"value\":2300.00},{\"time\":\"2026-03-26T00:00:00\",\"value\":2200.00},{\"time\":\"2026-03-31T00:00:00\",\"value\":2100.00},{\"time\":\"2026-04-05T00:00:00\",\"value\":2000.00},{\"time\":\"2026-04-10T00:00:00\",\"value\":1950.00},{\"time\":\"2026-04-15T00:00:00\",\"value\":1850.00},{\"time\":\"2026-04-20T00:00:00\",\"value\":1780.00},{\"time\":\"2026-04-25T00:00:00\",\"value\":1720.00},{\"time\":\"2026-04-30T00:00:00\",\"value\":1700.00},{\"time\":\"2026-05-05T00:00:00\",\"value\":1750.00},{\"time\":\"2026-05-10T00:00:00\",\"value\":1820.00},{\"time\":\"2026-05-15T00:00:00\",\"value\":1900.00},{\"time\":\"2026-05-20T00:00:00\",\"value\":2000.00},{\"time\":\"2026-05-25T00:00:00\",\"value\":2100.00},{\"time\":\"2026-05-31T00:00:00\",\"value\":2200.00}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ETH_USD reference index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ETH_USD_01: $2,800 → $1,700 crash → $2,200 recovery (90 days)');",
+        "    console.log('   21 price points, daily granularity during stress period');",
+        "    console.log('   Peak drawdown: -39.3% at Apr 30');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1b. Add USDC_USD Reference Index (stable peg)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"USDC_USD_01\",\"marketObjectCode\":\"USDC_USD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":1.0000},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.9998},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.9995},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.9992},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.9990},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.9995},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.9998}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('USDC_USD reference index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ USDC_USD_01: Stable peg $1.0000 → $0.9990 (minor stress depeg)');",
+        "    console.log('   Used by HealthFactorModel for USDC collateral valuation');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1c. Add INVOICE_PAYMENT_PROB Reference Index",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"INV_PROB_01\",\"marketObjectCode\":\"INVOICE_PAYMENT_PROB\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.95},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.93},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.90},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.85},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.82},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.88},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.92}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('INVOICE_PAYMENT_PROB index added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ INV_PROB_01: Invoice payment probability 0.95 → 0.82 (credit stress)');",
+        "    console.log('   Tokenized invoice collateral quality degrades under market stress');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1d. Add AAVE_BORROW_RATE Reference Rate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"AAVE_RATE_01\",\"marketObjectCode\":\"AAVE_BORROW_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.065},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.072},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.085},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.110},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.125},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.095},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.075}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AAVE_BORROW_RATE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ AAVE_RATE_01: Variable borrow rate 6.5% → 12.5% peak → 7.5% recovery');",
+        "    console.log('   Rate spikes during liquidation cascade as utilization rises');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add HealthFactorModel (hf_aave01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addHealthFactorModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addHealthFactorModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"hf_aave01\",\"collateralMOCs\":[\"ETH_USD\",\"USDC_USD\",\"INVOICE_PAYMENT_PROB\"],\"collateralQuantities\":[100.0,500000.0,200000.0],\"liquidationThresholds\":[0.825,0.95,0.70],\"healthyThreshold\":1.50,\"targetHealthFactor\":2.00,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-05T00:00:00\",\"2026-04-10T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-20T00:00:00\",\"2026-04-25T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-05T00:00:00\",\"2026-05-10T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-20T00:00:00\",\"2026-05-25T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('HealthFactorModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ hf_aave01: HealthFactorModel (21 monitoring points, 90 days)');",
+        "    console.log('   3-asset hybrid collateral: ETH + USDC + tokenized invoice');",
+        "    console.log('   Liquidation thresholds: ETH=0.825, USDC=0.95, Invoice=0.70');",
+        "    console.log('   HF = Σ(qty×price×liqThreshold) / totalDebt');",
+        "    console.log('   Initial HF: (100×2800×0.825 + 500000×1.0×0.95 + 200000×0.95×0.70) / 500000');",
+        "    console.log('            = (231000 + 475000 + 133000) / 500000 = 1.678');",
+        "    console.log('   Healthy threshold: 1.50, Target: 2.00');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add CollateralVelocityModel (cv_eth01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addCollateralVelocityModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addCollateralVelocityModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"cv_eth01\",\"collateralPriceMOC\":\"ETH_USD\",\"collateralQuantity\":100.0,\"liquidationThreshold\":0.825,\"safeHorizonDays\":30.0,\"urgentDays\":7.0,\"moderateRepayFraction\":0.05,\"aggressiveRepayFraction\":0.15,\"rollingWindowSize\":5,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-05T00:00:00\",\"2026-04-10T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-20T00:00:00\",\"2026-04-25T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-05T00:00:00\",\"2026-05-10T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-20T00:00:00\",\"2026-05-25T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CollateralVelocityModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ cv_eth01: CollateralVelocityModel (21 monitoring points, 90 days)');",
+        "    console.log('   ETH price velocity → time-to-liquidation estimation');",
+        "    console.log('   rollingWindow=5 observations, safeHorizon=30 days, urgentDays=7');",
+        "    console.log('   Moderate repay: 5% when 7-30 days to liquidation');",
+        "    console.log('   Aggressive repay: 15% when <7 days to liquidation');",
+        "    console.log('   Ref: Heimbach & Huang (2024) velocity-based liquidation prediction');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add DeFi Health+Velocity Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_hf_cv_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"ETH_USD_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"USDC_USD_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"INV_PROB_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"AAVE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"hf_aave01\",\"riskFactorType\":\"HealthFactorModel\"},{\"riskFactorID\":\"cv_eth01\",\"riskFactorType\":\"CollateralVelocityModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('DeFi HF+CV scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ defi_hf_cv_scn01: 4 indexes + 2 DeFi behavioral models');",
+        "    console.log('   ReferenceIndexes: ETH_USD, USDC_USD, INVOICE_PAYMENT_PROB, AAVE_BORROW_RATE');",
+        "    console.log('   Behavioral: HealthFactorModel + CollateralVelocityModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5a. Verify HealthFactorModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findHealthFactorModel/hf_aave01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findHealthFactorModel", "hf_aave01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('HealthFactorModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('hf_aave01');",
+        "    pm.expect(data.collateralMOCs).to.have.lengthOf(3);",
+        "    pm.expect(data.healthyThreshold).to.eql(1.5);",
+        "    console.log('✅ HealthFactorModel verified: ' + data.collateralMOCs.length + ' collateral assets');",
+        "    console.log('   MOCs: ' + data.collateralMOCs.join(', '));",
+        "    console.log('   Quantities: ' + data.collateralQuantities.join(', '));",
+        "    console.log('   LiqThresholds: ' + data.liquidationThresholds.join(', '));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5b. Verify CollateralVelocityModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findCollateralVelocityModel/cv_eth01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findCollateralVelocityModel", "cv_eth01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CollateralVelocityModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('cv_eth01');",
+        "    pm.expect(data.collateralPriceMOC).to.eql('ETH_USD');",
+        "    pm.expect(data.safeHorizonDays).to.eql(30.0);",
+        "    console.log('✅ CollateralVelocityModel verified');",
+        "    console.log('   Velocity window: ' + data.rollingWindowSize + ' observations');",
+        "    console.log('   Safe horizon: ' + data.safeHorizonDays + ' days');",
+        "    console.log('   Urgent: ' + data.urgentDays + ' days');",
+        "    console.log('   Moderate repay: ' + (data.moderateRepayFraction*100) + '%');",
+        "    console.log('   Aggressive repay: ' + (data.aggressiveRepayFraction*100) + '%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Run Scenario Simulation (ANN + HealthFactor + CollateralVelocity)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"defi_hf_cv_scn01\",\"contracts\":[{\"contractType\":\"ANN\",\"contractID\":\"DEFI_LOAN_HF01\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"creatorID\":\"AaveProtocol\",\"counterpartyID\":\"DeFiBorrower\",\"currency\":\"USD\",\"notionalPrincipal\":500000,\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"nominalInterestRate\":0.065,\"dayCountConvention\":\"A365\",\"endOfMonthConvention\":\"SD\",\"cycleOfPrincipalRedemption\":\"P1ML0\",\"cycleAnchorDateOfPrincipalRedemption\":\"2026-04-01T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"cycleAnchorDateOfInterestPayment\":\"2026-04-01T00:00:00\",\"cycleOfRateReset\":\"P1ML0\",\"cycleAnchorDateOfRateReset\":\"2026-04-01T00:00:00\",\"marketObjectCodeOfRateReset\":\"AAVE_BORROW_RATE\",\"rateSpread\":0.020,\"defiLiquidationModels\":[\"hf_aave01\",\"cv_eth01\"]}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('DeFi HF+CV simulation completed', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    console.log('\\n========== DEFI HEALTH FACTOR + COLLATERAL VELOCITY SIMULATION ==========');",
+        "    console.log('Contract: DEFI_LOAN_HF01 (ANN, $500K, 90-day, Aave V3-style)');",
+        "    console.log('Models: HealthFactorModel (hf_aave01) + CollateralVelocityModel (cv_eth01)');",
+        "    console.log('Collateral: 100 ETH + 500K USDC + $200K invoice');",
+        "    console.log('');",
+        "    if (data && data.length > 0) {",
+        "        var contracts = data;",
+        "        for (var c = 0; c < contracts.length; c++) {",
+        "            var events = contracts[c].events || contracts[c];",
+        "            if (Array.isArray(events)) {",
+        "                console.log('--- Contract: ' + (contracts[c].contractId || 'DEFI_LOAN_HF01') + ' ---');",
+        "                console.log('Total events: ' + events.length);",
+        "                var ppCount = 0;",
+        "                for (var i = 0; i < events.length; i++) {",
+        "                    var ev = events[i];",
+        "                    var type = ev.type || ev.eventType || '';",
+        "                    var time = ev.time || ev.eventDate || '';",
+        "                    var payoff = ev.payoff || ev.eventValue || 0;",
+        "                    var nominal = ev.nominalValue || ev.notionalPrincipal || '';",
+        "                    if (type === 'PP') ppCount++;",
+        "                    console.log('  ' + type + ' | ' + time + ' | payoff=' + payoff + ' | nominal=' + nominal);",
+        "                }",
+        "                console.log('PP (behavioral) events: ' + ppCount);",
+        "                console.log('  Each PP = HealthFactor or CollateralVelocity triggered prepayment');",
+        "            }",
+        "        }",
+        "    }",
+        "    console.log('\\n=== INTERPRETATION ===');",
+        "    console.log('PP events in Mar = HF declining as ETH drops, velocity moderate');",
+        "    console.log('PP events in Apr = Aggressive repay as velocity signals <7 days to liquidation');",
+        "    console.log('PP events in May = Recovery, fewer/smaller defensive repayments');",
+        "    console.log('=========================================================================');",
+        "});"
+      ]}}]
+    }
+  ]
+}

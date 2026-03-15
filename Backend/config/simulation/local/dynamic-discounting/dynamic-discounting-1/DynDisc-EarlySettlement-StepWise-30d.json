@@ -1,0 +1,239 @@
+{
+  "info": {
+    "_postman_id": "dyndisc-es-stepwise-30d-001",
+    "name": "DynDisc-EarlySettlement-StepWise-30d",
+    "description": "ACTUS Dynamic Discounting: EARLY SETTLEMENT with STEPWISE discount curve (2/10 net 30).\n\nClassic trade credit terms modeled as stepwise discount function:\n  Days 0-10:  2.0% discount available (traditional '2/10' window)\n  Days 11-20: 1.0% discount (partial discount extension)\n  Days 21-30: 0.0% discount (full price, no benefit to early pay)\n\nInvoice: $100K, 30-day term, Buyer cash = $500K, Hurdle = 8% APR\n\nEXPECTED BEHAVIOR:\n  Day 1 (2026-03-02): stepDiscount=2.0%, daysRemaining=29\n    → APR = 0.02 × 365/29 = 25.2% >> hurdle(8%)\n    → buyerCash=$500K > invoice → sufficient\n    → Returns discountedFraction → PP event at $98,000\n  All subsequent MRD callouts → 0.0 (already settled)\n\nALTERNATIVE: If settlement delayed to day 12:\n  → stepDiscount=1.0%, daysRemaining=19\n  → APR = 0.01 × 365/19 = 19.2% >> hurdle(8%)\n  → Still settles, PP at $99,000\n\nTRADE CREDIT CONTEXT:\n  '2/10 net 30' is the most common payment term globally.\n  Per Ng, Smith & Smith (1999): >80% of US trade offers some form of credit terms.\n  This simulation demonstrates ACTUS handling the classic 2/10 net 30 as a behavioral model.\n\nNOTE: monitoringEventTimes starts 2026-03-02 (day after IED) to avoid PP-before-IED ordering bug.\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add BUYER_CASH (constant $500K treasury)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"BUYER_CASH_02\",\"marketObjectCode\":\"BUYER_CASH_SW\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":500000},{\"time\":\"2026-03-02T00:00:00\",\"value\":500000},{\"time\":\"2026-03-03T00:00:00\",\"value\":500000},{\"time\":\"2026-03-04T00:00:00\",\"value\":500000},{\"time\":\"2026-03-05T00:00:00\",\"value\":500000},{\"time\":\"2026-03-06T00:00:00\",\"value\":500000},{\"time\":\"2026-03-07T00:00:00\",\"value\":500000},{\"time\":\"2026-03-08T00:00:00\",\"value\":500000},{\"time\":\"2026-03-09T00:00:00\",\"value\":500000},{\"time\":\"2026-03-10T00:00:00\",\"value\":500000},{\"time\":\"2026-03-11T00:00:00\",\"value\":500000},{\"time\":\"2026-03-12T00:00:00\",\"value\":500000},{\"time\":\"2026-03-13T00:00:00\",\"value\":500000},{\"time\":\"2026-03-14T00:00:00\",\"value\":500000},{\"time\":\"2026-03-15T00:00:00\",\"value\":500000},{\"time\":\"2026-03-16T00:00:00\",\"value\":500000},{\"time\":\"2026-03-17T00:00:00\",\"value\":500000},{\"time\":\"2026-03-18T00:00:00\",\"value\":500000},{\"time\":\"2026-03-19T00:00:00\",\"value\":500000},{\"time\":\"2026-03-20T00:00:00\",\"value\":500000},{\"time\":\"2026-03-21T00:00:00\",\"value\":500000},{\"time\":\"2026-03-22T00:00:00\",\"value\":500000},{\"time\":\"2026-03-23T00:00:00\",\"value\":500000},{\"time\":\"2026-03-24T00:00:00\",\"value\":500000},{\"time\":\"2026-03-25T00:00:00\",\"value\":500000},{\"time\":\"2026-03-26T00:00:00\",\"value\":500000},{\"time\":\"2026-03-27T00:00:00\",\"value\":500000},{\"time\":\"2026-03-28T00:00:00\",\"value\":500000},{\"time\":\"2026-03-29T00:00:00\",\"value\":500000},{\"time\":\"2026-03-30T00:00:00\",\"value\":500000},{\"time\":\"2026-03-31T00:00:00\",\"value\":500000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('BUYER_CASH added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 BUYER_CASH_02: Constant $500K buyer treasury');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add EarlySettlementModel (STEPWISE 2/10 net 30)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addEarlySettlementModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addEarlySettlementModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"early_settle_inv002\",\"invoiceDate\":\"2026-03-01T00:00:00\",\"dueDate\":\"2026-03-31T00:00:00\",\"notionalAmount\":100000.0,\"maxDiscountRate\":0.02,\"discountFunctionType\":\"STEPWISE\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":{\"0\":0.02,\"11\":0.01,\"21\":0.0},\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH_SW\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-02T00:00:00\",\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\",\"2026-03-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('EarlySettlementModel STEPWISE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 early_settle_inv002: EarlySettlementModel (STEPWISE)');",
+        "    console.log('   Classic 2/10 net 30 terms:');",
+        "    console.log('     Days 0-10:  2.0% discount');",
+        "    console.log('     Days 11-20: 1.0% discount');",
+        "    console.log('     Days 21-30: 0.0% discount (full price)');",
+        "    console.log('   invoice=$100K, hurdle=8% APR');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"dyndisc_stepwise_30d\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_02\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_inv002\",\"riskFactorType\":\"EarlySettlement\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 dyndisc_stepwise_30d: 1 ReferenceIndex + 1 EarlySettlement model');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4a. Verify EarlySettlementModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findEarlySettlementModel/early_settle_inv002",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findEarlySettlementModel", "early_settle_inv002"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('EarlySettlementModel STEPWISE verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('early_settle_inv002');",
+        "    pm.expect(data.discountFunctionType).to.eql('STEPWISE');",
+        "    console.log('\\u2705 early_settle_inv002 confirmed:');",
+        "    console.log('   function=' + data.discountFunctionType);",
+        "    console.log('   stepSchedule=' + JSON.stringify(data.stepDiscountSchedule));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4b. Verify Scenario",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findScenario/dyndisc_stepwise_30d",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findScenario", "dyndisc_stepwise_30d"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.scenarioID).to.eql('dyndisc_stepwise_30d');",
+        "    var types = data.riskFactorDescriptors.map(function(d){return d.riskFactorType;});",
+        "    pm.expect(types).to.include('EarlySettlement');",
+        "    console.log('\\u2705 Scenario descriptors: ' + JSON.stringify(types));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Run EarlySettlement STEPWISE Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"INV-2026-002\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"SupplierDEF\",\"creatorID\":\"BuyerXYZ\",\"discountingModels\":[\"early_settle_inv002\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc_stepwise_30d\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('EarlySettlement STEPWISE simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('DYNAMIC DISCOUNTING: EARLY SETTLEMENT \\u2014 STEPWISE (2/10 net 30)');",
+        "    console.log('  Invoice: INV-2026-002 ($100K, SupplierDEF \\u2192 BuyerXYZ)');",
+        "    console.log('  Discount: 2% (days 0-10) \\u2192 1% (11-20) \\u2192 0% (21-30)');",
+        "    console.log('  Hurdle rate: 8% APR, Buyer cash: $500K');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('Total events: ' + events.length);",
+        "    console.log('');",
+        "",
+        "    var counts = {};",
+        "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "    Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+        "    console.log('');",
+        "",
+        "    // Separate settlement PP from post-settlement zeros",
+        "    var pp = events.filter(function(e){return e.type==='PP';});",
+        "    var settled = pp.filter(function(p){return p.payoff > 0;});",
+        "    var postSettle = pp.filter(function(p){return p.payoff === 0;});",
+        "",
+        "    if(settled.length > 0){",
+        "        console.log('\\u2550\\u2550 SETTLEMENT EVENT (PP) \\u2550\\u2550');",
+        "        settled.forEach(function(p){",
+        "            console.log('  Date: '+p.time);",
+        "            console.log('  Payoff: $'+p.payoff.toFixed(2));",
+        "            console.log('  Remaining notional: $'+p.nominalValue.toFixed(2));",
+        "            var discount = 100000 - p.payoff;",
+        "            console.log('  Discount captured: $'+discount.toFixed(2)+' ('+(discount/100000*100).toFixed(2)+'%)');",
+        "        });",
+        "        console.log('  Post-settlement PPs (all $0): '+postSettle.length);",
+        "    } else {",
+        "        console.log('\\u26a0\\ufe0f  No settlement PP found (all '+pp.length+' PPs returned $0)');",
+        "    }",
+        "",
+        "    // Verify IED before first PP",
+        "    var ied = events.filter(function(e){return e.type==='IED';})[0];",
+        "    var firstPP = pp[0];",
+        "    if(ied && firstPP){",
+        "        var iedOk = ied.time <= firstPP.time ? '\\u2705' : '\\u274c';",
+        "        console.log('');",
+        "        console.log(iedOk+' Event ordering: IED('+ied.time+') before PP('+firstPP.time+')');",
+        "    }",
+        "",
+        "    // MD check",
+        "    var md = events.filter(function(e){return e.type==='MD';})[0];",
+        "    if(md){",
+        "        console.log('');",
+        "        console.log('\\u2550\\u2550 MATURITY \\u2550\\u2550');",
+        "        console.log('  MD payoff: $'+md.payoff.toFixed(2)+' (should be $0 \\u2014 already settled)');",
+        "    }",
+        "",
+        "    console.log('');",
+        "    console.log('\\u2550\\u2550 EXPECTED: IED \\u2192 PP($98,000 in 2% window) \\u2192 closed \\u2550\\u2550');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "});",
+        "",
+        "pm.test('Settlement PP at $98,000', function(){",
+        "    var data = pm.response.json();",
+        "    var events = data[0].events;",
+        "    var settled = events.filter(function(e){return e.type==='PP' && e.payoff > 0;});",
+        "    pm.expect(settled.length).to.eql(1, 'Expected exactly 1 settlement PP');",
+        "    pm.expect(settled[0].payoff).to.be.closeTo(98000, 50);",
+        "    pm.expect(settled[0].nominalValue).to.eql(0);",
+        "});",
+        "",
+        "pm.test('IED before first PP', function(){",
+        "    var data = pm.response.json();",
+        "    var events = data[0].events;",
+        "    var ied = events.filter(function(e){return e.type==='IED';})[0];",
+        "    var firstPP = events.filter(function(e){return e.type==='PP';})[0];",
+        "    pm.expect(ied.time <= firstPP.time).to.be.true;",
+        "});",
+        "",
+        "pm.test('MD payoff is $0', function(){",
+        "    var data = pm.response.json();",
+        "    var events = data[0].events;",
+        "    var md = events.filter(function(e){return e.type==='MD';})[0];",
+        "    pm.expect(md.payoff).to.eql(0);",
+        "});"
+      ]}}]
+    }
+  ]
+}

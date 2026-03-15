@@ -1,0 +1,391 @@
+{
+  "info": {
+    "_postman_id": "ht-cons-defi-eth-liq-v1",
+    "name": "ETH-Liq-COLL-PROT-time-2",
+    "description": "DeFi ETH Collateral Treasury — Complete Balance Sheet Tracking\n════════════════════════════════════════════════════════════════════\n\nINITIAL POSITION:\n  ETH Holdings: 10.0 ETH @ $3,000 = $30,000\n  USD Cash: $0 (will borrow $9,000)\n  Net Worth: $30,000\n\nLOAN STRUCTURE:\n  Collateral Deposited: 5.0 ETH (locked)\n  ETH Reserve Available: 5.0 ETH (for adding collateral)\n  Loan Amount: $9,000 USD\n  LTV: 60% initial, 75% max, 82.5% liquidation\n  Term: 30 days (2025-01-01 → 2025-01-31)\n  Interest: 5% APR variable\n\nCONTRACTS (4):\n  1. ETH-COLLATERAL-LOCKED: 5.0 ETH locked in loan (CLM)\n  2. ETH-RESERVE-AVAILABLE: 5.0 ETH available for adding (CLM)\n  3. LOAN-USD-9000: $9,000 borrowed (PAM with prepayment)\n  4. TREASURY-CASH: USD cash management (PAM with SCF)\n\nBEHAVIORAL ACTIONS (from Phase 2 derived):\n  Day 12 Noon: Add collateral OR Pay off USD\n  Day 17 6PM: Add collateral OR Pay off USD\n\nTWO-PASS ARCHITECTURE:\n  Phase 0: Load ETH price + rate indexes\n  Phase 1: Register prepayment + LTV models  \n  Phase 2: Asset-only run → derive ETH additions & USD payoffs\n  Phase 3: Register derived SCF models for treasury\n  Phase 4: Full consolidated simulation\n\nTRACKING:\n  - ETH locked (collateral)\n  - ETH available (reserve)\n  - ETH total (portfolio)\n  - USD borrowed\n  - USD cash balance\n  - Net worth (ETH value + USD cash - USD debt)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "══ PHASE 0: Reference Indexes ══",
+      "item": [
+        {
+          "name": "0.1 DEFI_RATE — 5% constant APR",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "protocol": "http",
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"DEFI_RAT_30D_DAILY\",\n  \"marketObjectCode\": \"DEFI_RATE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2025-01-01T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-02T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-03T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-04T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-05T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-11T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-12T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-15T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-17T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-22T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-26T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2025-01-31T00:00:00\", \"value\": 0.05}\n  ]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('DEFI_RATE',function(){pm.response.to.have.status(200);console.log('✅ DEFI_RATE: 5% APR constant');});"]
+            }
+          }]
+        },
+        {
+          "name": "0.2 ETH_PRICE — velocity deterioration path",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "protocol": "http",
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"ETH_PRICE_30D\",\n  \"marketObjectCode\": \"ETH_USD\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2025-01-01T00:00:00\", \"value\": 3000},\n    {\"time\": \"2025-01-02T00:00:00\", \"value\": 3010},\n    {\"time\": \"2025-01-04T00:00:00\", \"value\": 2980},\n    {\"time\": \"2025-01-08T00:00:00\", \"value\": 3020},\n    {\"time\": \"2025-01-11T00:00:00\", \"value\": 2890},\n    {\"time\": \"2025-01-12T06:00:00\", \"value\": 2810},\n    {\"time\": \"2025-01-12T12:00:00\", \"value\": 2810},\n    {\"time\": \"2025-01-15T00:00:00\", \"value\": 2650},\n    {\"time\": \"2025-01-17T00:00:00\", \"value\": 2480},\n    {\"time\": \"2025-01-17T18:00:00\", \"value\": 2480},\n    {\"time\": \"2025-01-22T00:00:00\", \"value\": 2520},\n    {\"time\": \"2025-01-26T00:00:00\", \"value\": 2680},\n    {\"time\": \"2025-01-31T00:00:00\", \"value\": 2750}\n  ]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('ETH_PRICE',function(){pm.response.to.have.status(200);console.log('✅ ETH_PRICE: $3000→$2480→$2750 (velocity deterioration)');});"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 1: Behavioral Models ══",
+      "item": [
+        {
+          "name": "1.1 TwoDimensionalPrepayment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addTwoDimensionalPrepaymentModel",
+              "host": ["{{actus_risk_host}}"],
+              "protocol": "http",
+              "path": ["addTwoDimensionalPrepaymentModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"defi_pp_30d_v3\",\n  \"referenceRateId\": \"DEFI_RATE\",\n  \"prepaymentEventTimes\": [\n    \"2025-01-12T12:00:00\",\n    \"2025-01-17T18:00:00\"\n  ],\n  \"surface\": {\n    \"interpolationMethod\": \"linear\",\n    \"extrapolationMethod\": \"constant\",\n    \"margins\": [\n      {\"dimension\": 1, \"values\": [0.03, 0.02, 0.01, 0.0, -0.01, -0.02, -0.03]},\n      {\"dimension\": 2, \"values\": [0, 0.0328767, 0.0465753, 0.0821918]}\n    ],\n    \"data\": [\n      [0.35, 0.33, 0.30, 0.25],\n      [0.25, 0.22, 0.20, 0.15],\n      [0.15, 0.12, 0.10, 0.08],\n      [0.10, 0.08, 0.05, 0.03],\n      [0, 0, 0, 0],\n      [0, 0, 0, 0],\n      [0, 0, 0, 0]\n    ]\n  }\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('PP Model',function(){pm.response.to.have.status(200);console.log('✅ defi_pp_30d_v3: 2D prepayment (enhanced probabilities)');});"]
+            }
+          }]
+        },
+        {
+          "name": "1.2 CollateralLTV Model",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addCollateralLTVModel",
+              "host": ["{{actus_risk_host}}"],
+              "protocol": "http",
+              "path": ["addCollateralLTVModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"ltv_30d_v3\",\n  \"collateralPriceMarketObjectCode\": \"ETH_USD\",\n  \"collateralQuantity\": 5.0,\n  \"ltvThreshold\": 0.75,\n  \"ltvTarget\": 0.60,\n  \"liquidationThreshold\": 0.825,\n  \"monitoringEventTimes\": [\n    \"2025-01-01T00:00:00\",\n    \"2025-01-02T00:00:00\",\n    \"2025-01-04T00:00:00\",\n    \"2025-01-08T00:00:00\",\n    \"2025-01-11T00:00:00\",\n    \"2025-01-12T06:00:00\",\n    \"2025-01-12T12:00:00\",\n    \"2025-01-15T00:00:00\",\n    \"2025-01-17T00:00:00\",\n    \"2025-01-17T18:00:00\",\n    \"2025-01-22T00:00:00\",\n    \"2025-01-26T00:00:00\",\n    \"2025-01-31T00:00:00\"\n  ]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('LTV Model',function(){pm.response.to.have.status(200);console.log('✅ ltv_30d_v3: 5 ETH collateral, 75% threshold');});"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 2: Asset-Only Run (derive flows) ══",
+      "item": [
+        {
+          "name": "2.1 Phase 0 Scenario",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": ["{{actus_risk_host}}"],
+              "protocol": "http",
+              "path": ["addScenario"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"defi_eth_phase0_scn\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"DEFI_RAT_30D_DAILY\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"ETH_PRICE_30D\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"defi_pp_30d_v3\", \"riskFactorType\": \"TwoDimensionalPrepaymentModel\"},\n    {\"riskFactorID\": \"ltv_30d_v3\", \"riskFactorType\": \"CollateralLTVModel\"}\n  ]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Phase 0 Scenario',function(){pm.response.to.have.status(200);console.log('✅ defi_eth_phase0_scn: 4 descriptors');});"]
+            }
+          }]
+        },
+        {
+          "name": "2.2 Run Asset-Only (capture PP events)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": ["{{actus_sim_host}}"],
+              "protocol": "http",
+              "path": ["rf2", "scenarioSimulation"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [{\n    \"calendar\": \"NC\",\n    \"businessDayConvention\": \"SCF\",\n    \"contractType\": \"PAM\",\n    \"statusDate\": \"2024-12-31T23:59:00\",\n    \"contractRole\": \"RPA\",\n    \"contractID\": \"LOAN-USD-PHASE0\",\n    \"cycleAnchorDateOfInterestPayment\": \"2025-01-31T00:00:00\",\n    \"cycleOfInterestPayment\": \"P1ML0\",\n    \"nominalInterestRate\": 0.05,\n    \"dayCountConvention\": \"AA365S\",\n    \"currency\": \"USD\",\n    \"contractDealDate\": \"2024-12-31T23:59:00\",\n    \"initialExchangeDate\": \"2025-01-01T00:00:00\",\n    \"maturityDate\": \"2025-01-31T00:00:00\",\n    \"notionalPrincipal\": 9000,\n    \"premiumDiscountAtIED\": 0,\n    \"cycleAnchorDateOfRateReset\": \"2025-01-01T00:00:00\",\n    \"cycleOfRateReset\": \"P1DL0\",\n    \"rateSpread\": 0.0,\n    \"marketObjectCodeOfRateReset\": \"DEFI_RATE\",\n    \"prepaymentModels\": [\"defi_pp_30d_v3\", \"ltv_30d_v3\"]\n  }],\n  \"scenarioDescriptor\": {\"scenarioID\": \"defi_eth_phase0_scn\", \"scenarioType\": \"scenario\"},\n  \"simulateTo\": \"2025-02-01T00:00:00\",\n  \"monitoringTimes\": []\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Asset-Only Run',function(){",
+                "  pm.response.to.have.status(200);",
+                "  var data = pm.response.json();",
+                "  var c = data[0];",
+                "  var events = c.events || [];",
+                "  ",
+                "  var ppEvents = events.filter(e => e.type === 'PP' && Math.abs(e.payoff || 0) > 0.01);",
+                "  var ethAdditions = [];",
+                "  var usdPayoffs = [];",
+                "  ",
+                "  ppEvents.forEach(function(pp){",
+                "    usdPayoffs.push({time: pp.time, amountUSD: Math.abs(pp.payoff)});",
+                "    var ds = pp.time.substring(0,10);",
+                "    var ethPrice = ds === '2025-01-12' ? 2810 : ds === '2025-01-17' ? 2480 : 2750;",
+                "    var ethAdd = Math.abs(pp.payoff) / ethPrice;",
+                "    ethAdditions.push({time: pp.time, amountETH: ethAdd, priceUSD: ethPrice});",
+                "  });",
+                "  ",
+                "  pm.collectionVariables.set('derived_usd_payoffs', JSON.stringify(usdPayoffs));",
+                "  pm.collectionVariables.set('derived_eth_additions', JSON.stringify(ethAdditions));",
+                "  ",
+                "  console.log('✅ Phase 0 complete: '+ppEvents.length+' PP events captured');",
+                "  console.log('  USD payoffs: '+usdPayoffs.length);",
+                "  console.log('  ETH additions: '+ethAdditions.length);",
+                "  ppEvents.forEach((p,i) => console.log('    PP#'+(i+1)+' '+p.time+': $'+p.payoff.toFixed(2)));",
+                "});"
+              ]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 3: Register Derived SCF Models ══",
+      "item": [
+        {
+          "name": "3.1 Register All Derived Models",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "protocol": "http",
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"DUMMY_RI\",\"marketObjectCode\":\"DUMMY\",\"base\":1.0,\"data\":[{\"time\":\"2025-01-01T00:00:00\",\"value\":1}]}"
+            }
+          },
+          "event": [{
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "var riskHost = pm.collectionVariables.get('actus_risk_host');",
+                "var base = 'http://'+riskHost;",
+                "",
+                "var usdPayoffs = pm.collectionVariables.get('derived_usd_payoffs');",
+                "var ethAdditions = pm.collectionVariables.get('derived_eth_additions');",
+                "",
+                "if(!usdPayoffs || !ethAdditions){",
+                "  throw new Error('Phase 0 data missing — run Phase 2 first');",
+                "}",
+                "",
+                "var usdData = JSON.parse(usdPayoffs);",
+                "pm.sendRequest({",
+                "  url: base+'/addScheduledCashFlowModel',",
+                "  method: 'POST',",
+                "  header: {'Content-Type':'application/json'},",
+                "  body: {mode:'raw', raw:JSON.stringify({",
+                "    riskFactorId: 'scf_usd_payoffs',",
+                "    cashFlowSchedule: usdData,",
+                "    monitoringEventTimes: usdData.map(d => d.time)",
+                "  })}",
+                "},function(e,r){console.log(e?'❌ scf_usd_payoffs':'✅ scf_usd_payoffs: '+usdData.length+' USD prepayments');});",
+                "",
+                "var ethData = JSON.parse(ethAdditions).map(e => ({time:e.time, amountUSD:e.amountETH * e.priceUSD}));",
+                "pm.sendRequest({",
+                "  url: base+'/addScheduledCashFlowModel',",
+                "  method: 'POST',",
+                "  header: {'Content-Type':'application/json'},",
+                "  body: {mode:'raw', raw:JSON.stringify({",
+                "    riskFactorId: 'scf_eth_additions',",
+                "    cashFlowSchedule: ethData,",
+                "    monitoringEventTimes: ethData.map(d => d.time)",
+                "  })}",
+                "},function(e,r){console.log(e?'❌ scf_eth_additions':'✅ scf_eth_additions: '+ethData.length+' ETH collateral adds');});",
+                "",
+                "pm.sendRequest({",
+                "  url: base+'/addScheduledCashFlowModel',",
+                "  method: 'POST',",
+                "  header: {'Content-Type':'application/json'},",
+                "  body: {mode:'raw', raw:JSON.stringify({",
+                "    riskFactorId: 'scf_loan_disbursement',",
+                "    cashFlowSchedule: [{time:'2025-01-01T00:00:00', amountUSD:9000}],",
+                "    monitoringEventTimes: ['2025-01-01T00:00:00']",
+                "  })}",
+                "},function(e,r){console.log(e?'❌ scf_loan_disbursement':'✅ scf_loan_disbursement: $9000 initial loan');});",
+                "",
+                "console.log('Phase 3: 3 SCF models registered');"
+              ]
+            }
+          }],
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Derived Models',function(){pm.response.to.have.status(200);console.log('✅ Phase 3 complete: SCF models registered');});"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 4: Full Consolidated Scenario ══",
+      "item": [
+        {
+          "name": "4.1 Full Scenario (8 descriptors)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": ["{{actus_risk_host}}"],
+              "protocol": "http",
+              "path": ["addScenario"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"defi_eth_full_scn\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"DEFI_RAT_30D_DAILY\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"ETH_PRICE_30D\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"DUMMY_RI\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"defi_pp_30d_v3\", \"riskFactorType\": \"TwoDimensionalPrepaymentModel\"},\n    {\"riskFactorID\": \"ltv_30d_v3\", \"riskFactorType\": \"CollateralLTVModel\"},\n    {\"riskFactorID\": \"scf_usd_payoffs\", \"riskFactorType\": \"ScheduledCashFlowModel\"},\n    {\"riskFactorID\": \"scf_eth_additions\", \"riskFactorType\": \"ScheduledCashFlowModel\"},\n    {\"riskFactorID\": \"scf_loan_disbursement\", \"riskFactorType\": \"ScheduledCashFlowModel\"}\n  ]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Full Scenario',function(){pm.response.to.have.status(200);console.log('✅ defi_eth_full_scn: 8 descriptors (3 RI + 2 BM + 3 SCF)');});"]
+            }
+          }]
+        },
+        {
+          "name": "4.2 Run Full Simulation (4 contracts)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": ["{{actus_sim_host}}"],
+              "protocol": "http",
+              "path": ["rf2", "scenarioSimulation"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"ETH-COLLATERAL-LOCKED\",\n      \"statusDate\": \"2024-12-31T23:59:00\",\n      \"contractRole\": \"RPA\",\n      \"currency\": \"ETH\",\n      \"contractDealDate\": \"2024-12-31T23:59:00\",\n      \"initialExchangeDate\": \"2025-01-01T00:00:00\",\n      \"notionalPrincipal\": 5.0,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2025-01-31T00:00:00\",\n      \"maturityDate\": \"2025-01-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\"scf_eth_additions\"]\n    },\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"ETH-RESERVE-AVAILABLE\",\n      \"statusDate\": \"2024-12-31T23:59:00\",\n      \"contractRole\": \"RPA\",\n      \"currency\": \"ETH\",\n      \"contractDealDate\": \"2024-12-31T23:59:00\",\n      \"initialExchangeDate\": \"2025-01-01T00:00:00\",\n      \"notionalPrincipal\": 5.0,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2025-01-31T00:00:00\",\n      \"maturityDate\": \"2025-01-31T00:00:00\",\n      \"xDayNotice\": \"P1D\"\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2024-12-31T23:59:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"LOAN-USD-9000\",\n      \"cycleAnchorDateOfInterestPayment\": \"2025-01-31T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.05,\n      \"dayCountConvention\": \"AA365S\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2024-12-31T23:59:00\",\n      \"initialExchangeDate\": \"2025-01-01T00:00:00\",\n      \"maturityDate\": \"2025-01-31T00:00:00\",\n      \"notionalPrincipal\": 9000,\n      \"premiumDiscountAtIED\": 0,\n      \"cycleAnchorDateOfRateReset\": \"2025-01-01T00:00:00\",\n      \"cycleOfRateReset\": \"P1DL0\",\n      \"rateSpread\": 0.0,\n      \"marketObjectCodeOfRateReset\": \"DEFI_RATE\",\n      \"prepaymentModels\": [\"defi_pp_30d_v3\", \"ltv_30d_v3\"]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TREASURY-CASH-USD\",\n      \"statusDate\": \"2024-12-31T23:59:00\",\n      \"contractRole\": \"RPA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2024-12-31T23:59:00\",\n      \"initialExchangeDate\": \"2025-01-01T00:00:00\",\n      \"maturityDate\": \"2025-01-31T00:00:00\",\n      \"notionalPrincipal\": 0.0,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"premiumDiscountAtIED\": 0.0,\n      \"treasuryModels\": [\"scf_loan_disbursement\", \"scf_usd_payoffs\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\"scenarioID\": \"defi_eth_full_scn\", \"scenarioType\": \"scenario\"},\n  \"simulateTo\": \"2025-02-01T00:00:00\",\n  \"monitoringTimes\": [\n    \"2025-01-01T00:00:00\",\n    \"2025-01-02T00:00:00\",\n    \"2025-01-04T00:00:00\",\n    \"2025-01-08T00:00:00\",\n    \"2025-01-11T00:00:00\",\n    \"2025-01-12T06:00:00\",\n    \"2025-01-12T12:00:00\",\n    \"2025-01-15T00:00:00\",\n    \"2025-01-17T00:00:00\",\n    \"2025-01-17T18:00:00\",\n    \"2025-01-22T00:00:00\",\n    \"2025-01-26T00:00:00\",\n    \"2025-01-31T00:00:00\"\n  ]\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Full Consolidated Simulation',function(){",
+                "  pm.response.to.have.status(200);",
+                "  var data = pm.response.json();",
+                "  ",
+                "  console.log('═'.repeat(70));",
+                "  console.log('HT-CONS-time-2 — DEFI ETH TREASURY CONSOLIDATION');",
+                "  console.log('  10 ETH initial · 5 ETH collateral · 5 ETH reserve · $9K loan');",
+                "  console.log('═'.repeat(70));",
+                "  ",
+                "  data.forEach(function(c){",
+                "    var id = c.contractID || c.contractId || '?';",
+                "    var events = c.events || [];",
+                "    var counts = {};",
+                "    events.forEach(e => counts[e.type] = (counts[e.type]||0)+1);",
+                "    var countStr = Object.keys(counts).map(k => k+'='+counts[k]).join(', ');",
+                "    ",
+                "    if(id.indexOf('ETH-COLLATERAL')>=0){",
+                "      var net = events.reduce((sum,e)=>(sum+(e.payoff||0)),0);",
+                "      console.log('');",
+                "      console.log('  ┌─ '+id+' ─────────');",
+                "      console.log('  │ Events: '+events.length);",
+                "      console.log('  │ Types: '+countStr);",
+                "      console.log('  │ Net ETH change: '+net.toFixed(4)+' ETH');",
+                "      console.log('  └─────────────────────────────────');",
+                "    }",
+                "    else if(id.indexOf('ETH-RESERVE')>=0){",
+                "      var net = events.reduce((sum,e)=>(sum+(e.payoff||0)),0);",
+                "      console.log('');",
+                "      console.log('  ┌─ '+id+' ─────────');",
+                "      console.log('  │ Events: '+events.length);",
+                "      console.log('  │ Types: '+countStr);",
+                "      console.log('  │ Net ETH: '+net.toFixed(4)+' ETH (available)');",
+                "      console.log('  └─────────────────────────────────');",
+                "    }",
+                "    else if(id.indexOf('LOAN')>=0){",
+                "      var pps = events.filter(e=>e.type==='PP'&&Math.abs(e.payoff||0)>0.01);",
+                "      var ip = events.find(e=>e.type==='IP');",
+                "      var md = events.find(e=>e.type==='MD');",
+                "      console.log('');",
+                "      console.log('  ┌─ '+id+' ─────────');",
+                "      console.log('  │ Events: '+events.length);",
+                "      console.log('  │ Prepayments: '+pps.length);",
+                "      pps.forEach((p,i)=>console.log('  │   PP#'+(i+1)+' '+p.time+': $'+p.payoff.toFixed(2)));",
+                "      console.log('  │ Interest: $'+(ip?ip.payoff.toFixed(2):'0'));",
+                "      console.log('  │ Final principal: $'+(md?md.payoff.toFixed(2):'0'));",
+                "      console.log('  └─────────────────────────────────');",
+                "    }",
+                "    else if(id.indexOf('TREASURY')>=0){",
+                "      var net = events.reduce((sum,e)=>(sum+(e.payoff||0)),0);",
+                "      console.log('');",
+                "      console.log('  ┌─ '+id+' ─────────');",
+                "      console.log('  │ Events: '+events.length);",
+                "      console.log('  │ Types: '+countStr);",
+                "      console.log('  │ Net USD: $'+net.toFixed(2));",
+                "      console.log('  │ (loan inflow - prepayment outflows)');",
+                "      console.log('  └─────────────────────────────────');",
+                "    }",
+                "  });",
+                "  ",
+                "  console.log('');",
+                "  console.log('═'.repeat(70));",
+                "});"
+              ]
+            }
+          }]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "actus_risk_host", "value": "34.203.247.32:8082"},
+    {"key": "actus_sim_host", "value": "34.203.247.32:8083"},
+    {"key": "derived_usd_payoffs", "value": ""},
+    {"key": "derived_eth_additions", "value": ""}
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "info": {
+    "_postman_id": "sc-re-pc-90d-001",
+    "name": "SupplyChain-RevenueElasticity-PortCongestion-90d",
+    "description": "ACTUS Supply Chain Tariff: REVENUE ELASTICITY + PORT CONGESTION (Vietnam-US auto parts corridor).\n\nTWO supply chain tariff behavioral models run simultaneously:\n  1. RevenueElasticityModel (7.4) — Armington demand elasticity revenue decline\n  2. PortCongestionModel (7.6) — port dwell time extension + financial impact\n\nScenario: Vietnam-US auto parts exporter, $8M trade finance facility\n  Baseline tariff: 5% (HS Chapter 87 auto parts, MFN rate)\n  Tariff escalation: 5% → 30% (reciprocal tariff + anti-circumvention)\n  Product elasticity: 1.8 (auto parts sector, GTAP v11)\n  Pass-through: 0.70 (70% of tariff passed to buyer)\n  Base port dwell: 4 days, extends to 12 days under congestion\n  Financial impact: 0.001875/day (fraction of notional = $15K/$8M)\n\nKEY DYNAMICS:\n  Days 1-10:  Tariff low, ports clear → minimal impact\n  Days 11-30: Tariff ramps → revenue declines ~38% (1.8 × 0.30 × 0.70)\n              Port congestion index spikes → dwell 4 → 12 days\n  Days 31-60: Peak stress: revenue down 38%, port delays +8 days\n              Financial impact: 8 days × 0.001875 = 1.5% of notional ($120K)\n  Days 61-90: Partial tariff rollback → revenue recovers partially\n              Port congestion eases → dwell normalizes\n\nReferences:\n  - Armington (1969): substitution elasticity framework\n  - GTAP v11: auto parts sector elasticities\n  - WTO Trade Monitoring Report\n  - UNCTAD Review of Maritime Transport (port congestion data)\n  - Freightos Baltic Index (container rates)\n\nContract: PAM representing trade finance loan\n  notionalPrincipal = 8000000 ($8M trade finance facility)\n  nominalInterestRate = 0.065 (SOFR + 200bps trade finance premium)\n  tariffModels: [re_vnm01, pc_vnm01]\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1a. Add TARIFF_INDEX (Vietnam-US auto parts tariff)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"TARIFF_IDX_03\",\"marketObjectCode\":\"TARIFF_INDEX_VN\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.05},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.05},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.08},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.12},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.18},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.25},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.30},{\"time\":\"2026-04-10T00:00:00\",\"value\":0.30},{\"time\":\"2026-04-20T00:00:00\",\"value\":0.30},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.30},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.25},{\"time\":\"2026-05-20T00:00:00\",\"value\":0.20},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.15}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TARIFF_INDEX_VN added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 TARIFF_IDX_03: 5% MFN \\u2192 30% peak (reciprocal+anti-circumvention) \\u2192 15% rollback');",
+        "    console.log('   Vietnam-US HS87 auto parts');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "1b. Add USD_SOFR Reference Rate (for PAM rate resets)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SOFR_IDX_01\",\"marketObjectCode\":\"USD_SOFR\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.043},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.043},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.042},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.042},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.041},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.041},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.040}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('USD_SOFR reference rate added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SOFR_IDX_01: USD_SOFR 4.3% \\u2192 4.0% (Mar-May 2026)');",
+        "    console.log('   Required for PAM rate reset: SOFR + 200bps spread');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add PORT_CONGESTION_INDEX (port dwell multiplier)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"PORT_CONG_01\",\"marketObjectCode\":\"PORT_CONGESTION_INDEX\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":4.0},{\"time\":\"2026-03-10T00:00:00\",\"value\":4.5},{\"time\":\"2026-03-15T00:00:00\",\"value\":5.5},{\"time\":\"2026-03-20T00:00:00\",\"value\":7.0},{\"time\":\"2026-03-25T00:00:00\",\"value\":9.0},{\"time\":\"2026-03-31T00:00:00\",\"value\":11.0},{\"time\":\"2026-04-10T00:00:00\",\"value\":12.0},{\"time\":\"2026-04-20T00:00:00\",\"value\":11.5},{\"time\":\"2026-04-30T00:00:00\",\"value\":10.0},{\"time\":\"2026-05-10T00:00:00\",\"value\":8.0},{\"time\":\"2026-05-20T00:00:00\",\"value\":6.0},{\"time\":\"2026-05-31T00:00:00\",\"value\":5.0}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PORT_CONGESTION_INDEX added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 PORT_CONG_01: 4 days baseline \\u2192 12 days peak \\u2192 5 days recovery');",
+        "    console.log('   Port dwell time: HCMC/Cat Lai \\u2192 LA/Long Beach');",
+        "    console.log('   Peak congestion: +8 days \\u00d7 0.001875/day = 1.5% of notional');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add RevenueElasticityModel (re_vnm01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addRevenueElasticityModel",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addRevenueElasticityModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"re_vnm01\",\"tariffIndexMOC\":\"TARIFF_INDEX_VN\",\"productElasticity\":1.8,\"baseRevenue\":8000000.0,\"passThrough\":0.70,\"revenueFloorFraction\":0.40,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('RevenueElasticityModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 re_vnm01: RevenueElasticityModel (bi-weekly, 90 days)');",
+        "    console.log('   productElasticity=1.8, passThrough=0.70, floor=40%');",
+        "    console.log('   At 30% tariff: decline = 1.8 \\u00d7 0.30 \\u00d7 0.70 = 37.8% revenue drop');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add PortCongestionModel (pc_vnm01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addPortCongestionModel",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addPortCongestionModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"pc_vnm01\",\"portCongestionIndexMOC\":\"PORT_CONGESTION_INDEX\",\"tariffIndexMOC\":\"TARIFF_INDEX_VN\",\"baseDwellDays\":4.0,\"congestionSensitivity\":0.5,\"maxDelayDays\":10.0,\"financialImpactPerDay\":0.001875,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PortCongestionModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 pc_vnm01: PortCongestionModel (bi-weekly, 90 days)');",
+        "    console.log('   baseDwell=4 days, maxDelay=10 days, 0.001875/day ($15K/$8M notional)');",
+        "    console.log('   At peak: delay=min(12-4,10)=8 days, impact=8\\u00d70.001875=0.015 (1.5% of notional)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add Revenue-Congestion Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addScenario",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"tariff_rev_port_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"TARIFF_IDX_03\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SOFR_IDX_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"PORT_CONG_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"re_vnm01\",\"riskFactorType\":\"RevenueElasticityModel\"},{\"riskFactorID\":\"pc_vnm01\",\"riskFactorType\":\"PortCongestionModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Revenue-congestion scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 tariff_rev_port_scn01: 3 indexes + 2 tariff behavioral models');",
+        "    console.log('   Indexes: TARIFF_INDEX_VN, USD_SOFR, PORT_CONGESTION_INDEX');",
+        "    console.log('   Models:  re_vnm01 (revenue elasticity), pc_vnm01 (port congestion)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6a. Verify RevenueElasticityModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://34.203.247.32:8082/findRevenueElasticityModel/re_vnm01",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["findRevenueElasticityModel", "re_vnm01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('RevenueElasticityModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('re_vnm01');",
+        "    pm.expect(d.productElasticity).to.eql(1.8);",
+        "    console.log('\\u2705 re_vnm01 confirmed: elasticity=' + d.productElasticity + ', passThrough=' + d.passThrough);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6b. Verify PortCongestionModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://34.203.247.32:8082/findPortCongestionModel/pc_vnm01",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["findPortCongestionModel", "pc_vnm01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PortCongestionModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('pc_vnm01');",
+        "    pm.expect(d.financialImpactPerDay).to.eql(0.001875);",
+        "    console.log('\\u2705 pc_vnm01 confirmed: baseDwell=' + d.baseDwellDays + ', impact/day=' + d.financialImpactPerDay + ' (fraction of notional)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7. Run Vietnam-US Revenue+PortCongestion Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["34.203.247.32:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"VietnamExporter-TradeFin-01\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.065,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":8000000,\"premiumDiscountAtIED\":0,\"cycleOfRateReset\":\"P1ML0\",\"cycleAnchorDateOfRateReset\":\"2026-03-31T00:00:00\",\"marketObjectCodeOfRateReset\":\"USD_SOFR\",\"rateMultiplier\":1.0,\"rateSpread\":0.02,\"tariffModels\":[\"re_vnm01\",\"pc_vnm01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"tariff_rev_port_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-05-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Vietnam-US revenue+port congestion simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('VIETNAM-US REVENUE ELASTICITY + PORT CONGESTION');",
+        "    console.log('  Exporter: $8M trade finance, auto parts HS87');",
+        "    console.log('  Tariff: 5% MFN \\u2192 30% peak \\u2192 15% rollback');",
+        "    console.log('  Elasticity: 1.8, pass-through: 70%');",
+        "    console.log('  Port dwell: 4 \\u2192 12 days, 0.001875/day of notional');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('Total events: ' + events.length);",
+        "    var counts = {};",
+        "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "    Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+        "    console.log('');",
+        "    console.log('ALL EVENTS:');",
+        "    events.forEach(function(e){",
+        "        console.log('  '+e.time+' '+e.type+' payoff=$'+e.payoff.toFixed(2)+' nominal='+e.nominalValue.toFixed(2)+' rate='+e.nominalRate.toFixed(6));",
+        "    });",
+        "    var rrs = events.filter(function(e){return e.type==='RR';});",
+        "    if(rrs.length>0){console.log(''); console.log('RATE RESETS (SOFR + 200bps):');",
+        "        rrs.forEach(function(r){console.log('  '+r.time+' newRate='+r.nominalRate.toFixed(6));});}",
+        "    var pps = events.filter(function(e){return e.type==='PP';});",
+        "    if(pps.length>0){console.log(''); console.log('BEHAVIORAL CALLOUTS (PP events from tariff models):');",
+        "        pps.forEach(function(m){console.log('  '+m.time+' payoff=$'+m.payoff.toFixed(2)+' nominal='+m.nominalValue.toFixed(2));});}",
+        "    var ips = events.filter(function(e){return e.type==='IP';});",
+        "    if(ips.length>0){console.log(''); console.log('INTEREST PAYMENTS:');",
+        "        ips.forEach(function(m){console.log('  '+m.time+' IP=$'+m.payoff.toFixed(2)+' rate='+m.nominalRate.toFixed(6));});}",
+        "});"
+      ]}}]
+    }
+  ]
+}

@@ -1,0 +1,240 @@
+{
+  "info": {
+    "_postman_id": "sc-cd-30d-iter5",
+    "name": "StableCoin-ConcentrationDrift-30d-iter5",
+    "description": "APPROACH 3 iter5 — CONCENTRATION DRIFT MODEL (6.5): HHI across 7-instrument portfolio.\n\nPortfolio: $101,000 reserves (7 instruments) / $100,000 token supply\n  Bucket         | Day 1 Amount | Share  | HQLA\n  CASH (2 instr) |  $23,000     | 22.8%  | L1\n  4W_TBILL       |  $10,000     |  9.9%  | L1  (matures day 18)\n  13W_TBILL      |  $32,000     | 31.7%  | L1\n  26W_TBILL      |  $26,000     | 25.7%  | L1\n  COMMPAPER      |   $6,000     |  5.9%  | L2A\n  DEFI           |   $4,000     |  4.0%  | L2B\n\nStarting HHI = 0.02^2 + ... sum of squares = ~0.185\n  (well diversified: HHI < hhiWarningThreshold=0.35)\n\nSTRESS SCENARIO — REDEMPTION DRAINS CASH:\n  Days 1-10:   Normal. Cash drain ~$600/day from redemption pressure\n  Days 11-18:  HALT PERIOD — heavy redemption drains cash rapidly\n               Cash bucket: $23k -> $17k = 22.8% -> 17.0%\n               Other buckets hold (T-bills not liquidated)\n               HHI rises as cash share drops, 13W tbill dominates\n  Day 18:      tbill-4wk-001 matures -> +$10k cash injected\n               Cash: $17k -> $27k = 17.0% -> 26.7%\n               HHI improves (4 buckets more balanced)\n  Days 19-30:  Recovery rolling — new 4wk tbill purchased\n               HHI returns toward baseline\n\nKEY CHANGE vs stablecoin-1:\n  7 buckets (not 4): CASH, 4W, 13W, 26W, COMMPAPER, DEFI, NEW_TBILL\n  maxSingleAssetShare=0.35 (not 0.40 — tighter for GENIUS/MiCA)\n  hhiWarningThreshold=0.30 (not 0.35 — more sensitive)\n  Realistic bucket sizes from actual iter5 portfolio\n  13W tbill $32k = 31.7% share is largest single bucket\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add SC_BUCKET_CASH_I5 (cash-reserve + operating-cash combined)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_CASH_BKT_I5\",\"marketObjectCode\":\"SC_BUCKET_CASH\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":23000},{\"time\":\"2026-03-04T00:00:00\",\"value\":22900},{\"time\":\"2026-03-05T00:00:00\",\"value\":22700},{\"time\":\"2026-03-06T00:00:00\",\"value\":22400},{\"time\":\"2026-03-07T00:00:00\",\"value\":22000},{\"time\":\"2026-03-08T00:00:00\",\"value\":21500},{\"time\":\"2026-03-09T00:00:00\",\"value\":21000},{\"time\":\"2026-03-10T00:00:00\",\"value\":20400},{\"time\":\"2026-03-11T00:00:00\",\"value\":20100},{\"time\":\"2026-03-12T00:00:00\",\"value\":19800},{\"time\":\"2026-03-13T00:00:00\",\"value\":19400},{\"time\":\"2026-03-14T00:00:00\",\"value\":18900},{\"time\":\"2026-03-15T00:00:00\",\"value\":18300},{\"time\":\"2026-03-16T00:00:00\",\"value\":17800},{\"time\":\"2026-03-17T00:00:00\",\"value\":17400},{\"time\":\"2026-03-18T00:00:00\",\"value\":17000},{\"time\":\"2026-03-19T00:00:00\",\"value\":17100},{\"time\":\"2026-03-20T00:00:00\",\"value\":17200},{\"time\":\"2026-03-21T00:00:00\",\"value\":27100},{\"time\":\"2026-03-22T00:00:00\",\"value\":27000},{\"time\":\"2026-03-23T00:00:00\",\"value\":26800},{\"time\":\"2026-03-24T00:00:00\",\"value\":26500},{\"time\":\"2026-03-25T00:00:00\",\"value\":24500},{\"time\":\"2026-03-26T00:00:00\",\"value\":24000},{\"time\":\"2026-03-27T00:00:00\",\"value\":23500},{\"time\":\"2026-03-28T00:00:00\",\"value\":23000},{\"time\":\"2026-03-29T00:00:00\",\"value\":22800},{\"time\":\"2026-03-30T00:00:00\",\"value\":22600}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_BUCKET_CASH_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_CASH_BKT_I5: $23k (22.8%) \\u2192 $17k (17.0%) HALT \\u2192 $27.1k (26.7%) RESTORE');",
+        "    console.log('   Day 18: tbill-4wk matures \\u2192 +$10k injected \\u2192 liq 17%\\u219227.1%');",
+        "    console.log('   Days 25+: new tbill purchased \\u2192 cash drops back to ~22-23k');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add SC_BUCKET_4W_I5 (tbill-4wk-001: matures day 18)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_4W_BKT_I5\",\"marketObjectCode\":\"SC_BUCKET_4W_TBILL\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":10000},{\"time\":\"2026-03-04T00:00:00\",\"value\":10000},{\"time\":\"2026-03-05T00:00:00\",\"value\":10000},{\"time\":\"2026-03-06T00:00:00\",\"value\":10000},{\"time\":\"2026-03-07T00:00:00\",\"value\":10000},{\"time\":\"2026-03-08T00:00:00\",\"value\":10000},{\"time\":\"2026-03-09T00:00:00\",\"value\":10000},{\"time\":\"2026-03-10T00:00:00\",\"value\":10000},{\"time\":\"2026-03-11T00:00:00\",\"value\":10000},{\"time\":\"2026-03-12T00:00:00\",\"value\":10000},{\"time\":\"2026-03-13T00:00:00\",\"value\":10000},{\"time\":\"2026-03-14T00:00:00\",\"value\":10000},{\"time\":\"2026-03-15T00:00:00\",\"value\":10000},{\"time\":\"2026-03-16T00:00:00\",\"value\":10000},{\"time\":\"2026-03-17T00:00:00\",\"value\":10000},{\"time\":\"2026-03-18T00:00:00\",\"value\":10000},{\"time\":\"2026-03-19T00:00:00\",\"value\":10000},{\"time\":\"2026-03-20T00:00:00\",\"value\":10000},{\"time\":\"2026-03-21T00:00:00\",\"value\":0},{\"time\":\"2026-03-22T00:00:00\",\"value\":0},{\"time\":\"2026-03-23T00:00:00\",\"value\":0},{\"time\":\"2026-03-24T00:00:00\",\"value\":0},{\"time\":\"2026-03-25T00:00:00\",\"value\":2000},{\"time\":\"2026-03-26T00:00:00\",\"value\":2000},{\"time\":\"2026-03-27T00:00:00\",\"value\":2000},{\"time\":\"2026-03-28T00:00:00\",\"value\":2000},{\"time\":\"2026-03-29T00:00:00\",\"value\":2000},{\"time\":\"2026-03-30T00:00:00\",\"value\":2000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_BUCKET_4W_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_4W_BKT_I5: $10k constant \\u2192 $0 (matures day 18) \\u2192 $2k (new 4wk tbill day 25)');",
+        "    console.log('   MATURITY EVENT: tbill-4wk-001 matures 2026-03-21 \\u2192 cash injection');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add SC_BUCKET_13W_I5 (tbill-13wk-001: $32k dominant bucket)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_13W_BKT_I5\",\"marketObjectCode\":\"SC_BUCKET_13W_TBILL\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":32000},{\"time\":\"2026-03-04T00:00:00\",\"value\":32000},{\"time\":\"2026-03-05T00:00:00\",\"value\":32000},{\"time\":\"2026-03-06T00:00:00\",\"value\":32000},{\"time\":\"2026-03-07T00:00:00\",\"value\":32000},{\"time\":\"2026-03-08T00:00:00\",\"value\":32000},{\"time\":\"2026-03-09T00:00:00\",\"value\":32000},{\"time\":\"2026-03-10T00:00:00\",\"value\":32000},{\"time\":\"2026-03-11T00:00:00\",\"value\":32000},{\"time\":\"2026-03-12T00:00:00\",\"value\":32000},{\"time\":\"2026-03-13T00:00:00\",\"value\":32000},{\"time\":\"2026-03-14T00:00:00\",\"value\":32000},{\"time\":\"2026-03-15T00:00:00\",\"value\":32000},{\"time\":\"2026-03-16T00:00:00\",\"value\":32000},{\"time\":\"2026-03-17T00:00:00\",\"value\":32000},{\"time\":\"2026-03-18T00:00:00\",\"value\":32000},{\"time\":\"2026-03-19T00:00:00\",\"value\":32000},{\"time\":\"2026-03-20T00:00:00\",\"value\":32000},{\"time\":\"2026-03-21T00:00:00\",\"value\":32000},{\"time\":\"2026-03-22T00:00:00\",\"value\":32000},{\"time\":\"2026-03-23T00:00:00\",\"value\":32000},{\"time\":\"2026-03-24T00:00:00\",\"value\":32000},{\"time\":\"2026-03-25T00:00:00\",\"value\":32000},{\"time\":\"2026-03-26T00:00:00\",\"value\":32000},{\"time\":\"2026-03-27T00:00:00\",\"value\":32000},{\"time\":\"2026-03-28T00:00:00\",\"value\":32000},{\"time\":\"2026-03-29T00:00:00\",\"value\":32000},{\"time\":\"2026-03-30T00:00:00\",\"value\":32000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_BUCKET_13W_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_13W_BKT_I5: $32k constant (dominant bucket = 31.7% of portfolio)');",
+        "    console.log('   13W tbill is largest single position \\u2014 HHI concentration watchpoint');",
+        "    console.log('   Day 21 on: cash jumps \\u2192 13W share drops from ~33% to ~30%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add SC_BUCKET_26W_I5 (tbill-26wk-001: $26k stable)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_26W_BKT_I5\",\"marketObjectCode\":\"SC_BUCKET_26W_TBILL\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":26000},{\"time\":\"2026-03-04T00:00:00\",\"value\":26000},{\"time\":\"2026-03-05T00:00:00\",\"value\":26000},{\"time\":\"2026-03-06T00:00:00\",\"value\":26000},{\"time\":\"2026-03-07T00:00:00\",\"value\":26000},{\"time\":\"2026-03-08T00:00:00\",\"value\":26000},{\"time\":\"2026-03-09T00:00:00\",\"value\":26000},{\"time\":\"2026-03-10T00:00:00\",\"value\":26000},{\"time\":\"2026-03-11T00:00:00\",\"value\":26000},{\"time\":\"2026-03-12T00:00:00\",\"value\":26000},{\"time\":\"2026-03-13T00:00:00\",\"value\":26000},{\"time\":\"2026-03-14T00:00:00\",\"value\":26000},{\"time\":\"2026-03-15T00:00:00\",\"value\":26000},{\"time\":\"2026-03-16T00:00:00\",\"value\":26000},{\"time\":\"2026-03-17T00:00:00\",\"value\":26000},{\"time\":\"2026-03-18T00:00:00\",\"value\":26000},{\"time\":\"2026-03-19T00:00:00\",\"value\":26000},{\"time\":\"2026-03-20T00:00:00\",\"value\":26000},{\"time\":\"2026-03-21T00:00:00\",\"value\":26000},{\"time\":\"2026-03-22T00:00:00\",\"value\":26000},{\"time\":\"2026-03-23T00:00:00\",\"value\":26000},{\"time\":\"2026-03-24T00:00:00\",\"value\":26000},{\"time\":\"2026-03-25T00:00:00\",\"value\":26000},{\"time\":\"2026-03-26T00:00:00\",\"value\":26000},{\"time\":\"2026-03-27T00:00:00\",\"value\":26000},{\"time\":\"2026-03-28T00:00:00\",\"value\":26000},{\"time\":\"2026-03-29T00:00:00\",\"value\":26000},{\"time\":\"2026-03-30T00:00:00\",\"value\":26000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_BUCKET_26W_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_26W_BKT_I5: $26k constant throughout (matures 2026-06-15, outside sim window)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add SC_BUCKET_COMMPAPER_I5 (commpaper-90d-001: $6k L2A)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_CP_BKT_I5\",\"marketObjectCode\":\"SC_BUCKET_COMMPAPER\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":6000},{\"time\":\"2026-03-04T00:00:00\",\"value\":6000},{\"time\":\"2026-03-05T00:00:00\",\"value\":6000},{\"time\":\"2026-03-06T00:00:00\",\"value\":6000},{\"time\":\"2026-03-07T00:00:00\",\"value\":6000},{\"time\":\"2026-03-08T00:00:00\",\"value\":6000},{\"time\":\"2026-03-09T00:00:00\",\"value\":6000},{\"time\":\"2026-03-10T00:00:00\",\"value\":6000},{\"time\":\"2026-03-11T00:00:00\",\"value\":6000},{\"time\":\"2026-03-12T00:00:00\",\"value\":5900},{\"time\":\"2026-03-13T00:00:00\",\"value\":5800},{\"time\":\"2026-03-14T00:00:00\",\"value\":5700},{\"time\":\"2026-03-15T00:00:00\",\"value\":5600},{\"time\":\"2026-03-16T00:00:00\",\"value\":5500},{\"time\":\"2026-03-17T00:00:00\",\"value\":5400},{\"time\":\"2026-03-18T00:00:00\",\"value\":5300},{\"time\":\"2026-03-19T00:00:00\",\"value\":5300},{\"time\":\"2026-03-20T00:00:00\",\"value\":5400},{\"time\":\"2026-03-21T00:00:00\",\"value\":5500},{\"time\":\"2026-03-22T00:00:00\",\"value\":5600},{\"time\":\"2026-03-23T00:00:00\",\"value\":5700},{\"time\":\"2026-03-24T00:00:00\",\"value\":5800},{\"time\":\"2026-03-25T00:00:00\",\"value\":5900},{\"time\":\"2026-03-26T00:00:00\",\"value\":6000},{\"time\":\"2026-03-27T00:00:00\",\"value\":6000},{\"time\":\"2026-03-28T00:00:00\",\"value\":6000},{\"time\":\"2026-03-29T00:00:00\",\"value\":6000},{\"time\":\"2026-03-30T00:00:00\",\"value\":6000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_BUCKET_COMMPAPER_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_CP_BKT_I5: $6k \\u2192 $5.3k trough (MtM decline under bank stress) \\u2192 $6k recovery');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add SC_BUCKET_DEFI_I5 (defi-yield-001: $4k L2B volatile)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_DEFI_BKT_I5\",\"marketObjectCode\":\"SC_BUCKET_DEFI\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":4000},{\"time\":\"2026-03-04T00:00:00\",\"value\":4000},{\"time\":\"2026-03-05T00:00:00\",\"value\":4000},{\"time\":\"2026-03-06T00:00:00\",\"value\":4000},{\"time\":\"2026-03-07T00:00:00\",\"value\":3900},{\"time\":\"2026-03-08T00:00:00\",\"value\":3800},{\"time\":\"2026-03-09T00:00:00\",\"value\":3700},{\"time\":\"2026-03-10T00:00:00\",\"value\":3600},{\"time\":\"2026-03-11T00:00:00\",\"value\":3500},{\"time\":\"2026-03-12T00:00:00\",\"value\":3400},{\"time\":\"2026-03-13T00:00:00\",\"value\":3300},{\"time\":\"2026-03-14T00:00:00\",\"value\":3200},{\"time\":\"2026-03-15T00:00:00\",\"value\":3100},{\"time\":\"2026-03-16T00:00:00\",\"value\":3050},{\"time\":\"2026-03-17T00:00:00\",\"value\":3000},{\"time\":\"2026-03-18T00:00:00\",\"value\":3000},{\"time\":\"2026-03-19T00:00:00\",\"value\":3100},{\"time\":\"2026-03-20T00:00:00\",\"value\":3200},{\"time\":\"2026-03-21T00:00:00\",\"value\":3400},{\"time\":\"2026-03-22T00:00:00\",\"value\":3500},{\"time\":\"2026-03-23T00:00:00\",\"value\":3600},{\"time\":\"2026-03-24T00:00:00\",\"value\":3700},{\"time\":\"2026-03-25T00:00:00\",\"value\":3800},{\"time\":\"2026-03-26T00:00:00\",\"value\":3850},{\"time\":\"2026-03-27T00:00:00\",\"value\":3900},{\"time\":\"2026-03-28T00:00:00\",\"value\":3950},{\"time\":\"2026-03-29T00:00:00\",\"value\":4000},{\"time\":\"2026-03-30T00:00:00\",\"value\":4000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_BUCKET_DEFI_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_DEFI_BKT_I5: $4k \\u2192 $3k trough (crisis liquidation pressure) \\u2192 $4k recovery');",
+        "    console.log('   DeFi quality drops to 35 during halt period (days 11-18)');",
+        "    console.log('   25% value decline under extreme stress \\u2014 L2B risk materialized');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7. Add ConcentrationDriftModel iter5 (cd_sc_i5 — 6 buckets)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addConcentrationDriftModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addConcentrationDriftModel"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"cd_sc_i5\",\"assetBucketMOCs\":[\"SC_BUCKET_CASH\",\"SC_BUCKET_4W_TBILL\",\"SC_BUCKET_13W_TBILL\",\"SC_BUCKET_26W_TBILL\",\"SC_BUCKET_COMMPAPER\",\"SC_BUCKET_DEFI\"],\"maxSingleAssetShare\":0.35,\"hhiWarningThreshold\":0.30,\"monitoringEventTimes\":[\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ConcentrationDriftModel iter5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 cd_sc_i5: 6 buckets (CASH/4W/13W/26W/COMMPAPER/DEFI)');",
+        "    console.log('   maxSingleAssetShare=0.35 (tighter than 0.40 \\u2014 GENIUS/MiCA)');",
+        "    console.log('   hhiWarningThreshold=0.30 (more sensitive than 0.35)');",
+        "    console.log('   Day 1 HHI: 0.228^2+0.099^2+0.317^2+0.257^2+0.059^2+0.040^2 = 0.249');",
+        "    console.log('   Day 18 (4wk matures): HHI shifts as 13W becomes more dominant');",
+        "    console.log('   Day 21 (cash restored): HHI improves toward 0.249 baseline');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Add ConcentrationDrift iter5 Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost:8082"], "path": ["addScenario"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"sc_conc_iter5_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_CASH_BKT_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_4W_BKT_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_13W_BKT_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_26W_BKT_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_CP_BKT_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_DEFI_BKT_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"cd_sc_i5\",\"riskFactorType\":\"ConcentrationDriftModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ConcentrationDrift iter5 scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 sc_conc_iter5_scn01: 6 bucket indexes + ConcentrationDriftModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "9a. Verify ConcentrationDriftModel iter5",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://localhost:8082/findConcentrationDriftModel/cd_sc_i5", "protocol": "http", "host": ["localhost:8082"], "path": ["findConcentrationDriftModel", "cd_sc_i5"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ConcentrationDriftModel iter5 verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d=pm.response.json();",
+        "    pm.expect(d.maxSingleAssetShare).to.eql(0.35);",
+        "    pm.expect(d.hhiWarningThreshold).to.eql(0.30);",
+        "    console.log('\\u2705 cd_sc_i5: maxShare='+d.maxSingleAssetShare+' hhiWarn='+d.hhiWarningThreshold+' buckets='+d.assetBucketMOCs.length);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "9b. Verify Scenario",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://localhost:8082/findScenario/sc_conc_iter5_scn01", "protocol": "http", "host": ["localhost:8082"], "path": ["findScenario", "sc_conc_iter5_scn01"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario verified', function(){",
+        "    var types=pm.response.json().riskFactorDescriptors.map(function(d){return d.riskFactorType;});",
+        "    pm.expect(types).to.include('ConcentrationDriftModel');",
+        "    console.log('\\u2705 Descriptors: '+JSON.stringify(types));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "10. Run ConcentrationDrift iter5 Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost:8083"], "path": ["rf2", "scenarioSimulation"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"PAM\",\"statusDate\":\"2026-03-02T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"StableCoinA-CD-I5\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-03T00:00:00\",\"maturityDate\":\"2026-04-01T00:00:00\",\"notionalPrincipal\":100000,\"nominalInterestRate\":0.0,\"currency\":\"USD\",\"dayCountConvention\":\"A365\",\"stablecoinModels\":[\"cd_sc_i5\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"sc_conc_iter5_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-01T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ConcentrationDrift iter5 simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('');",
+        "    console.log('\\u2554\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2557');",
+        "    console.log('\\u2551  CONCENTRATION DRIFT (6.5) iter5 \\u2014 7-INSTRUMENT HHI                  \\u2551');",
+        "    console.log('\\u2551  6 buckets | maxShare=35% | hhiWarn=0.30                          \\u2551');",
+        "    console.log('\\u2560\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2563');",
+        "    console.log('\\u2551  Day 1 shares: CASH 22.8% 4W 9.9% 13W 31.7% 26W 25.7%           \\u2551');",
+        "    console.log('\\u2551  Day 1 HHI=0.249 (below 0.30 warning threshold)                  \\u2551');",
+        "    console.log('\\u2551  Day 11 (halt): cash drains \\u2192 13W share rises \\u2192 HHI creeps up     \\u2551');",
+        "    console.log('\\u2551  Day 18 (4wk matures): 4W bucket=0 \\u2192 concentration brief spike    \\u2551');",
+        "    console.log('\\u2551  Day 21 (cash restored $27.1k): HHI improves, balance restored    \\u2551');",
+        "    console.log('\\u2551  Day 25 (new 4wk $2k): 4W bucket refilled \\u2192 HHI normalizes       \\u2551');",
+        "    console.log('\\u255a\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u255d');",
+        "    var mrds = events.filter(function(e){return e.type==='MRD';});",
+        "    if(mrds.length > 0){",
+        "        console.log('\\u2550\\u2550 CONCENTRATION EVENTS \\u2550\\u2550');",
+        "        mrds.forEach(function(m){ console.log('  '+m.time+' excessConcentration='+m.payoff.toFixed(4)); });",
+        "    } else {",
+        "        console.log('\\u2705 No concentration breach events (HHI within acceptable range)');",
+        "    }",
+        "});",
+        "pm.test('Events generated', function(){ pm.expect(pm.response.json()[0].events.length).to.be.above(0); });"
+      ]}}]
+    }
+  ]
+}

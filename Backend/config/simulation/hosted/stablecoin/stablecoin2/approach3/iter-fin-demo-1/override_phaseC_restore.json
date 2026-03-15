@@ -1,0 +1,39 @@
+{
+  "overrideActive": true,
+  "description": "PHASE C — RESTORE: After Phase B cash withdrawal, operator intervenes with two TradFi mechanisms: (1) early T-bill liquidation at 3% penalty — sells the 26-week T-bill on secondary market before maturity, paying $3,750 penalty but freeing $121,250 as immediate cash; (2) $90,000 capital injection from treasury fund. Combined effect restores all three health metrics above thresholds.",
+  "portfolioAdjustments": [
+    {
+      "contractID": "cash-reserve-001",
+      "newNotionalPrincipal": 20000,
+      "reason": "Cash still at $20K from Phase B — regulatory payment already made"
+    }
+  ],
+  "contracts": [
+    {
+      "contractType": "PAM",
+      "contractID": "emergency-cash-inject-001",
+      "contractRole": "RPA",
+      "contractDealDate": "2026-03-06T00:00:00",
+      "initialExchangeDate": "2026-03-06T00:00:00",
+      "statusDate": "2026-03-06T00:00:00",
+      "maturityDate": "2026-03-07T00:00:00",
+      "notionalPrincipal": 90000,
+      "nominalInterestRate": 0.0,
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "calendar": "NC",
+      "businessDayConvention": "SCF",
+      "reserveCategory": "cash",
+      "hqlaCategory": "L1",
+      "description": "Emergency capital injection from treasury fund — $90,000"
+    }
+  ],
+  "earlyLiquidations": [
+    {
+      "contractID": "tbill-26wk-001",
+      "liquidationDate": "2026-03-06T00:00:00",
+      "penaltyPercent": 3.0,
+      "reason": "Sell 26-week T-bill on secondary market before maturity to restore liquidity"
+    }
+  ]
+}

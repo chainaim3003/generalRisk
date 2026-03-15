@@ -1,0 +1,147 @@
+{
+  "info": {
+    "_postman_id": "sc-ml-30d-iter5",
+    "name": "StableCoin-MaturityLadder-30d-iter5",
+    "description": "APPROACH 3 iter5 — MATURITY LADDER MODEL (6.3): T-bill roll decisions under iter5 lifecycle.\n\nDecision engine drives reserve management across the full HALT→RESTORE cycle.\nPEG_RISK_SCORE is a composite index derived from the iter5 multi-metric system:\n  score = pegDev*40 + ewSignals*10 + (1-liquidity)*10\n\nDECISION TREE (MaturityLadderModel.java — unchanged):\n  Score <  15  → NORMAL_ROLL        (signal=0.00) — roll 4wk at maturity\n  15 <= < 30   → SHORTEN_TENOR      (signal=0.25) — shorten maturities to 4wk\n  30 <= < 45   → CASH_RETENTION     (signal=0.50) — hold all proceeds as cash\n  Score >= 45  → EMERGENCY_LIQUIDATE (signal=1.00) — sell T-bills at market\n\n30-DAY LIFECYCLE (iter5 portfolio decisions):\n  Day 1-7:   Score 0-12 → NORMAL_ROLL (peg 0.05-0.13%, EW 0/4, liq 23%)\n  Days 8-10: Score 15-28 → SHORTEN_TENOR (EW 1-3/4 firing)\n  Day 11:    Score 32 → CASH_RETENTION (EW=4/4 fires, peg 2.1%)\n  Days 11-17: Score 35-48 → CASH_RETENTION to EMERGENCY_LIQUIDATE\n  Day 18:    tbill-4wk-001 MATURES \\u2192 $10k cash \\u2192 liq 17%\\u219228%\n             Score drops: EW clearing, liq restored\n             Decision: CASH_RETENTION \\u2192 SHORTEN_TENOR\n  Days 19-21: Score 20-28 → SHORTEN_TENOR (de-escalation)\n  Days 22-25: Score 10-14 → NORMAL_ROLL (mint restored)\n  Days 26-30: Score 0-8 → NORMAL_ROLL (full recovery)\n             New 4wk tbill purchased (score <10, cash >$25k)\n\nKEY CHANGE vs stablecoin-1:\n  Score calibrated to iter5 portfolio: peg curve peaks 2.5%, EW=4/4 day 11\n  EMERGENCY phase shorter (days 17-18 only: score 45-50)\n  Restore triggered by T-bill maturity cash injection on day 18\n  New tbill purchase decision at day 25 (score <10, excess cash)\n\nRegulatory context:\n  GENIUS Act WAM constraint: CASH_RETENTION helps if WAM approaching 93d\n  iter5 WAM stays <93d throughout — no regulatory intervention needed\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add PEG_RISK_SCORE_I5 (composite: pegDev + EW signals + liquidity)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addReferenceIndex", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_PEG_RISK_I5\",\"marketObjectCode\":\"PEG_RISK_SCORE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":0},{\"time\":\"2026-03-04T00:00:00\",\"value\":2},{\"time\":\"2026-03-05T00:00:00\",\"value\":4},{\"time\":\"2026-03-06T00:00:00\",\"value\":7},{\"time\":\"2026-03-07T00:00:00\",\"value\":10},{\"time\":\"2026-03-08T00:00:00\",\"value\":12},{\"time\":\"2026-03-09T00:00:00\",\"value\":14},{\"time\":\"2026-03-10T00:00:00\",\"value\":17},{\"time\":\"2026-03-11T00:00:00\",\"value\":22},{\"time\":\"2026-03-12T00:00:00\",\"value\":28},{\"time\":\"2026-03-13T00:00:00\",\"value\":32},{\"time\":\"2026-03-14T00:00:00\",\"value\":38},{\"time\":\"2026-03-15T00:00:00\",\"value\":45},{\"time\":\"2026-03-16T00:00:00\",\"value\":50},{\"time\":\"2026-03-17T00:00:00\",\"value\":48},{\"time\":\"2026-03-18T00:00:00\",\"value\":44},{\"time\":\"2026-03-19T00:00:00\",\"value\":38},{\"time\":\"2026-03-20T00:00:00\",\"value\":32},{\"time\":\"2026-03-21T00:00:00\",\"value\":22},{\"time\":\"2026-03-22T00:00:00\",\"value\":18},{\"time\":\"2026-03-23T00:00:00\",\"value\":15},{\"time\":\"2026-03-24T00:00:00\",\"value\":12},{\"time\":\"2026-03-25T00:00:00\",\"value\":9},{\"time\":\"2026-03-26T00:00:00\",\"value\":7},{\"time\":\"2026-03-27T00:00:00\",\"value\":5},{\"time\":\"2026-03-28T00:00:00\",\"value\":3},{\"time\":\"2026-03-29T00:00:00\",\"value\":2},{\"time\":\"2026-03-30T00:00:00\",\"value\":1}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('PEG_RISK_SCORE_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 SC_PEG_RISK_I5: composite score (pegDev*40 + EW*10 + (1-liq)*10)');",
+        "    console.log('   Score trajectory: 0 \\u2192 50 peak day 16 \\u2192 1 recovery day 30');",
+        "    console.log('   Decision boundaries:');",
+        "    console.log('     <15:  NORMAL_ROLL      \\u2192 days 1-7, 22-30 \\u2705');",
+        "    console.log('     15-29: SHORTEN_TENOR   \\u2192 days 8-10, 19-21');",
+        "    console.log('     30-44: CASH_RETENTION  \\u2192 days 11-14, 18, (score 32-44)');",
+        "    console.log('     >=45:  EMERGENCY_LIQD  \\u2192 days 15-17 (score 45-50)');",
+        "    console.log('   Day 18: tbill matures \\u2192 score drops 44\\u219222 \\u2192 SHORTEN resumes');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add MaturityLadderModel iter5 (ml_sc_i5)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addMaturityLadderModel", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addMaturityLadderModel"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ml_sc_i5\",\"pegRiskScoreMOC\":\"PEG_RISK_SCORE\",\"monitoringEventTimes\":[\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('MaturityLadderModel iter5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 ml_sc_i5: MaturityLadderModel iter5 (28-day monitoring)');",
+        "    console.log('   pegRiskScoreMOC=PEG_RISK_SCORE (iter5 composite)');",
+        "    console.log('   <15=NORMAL_ROLL | 15-29=SHORTEN | 30-44=CASH | >=45=EMERGENCY');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add MaturityLadder iter5 Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addScenario", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addScenario"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"sc_ml_iter5_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_PEG_RISK_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ml_sc_i5\",\"riskFactorType\":\"MaturityLadderModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('MaturityLadder iter5 scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 sc_ml_iter5_scn01: 1 composite index + MaturityLadderModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4a. Verify MaturityLadderModel iter5",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://34.203.247.32:8082/findMaturityLadderModel/ml_sc_i5", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["findMaturityLadderModel", "ml_sc_i5"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('MaturityLadderModel iter5 verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d=pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('ml_sc_i5');",
+        "    pm.expect(d.pegRiskScoreMOC).to.eql('PEG_RISK_SCORE');",
+        "    console.log('\\u2705 ml_sc_i5: pegRiskScoreMOC='+d.pegRiskScoreMOC);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4b. Verify Scenario",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://34.203.247.32:8082/findScenario/sc_ml_iter5_scn01", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["findScenario", "sc_ml_iter5_scn01"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario verified', function(){",
+        "    var types=pm.response.json().riskFactorDescriptors.map(function(d){return d.riskFactorType;});",
+        "    pm.expect(types).to.include('MaturityLadderModel');",
+        "    console.log('\\u2705 Descriptors: '+JSON.stringify(types));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Run MaturityLadder iter5 Simulation — 7-instrument PAM portfolio",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["34.203.247.32:8083"], "path": ["rf2", "scenarioSimulation"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"PAM\",\"statusDate\":\"2026-03-02T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"tbill-4wk-001\",\"contractDealDate\":\"2026-02-10T00:00:00\",\"initialExchangeDate\":\"2026-02-10T00:00:00\",\"maturityDate\":\"2026-03-21T00:00:00\",\"notionalPrincipal\":10000,\"nominalInterestRate\":0.0,\"currency\":\"USD\",\"dayCountConvention\":\"A365\",\"stablecoinModels\":[\"ml_sc_i5\"]},{\"contractType\":\"PAM\",\"statusDate\":\"2026-03-02T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"tbill-13wk-001\",\"contractDealDate\":\"2026-01-20T00:00:00\",\"initialExchangeDate\":\"2026-01-20T00:00:00\",\"maturityDate\":\"2026-04-21T00:00:00\",\"notionalPrincipal\":32000,\"nominalInterestRate\":0.0,\"currency\":\"USD\",\"dayCountConvention\":\"A365\",\"stablecoinModels\":[\"ml_sc_i5\"]},{\"contractType\":\"PAM\",\"statusDate\":\"2026-03-02T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"tbill-26wk-001\",\"contractDealDate\":\"2025-12-15T00:00:00\",\"initialExchangeDate\":\"2025-12-15T00:00:00\",\"maturityDate\":\"2026-06-15T00:00:00\",\"notionalPrincipal\":26000,\"nominalInterestRate\":0.0,\"currency\":\"USD\",\"dayCountConvention\":\"A365\",\"stablecoinModels\":[\"ml_sc_i5\"]},{\"contractType\":\"PAM\",\"statusDate\":\"2026-03-02T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"commpaper-90d-001\",\"contractDealDate\":\"2026-01-15T00:00:00\",\"initialExchangeDate\":\"2026-01-15T00:00:00\",\"maturityDate\":\"2026-04-15T00:00:00\",\"notionalPrincipal\":6000,\"nominalInterestRate\":0.0,\"currency\":\"USD\",\"dayCountConvention\":\"A365\",\"stablecoinModels\":[\"ml_sc_i5\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"sc_ml_iter5_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-01T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('MaturityLadder iter5 simulation (4 rollable instruments)', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    console.log('');",
+        "    console.log('\\u2554\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2557');",
+        "    console.log('\\u2551  MATURITY LADDER MODEL (6.3) iter5 \\u2014 T-BILL ROLL DECISIONS           \\u2551');",
+        "    console.log('\\u2551  Score: 0 \\u2192 50 peak \\u2192 1 | 4 rollable instruments                  \\u2551');",
+        "    console.log('\\u2560\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2563');",
+        "    console.log('\\u2551  Days 1-7:   score 0-12  \\u2192 NORMAL_ROLL (0.0) \\u2014 4wk rolls at maturity  \\u2551');",
+        "    console.log('\\u2551  Days 8-10:  score 17-28 \\u2192 SHORTEN_TENOR (0.25) \\u2014 compress to 4wk   \\u2551');",
+        "    console.log('\\u2551  Days 11-14: score 32-38 \\u2192 CASH_RETENTION (0.50) \\u2014 hold proceeds     \\u2551');",
+        "    console.log('\\u2551  Days 15-17: score 45-50 \\u2192 EMERGENCY_LIQD (1.00) \\ud83d\\udea8 sell T-bills     \\u2551');",
+        "    console.log('\\u2551  Day 18:     tbill-4wk matures \\u2192 score 44 \\u2192 CASH_RETENTION         \\u2551');",
+        "    console.log('\\u2551  Day 19:     score 38 \\u2192 CASH_RETENTION \\u2192 SHORTEN_TENOR             \\u2551');",
+        "    console.log('\\u2551  Days 22-30: score <15 \\u2192 NORMAL_ROLL \\u2705 \\u2014 new 4wk tbill purchased  \\u2551');",
+        "    console.log('\\u255a\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u255d');",
+        "    pm.expect(data.length).to.equal(4);",
+        "    var allOk = data.every(function(c){ return c.status==='Success'; });",
+        "    pm.expect(allOk).to.be.true;",
+        "    data.forEach(function(c){",
+        "        var mrds = (c.events||[]).filter(function(e){ return e.type==='MRD'; });",
+        "        var decisions = mrds.map(function(m){",
+        "            return m.payoff===0?'ROLL':m.payoff===0.25?'SHORTEN':m.payoff===0.5?'CASH':'EMERGENCY';",
+        "        });",
+        "        var decCounts = {};",
+        "        decisions.forEach(function(d){ decCounts[d]=(decCounts[d]||0)+1; });",
+        "        console.log('  '+c.contractId+': '+JSON.stringify(decCounts));",
+        "    });",
+        "});",
+        "pm.test('All 4 instruments processed', function(){ pm.expect(pm.response.json().length).to.equal(4); });"
+      ]}}]
+    }
+  ]
+}

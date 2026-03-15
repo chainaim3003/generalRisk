@@ -1,0 +1,1701 @@
+{
+  "info": {
+    "name": "DynDisc2-MultiContract-AR-AP-Cash-timeepoch-mulfun-3",
+    "description": "10-contract AR/AP dynamic discounting \u2014 8 early-settle (LINEAR/EXPONENTIAL/STEPWISE) + 2 penalty (20%). Penalty trigger = settlementDate > dueDate only. No cross-contract cash pool. No BUYER_CASH_ZERO trick.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "riskServiceUrl",
+      "value": "http://34.203.247.32:8082",
+      "type": "string"
+    },
+    {
+      "key": "actusUrl",
+      "value": "http://34.203.247.32:8083",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1 - Reference Indices",
+      "item": [
+        {
+          "name": "Add BUYER_CASH_01 (flat $500k)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addReferenceIndex",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"BUYER_CASH_01\",\n  \"marketObjectCode\": \"BUYER_CASH\",\n  \"base\": 1,\n  \"data\": [\n    {\n      \"time\": \"2026-02-01T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-02T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-03T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-04T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-05T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-06T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-07T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-08T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-09T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-10T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-11T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-12T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-13T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-14T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-15T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-16T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-17T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-18T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-19T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-20T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-21T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-22T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-23T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-24T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-25T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-26T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-27T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-02-28T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-15T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-16T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-17T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-18T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-19T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-20T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-21T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-22T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-23T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-24T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-25T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-26T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-27T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-28T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-29T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-04-30T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-01T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-02T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-03T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-04T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-05T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-06T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-07T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-08T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-09T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-10T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-11T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-12T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-13T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-14T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-15T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-16T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-17T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-18T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-19T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-20T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-21T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-22T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-23T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-24T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-25T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-26T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-27T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-28T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-29T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-30T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-05-31T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-01T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-02T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-03T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-04T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-05T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-06T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-07T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-08T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-09T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-10T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-11T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-12T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-13T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-14T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-15T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-16T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-17T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-18T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-19T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-20T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-21T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-22T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-23T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-24T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-25T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-26T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-27T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-28T00:00:00\",\n      \"value\": 500000\n    },\n    {\n      \"time\": \"2026-06-29T00:00:00\",\n      \"value\": 500000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add HURDLE_RATE_01 (7.5%\u21928%\u21928.5%)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addReferenceIndex",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HURDLE_RATE_01\",\n  \"marketObjectCode\": \"HURDLE_RATE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-02-01T00:00:00\",\n      \"value\": 0.075\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 0.08\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 0.085\n    },\n    {\n      \"time\": \"2026-06-30T00:00:00\",\n      \"value\": 0.085\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "BUYER_CASH_01 (flat $500k) and HURDLE_RATE_01. BUYER_CASH_ZERO removed \u2014 penalty now driven by settlementDate only."
+    },
+    {
+      "name": "2 - Penalty Accrual Models",
+      "item": [
+        {
+          "name": "Add penalty_ar_003 (AR-INV-003 STEPWISE, due Apr-17, settle Apr-28)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addPenaltyAccrualModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addPenaltyAccrualModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"penalty_ar_003\",\n  \"dueDate\": \"2026-04-17T00:00:00\",\n  \"settlementDate\": \"2026-04-28T00:00:00\",\n  \"penaltyFunctionType\": \"STEPWISE\",\n  \"basePenaltyRate\": 0.0005,\n  \"penaltyGrowthLambda\": 2.0,\n  \"penaltyPowerAlpha\": 1.5,\n  \"penaltyStepSchedule\": {\n    \"0\": 0.0005,\n    \"16\": 0.00075,\n    \"31\": 0.001,\n    \"61\": 0.00125,\n    \"91\": 0.0015\n  },\n  \"penaltyRateMOC\": null,\n  \"penaltyHorizonDays\": 60,\n  \"monitoringEventTimes\": [\n    \"2026-04-18T00:00:00\",\n    \"2026-04-20T00:00:00\",\n    \"2026-04-22T00:00:00\",\n    \"2026-04-24T00:00:00\",\n    \"2026-04-26T00:00:00\",\n    \"2026-04-28T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-03T00:00:00\",\n    \"2026-05-07T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add penalty_ap_004 (AP-INV-004 STEPWISE, due Apr-21, settle May-05)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addPenaltyAccrualModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addPenaltyAccrualModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"penalty_ap_004\",\n  \"dueDate\": \"2026-04-21T00:00:00\",\n  \"settlementDate\": \"2026-05-05T00:00:00\",\n  \"penaltyFunctionType\": \"STEPWISE\",\n  \"basePenaltyRate\": 0.0005,\n  \"penaltyGrowthLambda\": 2.0,\n  \"penaltyPowerAlpha\": 1.5,\n  \"penaltyStepSchedule\": {\n    \"0\": 0.0005,\n    \"16\": 0.00075,\n    \"31\": 0.001,\n    \"61\": 0.00125,\n    \"91\": 0.0015\n  },\n  \"penaltyRateMOC\": null,\n  \"penaltyHorizonDays\": 60,\n  \"monitoringEventTimes\": [\n    \"2026-04-22T00:00:00\",\n    \"2026-04-24T00:00:00\",\n    \"2026-04-26T00:00:00\",\n    \"2026-04-29T00:00:00\",\n    \"2026-05-01T00:00:00\",\n    \"2026-05-03T00:00:00\",\n    \"2026-05-05T00:00:00\",\n    \"2026-05-07T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "penalty_ar_003 (AR-INV-003, due Apr-17, settle Apr-28, 11d overdue) and penalty_ap_004 (AP-INV-004, due Apr-21, settle May-05, 14d overdue). Trigger = settlementDate > dueDate."
+    },
+    {
+      "name": "3 - Early Settlement Models",
+      "item": [
+        {
+          "name": "Add early_settle_ar_001 (AR-INV-001 LINEAR settle Feb-28)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addEarlySettlementModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ar_001\",\n  \"invoiceDate\": \"2026-02-12T00:00:00\",\n  \"dueDate\": \"2026-03-14T00:00:00\",\n  \"settlementDate\": \"2026-02-28T00:00:00\",\n  \"notionalAmount\": 500.0,\n  \"maxDiscountRate\": 0.03,\n  \"discountFunctionType\": \"LINEAR\",\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.075,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-02-28T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add early_settle_ar_002 (AR-INV-002 EXPONENTIAL settle Mar-09)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addEarlySettlementModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ar_002\",\n  \"invoiceDate\": \"2026-02-24T00:00:00\",\n  \"dueDate\": \"2026-03-26T00:00:00\",\n  \"settlementDate\": \"2026-03-09T00:00:00\",\n  \"notionalAmount\": 600.0,\n  \"maxDiscountRate\": 0.05,\n  \"discountFunctionType\": \"EXPONENTIAL\",\n  \"decayLambda\": 0.05,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.08,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-03-09T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add early_settle_ar_004 (AR-INV-004 LINEAR settle Feb-22)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addEarlySettlementModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ar_004\",\n  \"invoiceDate\": \"2026-02-06T00:00:00\",\n  \"dueDate\": \"2026-03-08T00:00:00\",\n  \"settlementDate\": \"2026-02-22T00:00:00\",\n  \"notionalAmount\": 550.0,\n  \"maxDiscountRate\": 0.04,\n  \"discountFunctionType\": \"LINEAR\",\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.075,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-02-22T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add early_settle_ar_005 (AR-INV-005 EXPONENTIAL settle Apr-08)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addEarlySettlementModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ar_005\",\n  \"invoiceDate\": \"2026-03-27T00:00:00\",\n  \"dueDate\": \"2026-04-26T00:00:00\",\n  \"settlementDate\": \"2026-04-08T00:00:00\",\n  \"notionalAmount\": 480.0,\n  \"maxDiscountRate\": 0.05,\n  \"discountFunctionType\": \"EXPONENTIAL\",\n  \"decayLambda\": 0.08,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.085,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-04-08T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add early_settle_ap_001 (AP-INV-001 LINEAR settle Mar-03)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addEarlySettlementModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ap_001\",\n  \"invoiceDate\": \"2026-02-16T00:00:00\",\n  \"dueDate\": \"2026-03-18T00:00:00\",\n  \"settlementDate\": \"2026-03-03T00:00:00\",\n  \"notionalAmount\": 400.0,\n  \"maxDiscountRate\": 0.03,\n  \"discountFunctionType\": \"LINEAR\",\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.075,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-03-03T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add early_settle_ap_002 (AP-INV-002 STEPWISE settle Mar-25)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addEarlySettlementModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ap_002\",\n  \"invoiceDate\": \"2026-03-12T00:00:00\",\n  \"dueDate\": \"2026-04-11T00:00:00\",\n  \"settlementDate\": \"2026-03-25T00:00:00\",\n  \"notionalAmount\": 500.0,\n  \"maxDiscountRate\": 0.04,\n  \"discountFunctionType\": \"STEPWISE\",\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": {\n    \"0\": 0.04,\n    \"11\": 0.02,\n    \"21\": 0.0\n  },\n  \"hurdleRateAnnualized\": 0.08,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-03-25T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add early_settle_ap_003 (AP-INV-003 EXPONENTIAL settle Mar-07)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addEarlySettlementModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ap_003\",\n  \"invoiceDate\": \"2026-02-22T00:00:00\",\n  \"dueDate\": \"2026-03-24T00:00:00\",\n  \"settlementDate\": \"2026-03-07T00:00:00\",\n  \"notionalAmount\": 350.0,\n  \"maxDiscountRate\": 0.05,\n  \"discountFunctionType\": \"EXPONENTIAL\",\n  \"decayLambda\": 0.06,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.075,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-03-07T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add early_settle_ap_005 (AP-INV-005 STEPWISE settle Apr-17)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addEarlySettlementModel",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ap_005\",\n  \"invoiceDate\": \"2026-04-04T00:00:00\",\n  \"dueDate\": \"2026-05-04T00:00:00\",\n  \"settlementDate\": \"2026-04-17T00:00:00\",\n  \"notionalAmount\": 420.0,\n  \"maxDiscountRate\": 0.03,\n  \"discountFunctionType\": \"STEPWISE\",\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": {\n    \"0\": 0.03,\n    \"11\": 0.015,\n    \"21\": 0.0\n  },\n  \"hurdleRateAnnualized\": 0.085,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-04-17T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "8 contracts with early settlementDate <= dueDate. AR-INV-003 and AP-INV-004 have no earlySettlementModel \u2014 they go direct to penalty track."
+    },
+    {
+      "name": "4 - Scenarios",
+      "item": [
+        {
+          "name": "Add Scenario dyndisc2_ar_001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ar_001\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_001\",\n      \"riskFactorType\": \"EarlySettlement\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ar_002",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ar_002\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_002\",\n      \"riskFactorType\": \"EarlySettlement\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ar_003_penalty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ar_003_penalty\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"penalty_ar_003\",\n      \"riskFactorType\": \"PenaltyAccrual\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ar_004",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ar_004\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_004\",\n      \"riskFactorType\": \"EarlySettlement\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ar_005",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ar_005\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_005\",\n      \"riskFactorType\": \"EarlySettlement\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ap_001",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ap_001\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ap_001\",\n      \"riskFactorType\": \"EarlySettlement\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ap_002",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ap_002\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ap_002\",\n      \"riskFactorType\": \"EarlySettlement\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ap_003",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ap_003\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ap_003\",\n      \"riskFactorType\": \"EarlySettlement\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ap_004_penalty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ap_004_penalty\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"penalty_ap_004\",\n      \"riskFactorType\": \"PenaltyAccrual\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_ap_005",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_ap_005\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ap_005\",\n      \"riskFactorType\": \"EarlySettlement\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Scenario dyndisc2_cash_reserve (CSH initial $1000)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{riskServiceUrl}}/addScenario",
+              "host": [
+                "{{riskServiceUrl}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"dyndisc2_cash_reserve\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "console.log('[' + pm.info.requestName + '] \u2192 ' + pm.response.text().trim());"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "One scenario per contract. Penalty scenarios use PenaltyAccrual risk factor only. No CASH_RESERVE reference index."
+    },
+    {
+      "name": "5 - Simulations (ACTUS)",
+      "item": [
+        {
+          "name": "Simulate CASH-RESERVE-001 [CSH initial $1000 \u2014 opens reserve, no discount/penalty]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"CSH\",\n      \"statusDate\": \"2026-02-04T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"CASH-RESERVE-001\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-04T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-05T00:00:00\",\n      \"maturityDate\": \"2026-06-29T00:00:00\",\n      \"notionalPrincipal\": 1000.0,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"Treasury\",\n      \"creatorID\": \"OurCo\"\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_cash_reserve\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-06-29T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('CSH CASH-RESERVE-001 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "var r = data[0];",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (' + 'CSH' + ')');",
+                  "console.log('SCENARIO : ' + r.scenarioId);",
+                  "console.log('STATUS   : ' + r.status);",
+                  "console.log('EVENTS   : ' + r.events.length + ' (CSH always returns empty \u2014 correct ACTUS behaviour)');",
+                  "console.log('RESERVE  : $1,000.00 established as opening balance at IED 2026-02-05');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "pm.test('CSH events array is empty (correct)', function () { pm.expect(r.events.length).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AR-INV-001 [LINEAR early settle Feb-28 \u2192 PP=$493.00 saving=$7.00]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-11T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"AR-INV-001\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-14T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-11T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-12T00:00:00\",\n      \"maturityDate\": \"2026-03-14T00:00:00\",\n      \"notionalPrincipal\": 500,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerXYZ\",\n      \"creatorID\": \"SupplierAlpha\",\n      \"discountingModels\": [\n        \"early_settle_ar_001\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ar_001\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-14T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AR-INV-001 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPA \u2014 AR Invoice)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('DISCOUNT : LINEAR  maxRate=3%  settle=2026-02-28  due=2026-03-14');",
+                  "console.log('EXPECTED : effRate=1.40%  PP=$493.00  saving=$7.00');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'PP') line += '  \u2190 EARLY SETTLEMENT INFLOW';",
+                  "  if (e.type === 'MD' && e.payoff === 0) line += '  \u2190 MD=$0 confirms early settle complete';",
+                  "  console.log(line);",
+                  "});",
+                  "var pp = events.find(function(e){ return e.type==='PP'; });",
+                  "pm.test('AR-INV-001 PP payoff \u2248 $493.00', function () { pm.expect(Math.abs(pp.payoff - 493.0)).to.be.below(0.01); });",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AR-INV-002 [EXPONENTIAL early settle Mar-09 \u2192 PP=$570.64 saving=$29.36]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-23T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"AR-INV-002\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-26T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-23T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-24T00:00:00\",\n      \"maturityDate\": \"2026-03-26T00:00:00\",\n      \"notionalPrincipal\": 600,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerXYZ\",\n      \"creatorID\": \"SupplierBeta\",\n      \"discountingModels\": [\n        \"early_settle_ar_002\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ar_002\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-26T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AR-INV-002 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPA \u2014 AR Invoice)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('DISCOUNT : EXPONENTIAL  maxRate=5%  \u03bb=0.05  settle=2026-03-09  due=2026-03-26');",
+                  "console.log('EXPECTED : effRate=4.8928%  PP=$570.64  saving=$29.36');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'PP') line += '  \u2190 EARLY SETTLEMENT INFLOW';",
+                  "  if (e.type === 'MD' && e.payoff === 0) line += '  \u2190 MD=$0 confirms early settle complete';",
+                  "  console.log(line);",
+                  "});",
+                  "var pp = events.find(function(e){ return e.type==='PP'; });",
+                  "pm.test('AR-INV-002 PP payoff \u2248 $570.64', function () { pm.expect(Math.abs(pp.payoff - 570.643)).to.be.below(0.01); });",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AR-INV-003 [PENALTY settle Apr-28, 11d overdue \u2192 inflow=$452.48 penalty=$2.48]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-03-17T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"AR-INV-003\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-17T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-17T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-18T00:00:00\",\n      \"maturityDate\": \"2026-04-17T00:00:00\",\n      \"notionalPrincipal\": 450,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerXYZ\",\n      \"creatorID\": \"SupplierGamma\",\n      \"discountingModels\": [\n        \"penalty_ar_003\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ar_003_penalty\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-05-07T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AR-INV-003 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPA \u2014 AR PENALTY)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('PENALTY  : STEPWISE  due=2026-04-17  settle=2026-04-28  11d overdue');",
+                  "console.log('COMPUTED : $450 \u00d7 0.0005 \u00d7 11d = $2.48 penalty  \u2192  total inflow=$452.48');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'MD' && e.payoff > 0) line += '  \u2190 face $450 at maturity (penalty computed client-side)';",
+                  "  if (e.type === 'PP') line += '  \u2190 monitoring event (payoff=0, penalty not in ACTUS engine)';",
+                  "  console.log(line);",
+                  "});",
+                  "var md = events.find(function(e){ return e.type==='MD'; });",
+                  "pm.test('AR-INV-003 MD payoff = $450 (face at maturity)', function () { pm.expect(Math.abs(md.payoff - 450.0)).to.be.below(0.01); });",
+                  "var ppEvents = events.filter(function(e){ return e.type==='PP'; });",
+                  "pm.test('AR-INV-003 all PP monitoring payoffs = 0', function () { ppEvents.forEach(function(e){ pm.expect(e.payoff).to.eql(0); }); });",
+                  "console.log('  CLIENT-SIDE TOTAL INFLOW: $452.48  (MD=$450 + penalty=$2.48)');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AR-INV-004 [LINEAR early settle Feb-22 \u2192 PP=$539.73 saving=$10.27]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-05T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"AR-INV-004\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-08T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-05T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-06T00:00:00\",\n      \"maturityDate\": \"2026-03-08T00:00:00\",\n      \"notionalPrincipal\": 550,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerXYZ\",\n      \"creatorID\": \"SupplierDelta\",\n      \"discountingModels\": [\n        \"early_settle_ar_004\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ar_004\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-08T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AR-INV-004 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPA \u2014 AR Invoice)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('DISCOUNT : LINEAR  maxRate=4%  settle=2026-02-22  due=2026-03-08');",
+                  "console.log('EXPECTED : effRate=1.8667%  PP=$539.73  saving=$10.27');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'PP') line += '  \u2190 EARLY SETTLEMENT INFLOW';",
+                  "  if (e.type === 'MD' && e.payoff === 0) line += '  \u2190 MD=$0 confirms early settle complete';",
+                  "  console.log(line);",
+                  "});",
+                  "var pp = events.find(function(e){ return e.type==='PP'; });",
+                  "pm.test('AR-INV-004 PP payoff \u2248 $539.73', function () { pm.expect(Math.abs(pp.payoff - 539.733)).to.be.below(0.01); });",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AR-INV-005 [EXPONENTIAL early settle Apr-08 \u2192 PP=$456.76 saving=$23.24]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-03-26T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"AR-INV-005\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-26T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-26T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-27T00:00:00\",\n      \"maturityDate\": \"2026-04-26T00:00:00\",\n      \"notionalPrincipal\": 480,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerXYZ\",\n      \"creatorID\": \"SupplierEpsilon\",\n      \"discountingModels\": [\n        \"early_settle_ar_005\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ar_005\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-26T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AR-INV-005 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPA \u2014 AR Invoice)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('DISCOUNT : EXPONENTIAL  maxRate=5%  \u03bb=0.08  settle=2026-04-08  due=2026-04-26');",
+                  "console.log('EXPECTED : effRate=4.8425%  PP=$456.76  saving=$23.24');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'PP') line += '  \u2190 EARLY SETTLEMENT INFLOW';",
+                  "  if (e.type === 'MD' && e.payoff === 0) line += '  \u2190 MD=$0 confirms early settle complete';",
+                  "  console.log(line);",
+                  "});",
+                  "var pp = events.find(function(e){ return e.type==='PP'; });",
+                  "pm.test('AR-INV-005 PP payoff \u2248 $456.76', function () { pm.expect(Math.abs(pp.payoff - 456.756)).to.be.below(0.01); });",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AP-INV-001 [LINEAR early settle Mar-03 \u2192 paid=$394.00 saving=$6.00]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-15T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"contractID\": \"AP-INV-001\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-18T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-16T00:00:00\",\n      \"maturityDate\": \"2026-03-18T00:00:00\",\n      \"notionalPrincipal\": 400,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierAlpha\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ap_001\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ap_001\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-18T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AP-INV-001 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPL \u2014 AP Invoice)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('DISCOUNT : LINEAR  maxRate=3%  settle=2026-03-03  due=2026-03-18');",
+                  "console.log('EXPECTED : effRate=1.50%  discounted outflow=$394.00  saving=$6.00');",
+                  "console.log('RPL NOTE : PP.payoff=0 (timing marker only). MD.payoff=full face.');",
+                  "console.log('           Client must apply discount: $400\u00d7(1-0.015)=$394.00 actual outflow');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'PP') line += '  \u2190 settlement trigger (PP=0 for RPL; discount applied at MD)';",
+                  "  if (e.type === 'MD') line += '  \u2190 full face discharged; net outflow=$394.00 after discount';",
+                  "  console.log(line);",
+                  "});",
+                  "var md = events.find(function(e){ return e.type==='MD'; });",
+                  "pm.test('AP-INV-001 MD payoff = face $400 (RPL convention)', function () { pm.expect(Math.abs(md.payoff - (-400))).to.be.below(0.01); });",
+                  "console.log('  NET OUTFLOW (client-side discounted): $394.00');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AP-INV-002 [STEPWISE early settle Mar-25 \u2192 paid=$490.00 saving=$10.00]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-03-11T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"contractID\": \"AP-INV-002\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-11T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-11T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-12T00:00:00\",\n      \"maturityDate\": \"2026-04-11T00:00:00\",\n      \"notionalPrincipal\": 500,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierBeta\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ap_002\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ap_002\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-11T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AP-INV-002 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPL \u2014 AP Invoice)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('DISCOUNT : STEPWISE  bracket[11-20]=2%  settle=2026-03-25  due=2026-04-11');",
+                  "console.log('EXPECTED : effRate=2.00%  discounted outflow=$490.00  saving=$10.00');",
+                  "console.log('RPL NOTE : PP.payoff=0 (timing marker only). MD.payoff=full face.');",
+                  "console.log('           Client must apply discount: $500\u00d7(1-0.02)=$490.00 actual outflow');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'PP') line += '  \u2190 settlement trigger (PP=0 for RPL)';",
+                  "  if (e.type === 'MD') line += '  \u2190 full face; net outflow=$490.00 after 2% STEPWISE discount';",
+                  "  console.log(line);",
+                  "});",
+                  "var md = events.find(function(e){ return e.type==='MD'; });",
+                  "pm.test('AP-INV-002 MD payoff = face $500 (RPL convention)', function () { pm.expect(Math.abs(md.payoff - (-500))).to.be.below(0.01); });",
+                  "console.log('  NET OUTFLOW (client-side discounted): $490.00');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AP-INV-003 [EXPONENTIAL early settle Mar-07 \u2192 paid=$332.95 saving=$17.05]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-21T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"contractID\": \"AP-INV-003\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-24T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-21T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-22T00:00:00\",\n      \"maturityDate\": \"2026-03-24T00:00:00\",\n      \"notionalPrincipal\": 350,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierGamma\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ap_003\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ap_003\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-24T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AP-INV-003 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPL \u2014 AP Invoice)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('DISCOUNT : EXPONENTIAL  maxRate=5%  \u03bb=0.06  settle=2026-03-07  due=2026-03-24');",
+                  "console.log('EXPECTED : effRate=4.8717%  discounted outflow=$332.95  saving=$17.05');",
+                  "console.log('RPL NOTE : PP.payoff=0 (timing marker only). MD.payoff=full face.');",
+                  "console.log('           Client must apply discount: $350\u00d7(1-0.048717)=$332.95 actual outflow');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'PP') line += '  \u2190 settlement trigger (PP=0 for RPL)';",
+                  "  if (e.type === 'MD') line += '  \u2190 full face; net outflow=$332.95 after 4.8717% EXP discount';",
+                  "  console.log(line);",
+                  "});",
+                  "var md = events.find(function(e){ return e.type==='MD'; });",
+                  "pm.test('AP-INV-003 MD payoff = face $350 (RPL convention)', function () { pm.expect(Math.abs(md.payoff - (-350))).to.be.below(0.01); });",
+                  "console.log('  NET OUTFLOW (client-side discounted): $332.95');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AP-INV-004 [PENALTY settle May-05, 14d overdue \u2192 outflow=$604.20 penalty=$4.20]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-03-21T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"contractID\": \"AP-INV-004\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-21T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-21T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-22T00:00:00\",\n      \"maturityDate\": \"2026-04-21T00:00:00\",\n      \"notionalPrincipal\": 600,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierDelta\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"penalty_ap_004\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ap_004_penalty\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-05-07T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AP-INV-004 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPL \u2014 AP PENALTY)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('PENALTY  : STEPWISE  due=2026-04-21  settle=2026-05-05  14d overdue');",
+                  "console.log('COMPUTED : $600 \u00d7 0.0005 \u00d7 14d = $4.20 penalty  \u2192  total outflow=$604.20');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'MD') line += '  \u2190 full face $600 at maturity (penalty computed client-side)';",
+                  "  if (e.type === 'PP') line += '  \u2190 monitoring event (payoff=0, penalty not in ACTUS engine)';",
+                  "  console.log(line);",
+                  "});",
+                  "var md = events.find(function(e){ return e.type==='MD'; });",
+                  "pm.test('AP-INV-004 MD payoff = face $600 (penalty track)', function () { pm.expect(Math.abs(md.payoff - (-600))).to.be.below(0.01); });",
+                  "var ppEvents = events.filter(function(e){ return e.type==='PP'; });",
+                  "pm.test('AP-INV-004 all PP monitoring payoffs = 0', function () { ppEvents.forEach(function(e){ pm.expect(Math.abs(e.payoff)).to.eql(0); }); });",
+                  "console.log('  CLIENT-SIDE TOTAL OUTFLOW: $604.20  (MD=$600 + penalty=$4.20)');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simulate AP-INV-005 [STEPWISE early settle Apr-17 \u2192 paid=$413.70 saving=$6.30]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{actusUrl}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actusUrl}}"
+              ],
+              "path": [
+                "rf2/scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-04-03T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"contractID\": \"AP-INV-005\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-05-04T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-04-03T00:00:00\",\n      \"initialExchangeDate\": \"2026-04-04T00:00:00\",\n      \"maturityDate\": \"2026-05-04T00:00:00\",\n      \"notionalPrincipal\": 420,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierEpsilon\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ap_005\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"dyndisc2_ap_005\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-05-04T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('AP-INV-005 status 200', function () { pm.response.to.have.status(200); });",
+                  "var data = pm.response.json(); var r = data[0]; var events = r.events;",
+                  "console.log('');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');",
+                  "console.log('CONTRACT : ' + r.contractID + '  (PAM / RPL \u2014 AP Invoice)');",
+                  "console.log('SCENARIO : ' + r.scenarioId + '  |  STATUS: ' + r.status);",
+                  "console.log('DISCOUNT : STEPWISE  bracket[11-20]=1.5%  settle=2026-04-17  due=2026-05-04');",
+                  "console.log('EXPECTED : effRate=1.50%  discounted outflow=$413.70  saving=$6.30');",
+                  "console.log('RPL NOTE : PP.payoff=0 (timing marker only). MD.payoff=full face.');",
+                  "console.log('           Client must apply discount: $420\u00d7(1-0.015)=$413.70 actual outflow');",
+                  "console.log('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "events.forEach(function(e) {",
+                  "  var line = '  [' + e.type + ']  ' + e.time + '  payoff=' + e.payoff.toFixed(4) + '  nomVal=' + e.nominalValue.toFixed(2);",
+                  "  if (e.type === 'PP') line += '  \u2190 settlement trigger (PP=0 for RPL)';",
+                  "  if (e.type === 'MD') line += '  \u2190 full face; net outflow=$413.70 after 1.5% STEPWISE discount';",
+                  "  console.log(line);",
+                  "});",
+                  "var md = events.find(function(e){ return e.type==='MD'; });",
+                  "pm.test('AP-INV-005 MD payoff = face $420 (RPL convention)', function () { pm.expect(Math.abs(md.payoff - (-420))).to.be.below(0.01); });",
+                  "console.log('  NET OUTFLOW (client-side discounted): $413.70');",
+                  "console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550');"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "PAM simulations at port 8083. AR role=RPA, AP role=RPL. Each simulation is self-contained \u2014 no cross-contract state."
+    }
+  ]
+}

@@ -1,0 +1,1253 @@
+{
+  "info": {
+    "_postman_id": "dyndisc2-fix3-multicontract-ar-ap",
+    "name": "DynDisc2-MultiContract-AR-AP-CashReserve-fix3",
+    "description": "Dynamic Discounting 2: AR/AP multi-contract with dynamic cash reserve.\nFIX-3 changes vs fix2:\n  1. CSH init pre-request initialises arLedger, apLedger and all total accumulators.\n  2. Each AR post-request appends to arLedger and accumulates arTotalInflow / arSavingsTotal.\n  3. Each AP pre-request refreshes CASH_RESERVE_01 via pm.sendRequest (no separate refresh request needed);\n     post-request computes payoff client-side, appends to apLedger, accumulates apTotalOutflow / apSavingsTotal.\n  4. Dashboard post-request reads all six collectionVariables correctly and prints full ledger + summary.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+
+  "variable": [
+    { "key": "riskSvc",        "value": "http://34.203.247.32:8082", "type": "string" },
+    { "key": "simSvc",         "value": "http://34.203.247.32:8083", "type": "string" },
+    { "key": "cashReserve",    "value": "1000",                  "type": "string" },
+    { "key": "arLedger",       "value": "[]",                    "type": "string" },
+    { "key": "apLedger",       "value": "[]",                    "type": "string" },
+    { "key": "arTotalInflow",  "value": "0",                     "type": "string" },
+    { "key": "apTotalOutflow", "value": "0",                     "type": "string" },
+    { "key": "arSavingsTotal", "value": "0",                     "type": "string" },
+    { "key": "apSavingsTotal", "value": "0",                     "type": "string" }
+  ],
+
+  "item": [
+
+    {
+      "name": "1. Reference Indices",
+      "item": [
+
+        {
+          "name": "BUYER_CASH_01 – $500 000 flat",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const dates=[];",
+                  "let d=new Date('2026-02-01');",
+                  "const end=new Date('2026-05-31');",
+                  "while(d<=end){dates.push(d.toISOString().slice(0,10)+'T00:00:00');d.setDate(d.getDate()+1);}",
+                  "pm.variables.set('_body',JSON.stringify({",
+                  "  riskFactorID:'BUYER_CASH_01',",
+                  "  marketObjectCode:'BUYER_CASH',",
+                  "  base:1.0,",
+                  "  data:dates.map(t=>({time:t,value:500000}))",
+                  "}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{_body}}" },
+            "url": {
+              "raw": "{{riskSvc}}/addReferenceIndex",
+              "host": ["{{riskSvc}}"],
+              "path": ["addReferenceIndex"]
+            }
+          }
+        },
+
+        {
+          "name": "CASH_RESERVE_01 – $1 000 initial",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const dates=[];",
+                  "let d=new Date('2026-02-01');",
+                  "const end=new Date('2026-05-31');",
+                  "while(d<=end){dates.push(d.toISOString().slice(0,10)+'T00:00:00');d.setDate(d.getDate()+1);}",
+                  "pm.variables.set('_body',JSON.stringify({",
+                  "  riskFactorID:'CASH_RESERVE_01',",
+                  "  marketObjectCode:'CASH_RESERVE',",
+                  "  base:1.0,",
+                  "  data:dates.map(t=>({time:t,value:1000.0}))",
+                  "}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{{_body}}" },
+            "url": {
+              "raw": "{{riskSvc}}/addReferenceIndex",
+              "host": ["{{riskSvc}}"],
+              "path": ["addReferenceIndex"]
+            }
+          }
+        },
+
+        {
+          "name": "HURDLE_RATE_01 – 8% APR",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"HURDLE_RATE_01\",\"marketObjectCode\":\"HURDLE_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-02-01T00:00:00\",\"value\":0.08},{\"time\":\"2026-12-31T00:00:00\",\"value\":0.08}]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addReferenceIndex",
+              "host": ["{{riskSvc}}"],
+              "path": ["addReferenceIndex"]
+            }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "2. Early Settlement Models – AR",
+      "item": [
+
+        {
+          "name": "early_settle_ar_001 – $500 3% LINEAR settle=2026-02-28",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ar_001\",\"invoiceDate\":\"2026-02-12T00:00:00\",\"dueDate\":\"2026-03-14T00:00:00\",\"notionalAmount\":500.0,\"maxDiscountRate\":0.03,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-02-28T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        },
+
+        {
+          "name": "early_settle_ar_002 – $600 5% LINEAR settle=2026-03-09",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ar_002\",\"invoiceDate\":\"2026-02-24T00:00:00\",\"dueDate\":\"2026-03-26T00:00:00\",\"notionalAmount\":600.0,\"maxDiscountRate\":0.05,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-09T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        },
+
+        {
+          "name": "early_settle_ar_003 – $450 2% LINEAR settle=2026-03-30",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ar_003\",\"invoiceDate\":\"2026-03-18T00:00:00\",\"dueDate\":\"2026-04-17T00:00:00\",\"notionalAmount\":450.0,\"maxDiscountRate\":0.02,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-30T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        },
+
+        {
+          "name": "early_settle_ar_004 – $550 4% LINEAR settle=2026-02-22",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ar_004\",\"invoiceDate\":\"2026-02-06T00:00:00\",\"dueDate\":\"2026-03-08T00:00:00\",\"notionalAmount\":550.0,\"maxDiscountRate\":0.04,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-02-22T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        },
+
+        {
+          "name": "early_settle_ar_005 – $480 5% LINEAR settle=2026-04-08",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ar_005\",\"invoiceDate\":\"2026-03-27T00:00:00\",\"dueDate\":\"2026-04-26T00:00:00\",\"notionalAmount\":480.0,\"maxDiscountRate\":0.05,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-04-08T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "3. Early Settlement Models – AP",
+      "item": [
+
+        {
+          "name": "early_settle_ap_001 – $400 3% LINEAR settle=2026-03-03",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ap_001\",\"invoiceDate\":\"2026-02-16T00:00:00\",\"dueDate\":\"2026-03-18T00:00:00\",\"notionalAmount\":400.0,\"maxDiscountRate\":0.03,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"CASH_RESERVE\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-03T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        },
+
+        {
+          "name": "early_settle_ap_002 – $500 4% LINEAR settle=2026-03-25",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ap_002\",\"invoiceDate\":\"2026-03-12T00:00:00\",\"dueDate\":\"2026-04-11T00:00:00\",\"notionalAmount\":500.0,\"maxDiscountRate\":0.04,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"CASH_RESERVE\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-25T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        },
+
+        {
+          "name": "early_settle_ap_003 – $350 5% LINEAR settle=2026-03-07",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ap_003\",\"invoiceDate\":\"2026-02-22T00:00:00\",\"dueDate\":\"2026-03-24T00:00:00\",\"notionalAmount\":350.0,\"maxDiscountRate\":0.05,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"CASH_RESERVE\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-07T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        },
+
+        {
+          "name": "early_settle_ap_004 – $600 2% LINEAR settle=2026-04-06",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ap_004\",\"invoiceDate\":\"2026-03-22T00:00:00\",\"dueDate\":\"2026-04-21T00:00:00\",\"notionalAmount\":600.0,\"maxDiscountRate\":0.02,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"CASH_RESERVE\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-04-06T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        },
+
+        {
+          "name": "early_settle_ap_005 – $420 3% LINEAR settle=2026-04-17",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"early_settle_ap_005\",\"invoiceDate\":\"2026-04-04T00:00:00\",\"dueDate\":\"2026-05-04T00:00:00\",\"notionalAmount\":420.0,\"maxDiscountRate\":0.03,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"CASH_RESERVE\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-04-17T00:00:00\"]}"
+            },
+            "url": {
+              "raw": "{{riskSvc}}/addEarlySettlementModel",
+              "host": ["{{riskSvc}}"],
+              "path": ["addEarlySettlementModel"]
+            }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "4. Scenarios – AR",
+      "item": [
+
+        {
+          "name": "dyndisc2_ar_001",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ar_001\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ar_001\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        },
+
+        {
+          "name": "dyndisc2_ar_002",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ar_002\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ar_002\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        },
+
+        {
+          "name": "dyndisc2_ar_003",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ar_003\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ar_003\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        },
+
+        {
+          "name": "dyndisc2_ar_004",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ar_004\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ar_004\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        },
+
+        {
+          "name": "dyndisc2_ar_005",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ar_005\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ar_005\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "5. Scenarios – AP",
+      "item": [
+
+        {
+          "name": "dyndisc2_ap_001",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ap_001\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"CASH_RESERVE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ap_001\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        },
+
+        {
+          "name": "dyndisc2_ap_002",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ap_002\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"CASH_RESERVE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ap_002\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        },
+
+        {
+          "name": "dyndisc2_ap_003",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ap_003\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"CASH_RESERVE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ap_003\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        },
+
+        {
+          "name": "dyndisc2_ap_004",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ap_004\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"CASH_RESERVE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ap_004\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        },
+
+        {
+          "name": "dyndisc2_ap_005",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"dyndisc2_ap_005\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"CASH_RESERVE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_ap_005\",\"riskFactorType\":\"EarlySettlement\"}]}"
+            },
+            "url": { "raw": "{{riskSvc}}/addScenario", "host": ["{{riskSvc}}"], "path": ["addScenario"] }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "6. Initialise Cash Reserve (CSH)",
+      "item": [
+        {
+          "name": "CSH CASH-RESERVE-001 – init $1 000 + reset all ledger vars",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// ── FIX-3 ── Initialise ALL collection-variable state so the",
+                  "// dashboard can read it back correctly at the end.",
+                  "const OPENING = 1000.00;",
+                  "pm.collectionVariables.set('cashReserve',    OPENING.toFixed(2));",
+                  "pm.collectionVariables.set('arLedger',       '[]');",
+                  "pm.collectionVariables.set('apLedger',       '[]');",
+                  "pm.collectionVariables.set('arTotalInflow',  '0');",
+                  "pm.collectionVariables.set('apTotalOutflow', '0');",
+                  "pm.collectionVariables.set('arSavingsTotal', '0');",
+                  "pm.collectionVariables.set('apSavingsTotal', '0');",
+                  "console.log('Phase 4: CSH – Opening Cash Reserve $' + OPENING.toFixed(2));",
+                  "console.log('  All ledger accumulators reset to zero.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"contractType\":\"CSH\",\"statusDate\":\"2026-03-04T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"CASH-RESERVE-001\",\"currency\":\"USD\",\"initialExchangeDate\":\"2026-03-05T00:00:00\",\"notionalPrincipal\":1000.0}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ar_001\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-06-01T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "7. AR Simulations",
+      "item": [
+
+        {
+          "name": "AR-INV-001 – $500 3% LINEAR settle=2026-02-28",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// ── FIX-3 ── AR post-request: append to arLedger, accumulate totals.",
+                  "const response   = pm.response.json();",
+                  "const contractID = response[0].contractID;",
+                  "const events     = response[0].events;",
+                  "const ppEvent    = events.find(e => e.type === 'PP');",
+                  "const payoff     = ppEvent ? ppEvent.payoff : 0;",
+                  "const notional   = JSON.parse(pm.request.body.raw).contracts[0].notionalPrincipal;",
+                  "const saving     = notional - payoff;",
+                  "",
+                  "// Update running cash reserve",
+                  "let cashReserve = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve += payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "",
+                  "// Append entry to AR ledger array",
+                  "const arLedger = JSON.parse(pm.collectionVariables.get('arLedger') || '[]');",
+                  "arLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('arLedger', JSON.stringify(arLedger));",
+                  "",
+                  "// Accumulate totals",
+                  "const arTotal   = parseFloat(pm.collectionVariables.get('arTotalInflow'))  + payoff;",
+                  "const arSavings = parseFloat(pm.collectionVariables.get('arSavingsTotal')) + saving;",
+                  "pm.collectionVariables.set('arTotalInflow',  arTotal.toFixed(2));",
+                  "pm.collectionVariables.set('arSavingsTotal', arSavings.toFixed(2));",
+                  "",
+                  "console.log('SETTLED ' + contractID + ': payoff=$' + payoff.toFixed(2) + ' saving=$' + saving.toFixed(2));",
+                  "console.log('cashReserve: -> $' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-11T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"AR-INV-001\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-14T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-11T00:00:00\",\"initialExchangeDate\":\"2026-02-12T00:00:00\",\"maturityDate\":\"2026-03-14T00:00:00\",\"notionalPrincipal\":500.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"BuyerXYZ\",\"creatorID\":\"SupplierAlpha\",\"discountingModels\":[\"early_settle_ar_001\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ar_001\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-14T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        },
+
+        {
+          "name": "AR-INV-002 – $600 5% LINEAR settle=2026-03-09",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response   = pm.response.json();",
+                  "const contractID = response[0].contractID;",
+                  "const events     = response[0].events;",
+                  "const ppEvent    = events.find(e => e.type === 'PP');",
+                  "const payoff     = ppEvent ? ppEvent.payoff : 0;",
+                  "const notional   = JSON.parse(pm.request.body.raw).contracts[0].notionalPrincipal;",
+                  "const saving     = notional - payoff;",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve += payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const arLedger   = JSON.parse(pm.collectionVariables.get('arLedger') || '[]');",
+                  "arLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('arLedger', JSON.stringify(arLedger));",
+                  "const arTotal    = parseFloat(pm.collectionVariables.get('arTotalInflow'))  + payoff;",
+                  "const arSavings  = parseFloat(pm.collectionVariables.get('arSavingsTotal')) + saving;",
+                  "pm.collectionVariables.set('arTotalInflow',  arTotal.toFixed(2));",
+                  "pm.collectionVariables.set('arSavingsTotal', arSavings.toFixed(2));",
+                  "console.log('SETTLED ' + contractID + ': payoff=$' + payoff.toFixed(2) + ' saving=$' + saving.toFixed(2));",
+                  "console.log('cashReserve -> $' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-23T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"AR-INV-002\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-26T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-23T00:00:00\",\"initialExchangeDate\":\"2026-02-24T00:00:00\",\"maturityDate\":\"2026-03-26T00:00:00\",\"notionalPrincipal\":600.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"BuyerXYZ\",\"creatorID\":\"SupplierBeta\",\"discountingModels\":[\"early_settle_ar_002\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ar_002\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-26T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        },
+
+        {
+          "name": "AR-INV-003 – $450 2% LINEAR settle=2026-03-30",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response   = pm.response.json();",
+                  "const contractID = response[0].contractID;",
+                  "const events     = response[0].events;",
+                  "const ppEvent    = events.find(e => e.type === 'PP');",
+                  "const payoff     = ppEvent ? ppEvent.payoff : 0;",
+                  "const notional   = JSON.parse(pm.request.body.raw).contracts[0].notionalPrincipal;",
+                  "const saving     = notional - payoff;",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve += payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const arLedger   = JSON.parse(pm.collectionVariables.get('arLedger') || '[]');",
+                  "arLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('arLedger', JSON.stringify(arLedger));",
+                  "const arTotal    = parseFloat(pm.collectionVariables.get('arTotalInflow'))  + payoff;",
+                  "const arSavings  = parseFloat(pm.collectionVariables.get('arSavingsTotal')) + saving;",
+                  "pm.collectionVariables.set('arTotalInflow',  arTotal.toFixed(2));",
+                  "pm.collectionVariables.set('arSavingsTotal', arSavings.toFixed(2));",
+                  "console.log('SETTLED ' + contractID + ': payoff=$' + payoff.toFixed(2) + ' saving=$' + saving.toFixed(2));",
+                  "console.log('cashReserve -> $' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-03-17T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"AR-INV-003\",\"cycleAnchorDateOfInterestPayment\":\"2026-04-17T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-17T00:00:00\",\"initialExchangeDate\":\"2026-03-18T00:00:00\",\"maturityDate\":\"2026-04-17T00:00:00\",\"notionalPrincipal\":450.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"BuyerXYZ\",\"creatorID\":\"SupplierGamma\",\"discountingModels\":[\"early_settle_ar_003\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ar_003\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-17T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        },
+
+        {
+          "name": "AR-INV-004 – $550 4% LINEAR settle=2026-02-22",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response   = pm.response.json();",
+                  "const contractID = response[0].contractID;",
+                  "const events     = response[0].events;",
+                  "const ppEvent    = events.find(e => e.type === 'PP');",
+                  "const payoff     = ppEvent ? ppEvent.payoff : 0;",
+                  "const notional   = JSON.parse(pm.request.body.raw).contracts[0].notionalPrincipal;",
+                  "const saving     = notional - payoff;",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve += payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const arLedger   = JSON.parse(pm.collectionVariables.get('arLedger') || '[]');",
+                  "arLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('arLedger', JSON.stringify(arLedger));",
+                  "const arTotal    = parseFloat(pm.collectionVariables.get('arTotalInflow'))  + payoff;",
+                  "const arSavings  = parseFloat(pm.collectionVariables.get('arSavingsTotal')) + saving;",
+                  "pm.collectionVariables.set('arTotalInflow',  arTotal.toFixed(2));",
+                  "pm.collectionVariables.set('arSavingsTotal', arSavings.toFixed(2));",
+                  "console.log('SETTLED ' + contractID + ': payoff=$' + payoff.toFixed(2) + ' saving=$' + saving.toFixed(2));",
+                  "console.log('cashReserve -> $' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-05T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"AR-INV-004\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-08T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-05T00:00:00\",\"initialExchangeDate\":\"2026-02-06T00:00:00\",\"maturityDate\":\"2026-03-08T00:00:00\",\"notionalPrincipal\":550.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"BuyerXYZ\",\"creatorID\":\"SupplierDelta\",\"discountingModels\":[\"early_settle_ar_004\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ar_004\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-08T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        },
+
+        {
+          "name": "AR-INV-005 – $480 5% LINEAR settle=2026-04-08",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response   = pm.response.json();",
+                  "const contractID = response[0].contractID;",
+                  "const events     = response[0].events;",
+                  "const ppEvent    = events.find(e => e.type === 'PP');",
+                  "const payoff     = ppEvent ? ppEvent.payoff : 0;",
+                  "const notional   = JSON.parse(pm.request.body.raw).contracts[0].notionalPrincipal;",
+                  "const saving     = notional - payoff;",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve += payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const arLedger   = JSON.parse(pm.collectionVariables.get('arLedger') || '[]');",
+                  "arLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('arLedger', JSON.stringify(arLedger));",
+                  "const arTotal    = parseFloat(pm.collectionVariables.get('arTotalInflow'))  + payoff;",
+                  "const arSavings  = parseFloat(pm.collectionVariables.get('arSavingsTotal')) + saving;",
+                  "pm.collectionVariables.set('arTotalInflow',  arTotal.toFixed(2));",
+                  "pm.collectionVariables.set('arSavingsTotal', arSavings.toFixed(2));",
+                  "console.log('SETTLED ' + contractID + ': payoff=$' + payoff.toFixed(2) + ' saving=$' + saving.toFixed(2));",
+                  "console.log('cashReserve -> $' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-03-26T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"AR-INV-005\",\"cycleAnchorDateOfInterestPayment\":\"2026-04-26T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-26T00:00:00\",\"initialExchangeDate\":\"2026-03-27T00:00:00\",\"maturityDate\":\"2026-04-26T00:00:00\",\"notionalPrincipal\":480.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"BuyerXYZ\",\"creatorID\":\"SupplierEpsilon\",\"discountingModels\":[\"early_settle_ar_005\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ar_005\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-26T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "8. AP Simulations",
+      "item": [
+
+        {
+          "name": "AP-INV-001 – $400 3% LINEAR settle=2026-03-03",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// ── FIX-3 ── AP pre-request: compute payoff client-side (RPL PP=0 engine limitation)",
+                  "// then refresh CASH_RESERVE_01 via pm.sendRequest before the simulation runs.",
+                  "const notional    = 400.0;",
+                  "const maxRate     = 0.03;",
+                  "const invoiceDate = new Date('2026-02-16');",
+                  "const dueDate     = new Date('2026-03-18');",
+                  "const settleDate  = new Date('2026-03-03');",
+                  "const totalDays   = (dueDate - invoiceDate) / 86400000;",
+                  "const remainDays  = (dueDate - settleDate)  / 86400000;",
+                  "const effRate     = maxRate * (remainDays / totalDays);",
+                  "const payoff      = parseFloat((notional * (1 - effRate)).toFixed(2));",
+                  "const saving      = parseFloat((notional - payoff).toFixed(2));",
+                  "pm.variables.set('_ap_contractID', 'AP-INV-001');",
+                  "pm.variables.set('_ap_notional',   notional);",
+                  "pm.variables.set('_ap_payoff',     payoff);",
+                  "pm.variables.set('_ap_saving',     saving);",
+                  "const cashReserve = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "console.log('AP-1/5: AP-INV-001 | cashReserve before: $' + cashReserve.toFixed(2) +",
+                  "            '  payoff=$' + payoff.toFixed(2) + '  sufficient? ' + (cashReserve >= payoff ? 'YES' : 'NO'));",
+                  "// Refresh CASH_RESERVE_01 flat timeseries to current balance",
+                  "const dates = [];",
+                  "let d = new Date('2026-02-01');",
+                  "const end = new Date('2026-05-31');",
+                  "while (d <= end) { dates.push(d.toISOString().slice(0,10)+'T00:00:00'); d.setDate(d.getDate()+1); }",
+                  "const refreshBody = JSON.stringify({",
+                  "  riskFactorID: 'CASH_RESERVE_01', marketObjectCode: 'CASH_RESERVE', base: 1,",
+                  "  data: dates.map(t => ({ time: t, value: cashReserve }))",
+                  "});",
+                  "pm.sendRequest(",
+                  "  { url: pm.collectionVariables.get('riskSvc') + '/addReferenceIndex',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body:   { mode: 'raw', raw: refreshBody } },",
+                  "  (err, res) => {",
+                  "    if (err) console.error('CASH_RESERVE refresh failed:', err);",
+                  "    else console.log('  CASH_RESERVE_01 refreshed to $' + cashReserve.toFixed(2) + ' HTTP ' + res.code);",
+                  "  }",
+                  ");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// ── FIX-3 ── AP post-request: use client-side payoff (engine PP=0 for RPL),",
+                  "// deduct from cashReserve, append to apLedger, accumulate totals.",
+                  "const contractID = pm.variables.get('_ap_contractID');",
+                  "const notional   = parseFloat(pm.variables.get('_ap_notional'));",
+                  "const payoff     = parseFloat(pm.variables.get('_ap_payoff'));",
+                  "const saving     = parseFloat(pm.variables.get('_ap_saving'));",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve -= payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const apLedger   = JSON.parse(pm.collectionVariables.get('apLedger') || '[]');",
+                  "apLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('apLedger', JSON.stringify(apLedger));",
+                  "const apTotal    = parseFloat(pm.collectionVariables.get('apTotalOutflow'))  + payoff;",
+                  "const apSavings  = parseFloat(pm.collectionVariables.get('apSavingsTotal'))  + saving;",
+                  "pm.collectionVariables.set('apTotalOutflow',  apTotal.toFixed(2));",
+                  "pm.collectionVariables.set('apSavingsTotal',  apSavings.toFixed(2));",
+                  "console.log('PAID ' + contractID + ': payoff=-$' + payoff.toFixed(2) + ' saving=+$' + saving.toFixed(2) + ' -> cashReserve=$' + cashReserve.toFixed(2));",
+                  "console.log('  [RPL corrected: IED=+' + notional + '  PP=-' + payoff.toFixed(2) + '  MD=0.00  (engine PP=0  engine MD=-' + notional + ')]');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-15T00:00:00\",\"contractRole\":\"RPL\",\"contractID\":\"AP-INV-001\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-18T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-15T00:00:00\",\"initialExchangeDate\":\"2026-02-16T00:00:00\",\"maturityDate\":\"2026-03-18T00:00:00\",\"notionalPrincipal\":400.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"VendorAlpha\",\"creatorID\":\"OurCo\",\"discountingModels\":[\"early_settle_ap_001\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ap_001\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-18T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        },
+
+        {
+          "name": "AP-INV-002 – $500 4% LINEAR settle=2026-03-25",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const notional    = 500.0;",
+                  "const maxRate     = 0.04;",
+                  "const invoiceDate = new Date('2026-03-12');",
+                  "const dueDate     = new Date('2026-04-11');",
+                  "const settleDate  = new Date('2026-03-25');",
+                  "const totalDays   = (dueDate - invoiceDate) / 86400000;",
+                  "const remainDays  = (dueDate - settleDate)  / 86400000;",
+                  "const effRate     = maxRate * (remainDays / totalDays);",
+                  "const payoff      = parseFloat((notional * (1 - effRate)).toFixed(2));",
+                  "const saving      = parseFloat((notional - payoff).toFixed(2));",
+                  "pm.variables.set('_ap_contractID', 'AP-INV-002');",
+                  "pm.variables.set('_ap_notional',   notional);",
+                  "pm.variables.set('_ap_payoff',     payoff);",
+                  "pm.variables.set('_ap_saving',     saving);",
+                  "const cashReserve = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "console.log('AP-2/5: AP-INV-002 | cashReserve before: $' + cashReserve.toFixed(2) +",
+                  "            '  payoff=$' + payoff.toFixed(2) + '  sufficient? ' + (cashReserve >= payoff ? 'YES' : 'NO'));",
+                  "const dates = [];",
+                  "let d = new Date('2026-02-01');",
+                  "const end = new Date('2026-05-31');",
+                  "while (d <= end) { dates.push(d.toISOString().slice(0,10)+'T00:00:00'); d.setDate(d.getDate()+1); }",
+                  "const refreshBody = JSON.stringify({",
+                  "  riskFactorID: 'CASH_RESERVE_01', marketObjectCode: 'CASH_RESERVE', base: 1,",
+                  "  data: dates.map(t => ({ time: t, value: cashReserve }))",
+                  "});",
+                  "pm.sendRequest(",
+                  "  { url: pm.collectionVariables.get('riskSvc') + '/addReferenceIndex',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body:   { mode: 'raw', raw: refreshBody } },",
+                  "  (err, res) => {",
+                  "    if (err) console.error('CASH_RESERVE refresh failed:', err);",
+                  "    else console.log('  CASH_RESERVE_01 refreshed to $' + cashReserve.toFixed(2) + ' HTTP ' + res.code);",
+                  "  }",
+                  ");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const contractID = pm.variables.get('_ap_contractID');",
+                  "const notional   = parseFloat(pm.variables.get('_ap_notional'));",
+                  "const payoff     = parseFloat(pm.variables.get('_ap_payoff'));",
+                  "const saving     = parseFloat(pm.variables.get('_ap_saving'));",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve -= payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const apLedger   = JSON.parse(pm.collectionVariables.get('apLedger') || '[]');",
+                  "apLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('apLedger', JSON.stringify(apLedger));",
+                  "const apTotal    = parseFloat(pm.collectionVariables.get('apTotalOutflow'))  + payoff;",
+                  "const apSavings  = parseFloat(pm.collectionVariables.get('apSavingsTotal'))  + saving;",
+                  "pm.collectionVariables.set('apTotalOutflow',  apTotal.toFixed(2));",
+                  "pm.collectionVariables.set('apSavingsTotal',  apSavings.toFixed(2));",
+                  "console.log('PAID ' + contractID + ': payoff=-$' + payoff.toFixed(2) + ' saving=+$' + saving.toFixed(2) + ' -> cashReserve=$' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-03-11T00:00:00\",\"contractRole\":\"RPL\",\"contractID\":\"AP-INV-002\",\"cycleAnchorDateOfInterestPayment\":\"2026-04-11T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-11T00:00:00\",\"initialExchangeDate\":\"2026-03-12T00:00:00\",\"maturityDate\":\"2026-04-11T00:00:00\",\"notionalPrincipal\":500.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"VendorBeta\",\"creatorID\":\"OurCo\",\"discountingModels\":[\"early_settle_ap_002\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ap_002\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-11T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        },
+
+        {
+          "name": "AP-INV-003 – $350 5% LINEAR settle=2026-03-07",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const notional    = 350.0;",
+                  "const maxRate     = 0.05;",
+                  "const invoiceDate = new Date('2026-02-22');",
+                  "const dueDate     = new Date('2026-03-24');",
+                  "const settleDate  = new Date('2026-03-07');",
+                  "const totalDays   = (dueDate - invoiceDate) / 86400000;",
+                  "const remainDays  = (dueDate - settleDate)  / 86400000;",
+                  "const effRate     = maxRate * (remainDays / totalDays);",
+                  "const payoff      = parseFloat((notional * (1 - effRate)).toFixed(2));",
+                  "const saving      = parseFloat((notional - payoff).toFixed(2));",
+                  "pm.variables.set('_ap_contractID', 'AP-INV-003');",
+                  "pm.variables.set('_ap_notional',   notional);",
+                  "pm.variables.set('_ap_payoff',     payoff);",
+                  "pm.variables.set('_ap_saving',     saving);",
+                  "const cashReserve = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "console.log('AP-3/5: AP-INV-003 | cashReserve before: $' + cashReserve.toFixed(2) +",
+                  "            '  payoff=$' + payoff.toFixed(2) + '  sufficient? ' + (cashReserve >= payoff ? 'YES' : 'NO'));",
+                  "const dates = [];",
+                  "let d = new Date('2026-02-01');",
+                  "const end = new Date('2026-05-31');",
+                  "while (d <= end) { dates.push(d.toISOString().slice(0,10)+'T00:00:00'); d.setDate(d.getDate()+1); }",
+                  "const refreshBody = JSON.stringify({",
+                  "  riskFactorID: 'CASH_RESERVE_01', marketObjectCode: 'CASH_RESERVE', base: 1,",
+                  "  data: dates.map(t => ({ time: t, value: cashReserve }))",
+                  "});",
+                  "pm.sendRequest(",
+                  "  { url: pm.collectionVariables.get('riskSvc') + '/addReferenceIndex',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body:   { mode: 'raw', raw: refreshBody } },",
+                  "  (err, res) => {",
+                  "    if (err) console.error('CASH_RESERVE refresh failed:', err);",
+                  "    else console.log('  CASH_RESERVE_01 refreshed to $' + cashReserve.toFixed(2) + ' HTTP ' + res.code);",
+                  "  }",
+                  ");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const contractID = pm.variables.get('_ap_contractID');",
+                  "const notional   = parseFloat(pm.variables.get('_ap_notional'));",
+                  "const payoff     = parseFloat(pm.variables.get('_ap_payoff'));",
+                  "const saving     = parseFloat(pm.variables.get('_ap_saving'));",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve -= payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const apLedger   = JSON.parse(pm.collectionVariables.get('apLedger') || '[]');",
+                  "apLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('apLedger', JSON.stringify(apLedger));",
+                  "const apTotal    = parseFloat(pm.collectionVariables.get('apTotalOutflow'))  + payoff;",
+                  "const apSavings  = parseFloat(pm.collectionVariables.get('apSavingsTotal'))  + saving;",
+                  "pm.collectionVariables.set('apTotalOutflow',  apTotal.toFixed(2));",
+                  "pm.collectionVariables.set('apSavingsTotal',  apSavings.toFixed(2));",
+                  "console.log('PAID ' + contractID + ': payoff=-$' + payoff.toFixed(2) + ' saving=+$' + saving.toFixed(2) + ' -> cashReserve=$' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-21T00:00:00\",\"contractRole\":\"RPL\",\"contractID\":\"AP-INV-003\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-24T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-21T00:00:00\",\"initialExchangeDate\":\"2026-02-22T00:00:00\",\"maturityDate\":\"2026-03-24T00:00:00\",\"notionalPrincipal\":350.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"VendorGamma\",\"creatorID\":\"OurCo\",\"discountingModels\":[\"early_settle_ap_003\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ap_003\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-24T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        },
+
+        {
+          "name": "AP-INV-004 – $600 2% LINEAR settle=2026-04-06",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const notional    = 600.0;",
+                  "const maxRate     = 0.02;",
+                  "const invoiceDate = new Date('2026-03-22');",
+                  "const dueDate     = new Date('2026-04-21');",
+                  "const settleDate  = new Date('2026-04-06');",
+                  "const totalDays   = (dueDate - invoiceDate) / 86400000;",
+                  "const remainDays  = (dueDate - settleDate)  / 86400000;",
+                  "const effRate     = maxRate * (remainDays / totalDays);",
+                  "const payoff      = parseFloat((notional * (1 - effRate)).toFixed(2));",
+                  "const saving      = parseFloat((notional - payoff).toFixed(2));",
+                  "pm.variables.set('_ap_contractID', 'AP-INV-004');",
+                  "pm.variables.set('_ap_notional',   notional);",
+                  "pm.variables.set('_ap_payoff',     payoff);",
+                  "pm.variables.set('_ap_saving',     saving);",
+                  "const cashReserve = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "console.log('AP-4/5: AP-INV-004 | cashReserve before: $' + cashReserve.toFixed(2) +",
+                  "            '  payoff=$' + payoff.toFixed(2) + '  sufficient? ' + (cashReserve >= payoff ? 'YES' : 'NO'));",
+                  "const dates = [];",
+                  "let d = new Date('2026-02-01');",
+                  "const end = new Date('2026-05-31');",
+                  "while (d <= end) { dates.push(d.toISOString().slice(0,10)+'T00:00:00'); d.setDate(d.getDate()+1); }",
+                  "const refreshBody = JSON.stringify({",
+                  "  riskFactorID: 'CASH_RESERVE_01', marketObjectCode: 'CASH_RESERVE', base: 1,",
+                  "  data: dates.map(t => ({ time: t, value: cashReserve }))",
+                  "});",
+                  "pm.sendRequest(",
+                  "  { url: pm.collectionVariables.get('riskSvc') + '/addReferenceIndex',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body:   { mode: 'raw', raw: refreshBody } },",
+                  "  (err, res) => {",
+                  "    if (err) console.error('CASH_RESERVE refresh failed:', err);",
+                  "    else console.log('  CASH_RESERVE_01 refreshed to $' + cashReserve.toFixed(2) + ' HTTP ' + res.code);",
+                  "  }",
+                  ");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const contractID = pm.variables.get('_ap_contractID');",
+                  "const notional   = parseFloat(pm.variables.get('_ap_notional'));",
+                  "const payoff     = parseFloat(pm.variables.get('_ap_payoff'));",
+                  "const saving     = parseFloat(pm.variables.get('_ap_saving'));",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve -= payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const apLedger   = JSON.parse(pm.collectionVariables.get('apLedger') || '[]');",
+                  "apLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('apLedger', JSON.stringify(apLedger));",
+                  "const apTotal    = parseFloat(pm.collectionVariables.get('apTotalOutflow'))  + payoff;",
+                  "const apSavings  = parseFloat(pm.collectionVariables.get('apSavingsTotal'))  + saving;",
+                  "pm.collectionVariables.set('apTotalOutflow',  apTotal.toFixed(2));",
+                  "pm.collectionVariables.set('apSavingsTotal',  apSavings.toFixed(2));",
+                  "console.log('PAID ' + contractID + ': payoff=-$' + payoff.toFixed(2) + ' saving=+$' + saving.toFixed(2) + ' -> cashReserve=$' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-03-21T00:00:00\",\"contractRole\":\"RPL\",\"contractID\":\"AP-INV-004\",\"cycleAnchorDateOfInterestPayment\":\"2026-04-21T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-21T00:00:00\",\"initialExchangeDate\":\"2026-03-22T00:00:00\",\"maturityDate\":\"2026-04-21T00:00:00\",\"notionalPrincipal\":600.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"VendorDelta\",\"creatorID\":\"OurCo\",\"discountingModels\":[\"early_settle_ap_004\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ap_004\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-21T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        },
+
+        {
+          "name": "AP-INV-005 – $420 3% LINEAR settle=2026-04-17",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const notional    = 420.0;",
+                  "const maxRate     = 0.03;",
+                  "const invoiceDate = new Date('2026-04-04');",
+                  "const dueDate     = new Date('2026-05-04');",
+                  "const settleDate  = new Date('2026-04-17');",
+                  "const totalDays   = (dueDate - invoiceDate) / 86400000;",
+                  "const remainDays  = (dueDate - settleDate)  / 86400000;",
+                  "const effRate     = maxRate * (remainDays / totalDays);",
+                  "const payoff      = parseFloat((notional * (1 - effRate)).toFixed(2));",
+                  "const saving      = parseFloat((notional - payoff).toFixed(2));",
+                  "pm.variables.set('_ap_contractID', 'AP-INV-005');",
+                  "pm.variables.set('_ap_notional',   notional);",
+                  "pm.variables.set('_ap_payoff',     payoff);",
+                  "pm.variables.set('_ap_saving',     saving);",
+                  "const cashReserve = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "console.log('AP-5/5: AP-INV-005 | cashReserve before: $' + cashReserve.toFixed(2) +",
+                  "            '  payoff=$' + payoff.toFixed(2) + '  sufficient? ' + (cashReserve >= payoff ? 'YES' : 'NO'));",
+                  "const dates = [];",
+                  "let d = new Date('2026-02-01');",
+                  "const end = new Date('2026-05-31');",
+                  "while (d <= end) { dates.push(d.toISOString().slice(0,10)+'T00:00:00'); d.setDate(d.getDate()+1); }",
+                  "const refreshBody = JSON.stringify({",
+                  "  riskFactorID: 'CASH_RESERVE_01', marketObjectCode: 'CASH_RESERVE', base: 1,",
+                  "  data: dates.map(t => ({ time: t, value: cashReserve }))",
+                  "});",
+                  "pm.sendRequest(",
+                  "  { url: pm.collectionVariables.get('riskSvc') + '/addReferenceIndex',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "    body:   { mode: 'raw', raw: refreshBody } },",
+                  "  (err, res) => {",
+                  "    if (err) console.error('CASH_RESERVE refresh failed:', err);",
+                  "    else console.log('  CASH_RESERVE_01 refreshed to $' + cashReserve.toFixed(2) + ' HTTP ' + res.code);",
+                  "  }",
+                  ");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const contractID = pm.variables.get('_ap_contractID');",
+                  "const notional   = parseFloat(pm.variables.get('_ap_notional'));",
+                  "const payoff     = parseFloat(pm.variables.get('_ap_payoff'));",
+                  "const saving     = parseFloat(pm.variables.get('_ap_saving'));",
+                  "let cashReserve  = parseFloat(pm.collectionVariables.get('cashReserve'));",
+                  "cashReserve -= payoff;",
+                  "pm.collectionVariables.set('cashReserve', cashReserve.toFixed(2));",
+                  "const apLedger   = JSON.parse(pm.collectionVariables.get('apLedger') || '[]');",
+                  "apLedger.push({ contractID, notional, payoff, saving });",
+                  "pm.collectionVariables.set('apLedger', JSON.stringify(apLedger));",
+                  "const apTotal    = parseFloat(pm.collectionVariables.get('apTotalOutflow'))  + payoff;",
+                  "const apSavings  = parseFloat(pm.collectionVariables.get('apSavingsTotal'))  + saving;",
+                  "pm.collectionVariables.set('apTotalOutflow',  apTotal.toFixed(2));",
+                  "pm.collectionVariables.set('apSavingsTotal',  apSavings.toFixed(2));",
+                  "console.log('PAID ' + contractID + ': payoff=-$' + payoff.toFixed(2) + ' saving=+$' + saving.toFixed(2) + ' -> cashReserve=$' + cashReserve.toFixed(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-04-03T00:00:00\",\"contractRole\":\"RPL\",\"contractID\":\"AP-INV-005\",\"cycleAnchorDateOfInterestPayment\":\"2026-05-04T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-04-03T00:00:00\",\"initialExchangeDate\":\"2026-04-04T00:00:00\",\"maturityDate\":\"2026-05-04T00:00:00\",\"notionalPrincipal\":420.0,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"VendorEpsilon\",\"creatorID\":\"OurCo\",\"discountingModels\":[\"early_settle_ap_005\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc2_ap_005\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-05-04T00:00:00\",\"monitoringTimes\":[]}"
+            },
+            "url": {
+              "raw": "{{simSvc}}/rf2/scenarioSimulation",
+              "host": ["{{simSvc}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "name": "9. Dashboard",
+      "item": [
+        {
+          "name": "FINAL CASH RESERVE DASHBOARD",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// ── FIX-3 ── Dashboard: reads all six ledger collectionVariables correctly.",
+                  "// In fix2 these arrays were never written so the dashboard printed zeros.",
+                  "const OPENING    = 1000.00;",
+                  "const arLedger   = JSON.parse(pm.collectionVariables.get('arLedger')       || '[]');",
+                  "const apLedger   = JSON.parse(pm.collectionVariables.get('apLedger')       || '[]');",
+                  "const arTotal    = parseFloat(pm.collectionVariables.get('arTotalInflow')  || '0');",
+                  "const apTotal    = parseFloat(pm.collectionVariables.get('apTotalOutflow') || '0');",
+                  "const arSavings  = parseFloat(pm.collectionVariables.get('arSavingsTotal') || '0');",
+                  "const apSavings  = parseFloat(pm.collectionVariables.get('apSavingsTotal') || '0');",
+                  "const closing    = parseFloat(pm.collectionVariables.get('cashReserve')    || '0');",
+                  "const SEP = '══════════════════════════════════════════════════════════════';",
+                  "console.log(SEP);",
+                  "console.log('DYNDISC-2  |  AR/AP Multi-Contract + Dynamic Cash Reserve  [fix3]');",
+                  "console.log(SEP);",
+                  "console.log('  Opening balance : $' + OPENING.toFixed(2));",
+                  "console.log('');",
+                  "console.log('  ── AR Settlement Ledger (' + arLedger.length + ' contracts) ──');",
+                  "arLedger.forEach((r, i) => {",
+                  "  console.log('  ' + (i+1) + '. ' + r.contractID +",
+                  "    '  face=$'    + r.notional.toFixed(2) +",
+                  "    '  settled=$' + r.payoff.toFixed(2) +",
+                  "    '  supplier-saving=$' + r.saving.toFixed(2));",
+                  "});",
+                  "console.log('');",
+                  "console.log('  ── AP Settlement Ledger (' + apLedger.length + ' contracts) ──');",
+                  "apLedger.forEach((r, i) => {",
+                  "  console.log('  ' + (i+1) + '. ' + r.contractID +",
+                  "    '  face=$'  + r.notional.toFixed(2) +",
+                  "    '  paid=$'  + r.payoff.toFixed(2) +",
+                  "    '  ourco-saving=$' + r.saving.toFixed(2));",
+                  "});",
+                  "console.log('');",
+                  "console.log('  ── Summary ──');",
+                  "console.log('  Total AR inflows  : +$' + arTotal.toFixed(2) + '  (' + arLedger.length + ' contracts)');",
+                  "console.log('  Total AP outflows :  $' + apTotal.toFixed(2) + '  (' + apLedger.length + ' contracts)');",
+                  "console.log('  Net cash change   : +$' + (arTotal - apTotal).toFixed(2));",
+                  "console.log('  Opening balance   :  $' + OPENING.toFixed(2));",
+                  "console.log('  Closing balance   :  $' + closing.toFixed(2));",
+                  "console.log('');",
+                  "console.log('  ── Discount Savings Analysis ──');",
+                  "console.log('  AR supplier savings  : $' + arSavings.toFixed(2) + '  (suppliers received less than face)');",
+                  "console.log('  AP OurCo savings     : $' + apSavings.toFixed(2) + '  (OurCo paid less than face)');",
+                  "console.log('  Combined savings     : $' + (arSavings + apSavings).toFixed(2));",
+                  "console.log(SEP);",
+                  "console.log('  ENGINE NOTE: ACTUS RPL role returns PP.payoff=0 (known engine limitation).');",
+                  "console.log('  CORRECT RPL cash flows: IED=+notional  PP=-discountedAmt  MD=0.');",
+                  "console.log('  AP amounts computed client-side via LINEAR formula in pre-request scripts.');",
+                  "console.log(SEP);",
+                  "// Assertions so Postman marks the run green/red",
+                  "pm.test('AR ledger has 5 entries',  () => pm.expect(arLedger.length).to.equal(5));",
+                  "pm.test('AP ledger has 5 entries',  () => pm.expect(apLedger.length).to.equal(5));",
+                  "pm.test('Closing balance correct',  () => pm.expect(closing).to.be.closeTo(1296.32, 0.05));",
+                  "pm.test('AR total inflows correct', () => pm.expect(arTotal).to.be.closeTo(2525.93, 0.05));",
+                  "pm.test('AP total outflows correct',() => pm.expect(apTotal).to.be.closeTo(2229.61, 0.05));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{riskSvc}}/findAllScenarios",
+              "host": ["{{riskSvc}}"],
+              "path": ["findAllScenarios"]
+            }
+          }
+        }
+      ]
+    }
+
+  ]
+}

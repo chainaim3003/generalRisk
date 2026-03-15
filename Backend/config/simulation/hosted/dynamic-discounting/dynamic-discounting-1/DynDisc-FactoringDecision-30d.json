@@ -1,0 +1,384 @@
+{
+  "info": {
+    "_postman_id": "dyndisc-factoring-30d-001",
+    "name": "DynDisc-FactoringDecision-30d",
+    "description": "ACTUS Dynamic Discounting: FACTORING DECISION — 3-Channel Financing Comparison.\n\nCompares 3 financing channels for a $100K invoice:\n  1. Dynamic discount (LINEAR, 2% max, 30-day term)\n  2. Bank factoring (fixed APR)\n  3. Reverse factoring (fixed APR)\n\nThe model evaluates each channel's cost daily and selects the cheapest.\nUses dual-call pattern: POF returns discountedFraction, STF returns 1.0 for full notional cancellation.\n\nSCENARIO 1 (steps 1-4): bank=12%, reverse=6%\n  Discount APR (24.3%) > both factoring rates → discount LOSES → no settlement.\n\nSCENARIO 2 (steps 5-7): bank=30%, reverse=25%\n  Discount APR (24.3%) < both factoring rates → discount WINS → settlement at ~$98K.\n\nNOTE: monitoringEventTimes starts 2026-03-02 (day after IED) to avoid PP-before-IED ordering bug.\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add FactoringDecisionModel (LINEAR, bank=12%, reverse=6%)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addFactoringDecisionModel",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addFactoringDecisionModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"factoring_inv004\",\"invoiceDate\":\"2026-03-01T00:00:00\",\"dueDate\":\"2026-03-31T00:00:00\",\"notionalAmount\":100000.0,\"discountFunctionType\":\"LINEAR\",\"maxDiscountRate\":0.02,\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"bankFactoringRateAnnualized\":0.12,\"reverseFactoringRateAnnualized\":0.06,\"monitoringEventTimes\":[\"2026-03-02T00:00:00\",\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\",\"2026-03-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FactoringDecisionModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 factoring_inv004: FactoringDecisionModel');",
+        "    console.log('   3-Channel comparison:');",
+        "    console.log('     Ch1: Dynamic discount (LINEAR, max=2%)');",
+        "    console.log('     Ch2: Bank factoring (12% APR)');",
+        "    console.log('     Ch3: Reverse factoring (6% APR)');",
+        "    console.log('   invoice=$100K, term=30 days');",
+        "    console.log('   At these rates, reverse factoring (6%) always beats discount (24.3% APR)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addScenario",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"dyndisc_factoring_30d\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"factoring_inv004\",\"riskFactorType\":\"FactoringDecision\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 dyndisc_factoring_30d: 1 FactoringDecision model');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3a. Verify FactoringDecisionModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://34.203.247.32:8082/findFactoringDecisionModel/factoring_inv004",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["findFactoringDecisionModel", "factoring_inv004"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FactoringDecisionModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.riskFactorId).to.eql('factoring_inv004');",
+        "    pm.expect(data.bankFactoringRateAnnualized).to.eql(0.12);",
+        "    pm.expect(data.reverseFactoringRateAnnualized).to.eql(0.06);",
+        "    console.log('\\u2705 factoring_inv004 confirmed:');",
+        "    console.log('   discount=' + data.discountFunctionType + ' max=' + data.maxDiscountRate);",
+        "    console.log('   bankFactoring=' + data.bankFactoringRateAnnualized);",
+        "    console.log('   reverseFactoring=' + data.reverseFactoringRateAnnualized);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3b. Verify Scenario",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://34.203.247.32:8082/findScenario/dyndisc_factoring_30d",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["findScenario", "dyndisc_factoring_30d"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data.scenarioID).to.eql('dyndisc_factoring_30d');",
+        "    var types = data.riskFactorDescriptors.map(function(d){return d.riskFactorType;});",
+        "    pm.expect(types).to.include('FactoringDecision');",
+        "    console.log('\\u2705 Scenario descriptors: ' + JSON.stringify(types));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Run FactoringDecision Simulation (discount loses to factoring)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["34.203.247.32:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"INV-2026-004-FACTORING\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"SupplierJKL\",\"creatorID\":\"BuyerXYZ\",\"discountingModels\":[\"factoring_inv004\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc_factoring_30d\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario 1: Discount LOSES to factoring', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('SCENARIO 1: DISCOUNT LOSES — 3-CHANNEL COMPARISON');",
+        "    console.log('  Invoice: INV-2026-004-FACTORING ($100K)');",
+        "    console.log('  Ch1: Dynamic discount (LINEAR 2% \\u2192 APR 24.3%)');",
+        "    console.log('  Ch2: Bank factoring (12% APR)');",
+        "    console.log('  Ch3: Reverse factoring (6% APR) \\u2190 cheapest');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "",
+        "    // Event counts",
+        "    var counts = {};",
+        "    events.forEach(function(e){ counts[e.type] = (counts[e.type]||0) + 1; });",
+        "    console.log('Total events: ' + events.length);",
+        "    Object.keys(counts).forEach(function(k){ console.log('  ' + k + ': ' + counts[k]); });",
+        "    console.log('');",
+        "",
+        "    // IED-before-PP ordering check",
+        "    var ied = events.filter(function(e){ return e.type === 'IED'; })[0];",
+        "    var firstPP = events.filter(function(e){ return e.type === 'PP'; })[0];",
+        "    if (ied && firstPP) {",
+        "        var iedOK = ied.time <= firstPP.time;",
+        "        console.log(iedOK ? '\\u2705 IED before first PP' : '\\u274c IED AFTER first PP — ordering bug!');",
+        "        console.log('  IED: ' + ied.time + '  First PP: ' + firstPP.time);",
+        "    }",
+        "",
+        "    // Settlement check: look for PP events with non-zero payoff",
+        "    var settlementPPs = events.filter(function(e){ return e.type === 'PP' && Math.abs(e.payoff) > 0; });",
+        "    if (settlementPPs.length === 0) {",
+        "        console.log('\\u2705 No settlement PP \\u2014 correct: reverse factoring (6%) cheaper than discount (24.3%)');",
+        "    } else {",
+        "        console.log('\\u274c Settlement PP found \\u2014 discount should NOT have won!');",
+        "        settlementPPs.forEach(function(p){",
+        "            console.log('  ' + p.time + ' payoff=$' + p.payoff.toFixed(2));",
+        "        });",
+        "    }",
+        "",
+        "    // Maturity check",
+        "    var md = events.filter(function(e){ return e.type === 'MD'; })[0];",
+        "    if (md) {",
+        "        console.log('');",
+        "        console.log('\\u2550\\u2550 MATURITY \\u2550\\u2550');",
+        "        console.log('  MD payoff: $' + md.payoff.toFixed(2));",
+        "        var mdOK = Math.abs(md.payoff - 100000) < 1;",
+        "        console.log(mdOK ? '\\u2705 Full principal at maturity (no discount applied)' : '\\u274c Expected $100,000');",
+        "    }",
+        "",
+        "    console.log('');",
+        "    console.log('\\u2550\\u2550 COST ANALYSIS (Day 1, 29 days remaining) \\u2550\\u2550');",
+        "    console.log('  Discount cost: $100K \\u00d7 1.93% = $1,933 (APR 24.3%)');",
+        "    console.log('  Bank factoring: $100K \\u00d7 12% \\u00d7 29/365 = $953');",
+        "    console.log('  Reverse factoring: $100K \\u00d7 6% \\u00d7 29/365 = $477 \\u2190 CHEAPEST');",
+        "    console.log('  \\u2192 Discount is 4x more expensive than reverse factoring');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "});",
+        "",
+        "pm.test('No settlement occurred', function(){",
+        "    var events = pm.response.json()[0].events;",
+        "    var settlementPPs = events.filter(function(e){ return e.type === 'PP' && Math.abs(e.payoff) > 0; });",
+        "    pm.expect(settlementPPs.length).to.eql(0, 'Expected no settlement PPs when factoring is cheaper');",
+        "});",
+        "",
+        "pm.test('IED before first PP', function(){",
+        "    var events = pm.response.json()[0].events;",
+        "    var ied = events.filter(function(e){ return e.type === 'IED'; })[0];",
+        "    var firstPP = events.filter(function(e){ return e.type === 'PP'; })[0];",
+        "    pm.expect(ied.time <= firstPP.time).to.be.true;",
+        "});",
+        "",
+        "pm.test('MD at full principal', function(){",
+        "    var events = pm.response.json()[0].events;",
+        "    var md = events.filter(function(e){ return e.type === 'MD'; })[0];",
+        "    pm.expect(Math.abs(md.payoff - 100000)).to.be.below(1);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add FactoringDecisionModel (HIGH rates — discount wins)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addFactoringDecisionModel",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addFactoringDecisionModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"factoring_inv005\",\"invoiceDate\":\"2026-03-01T00:00:00\",\"dueDate\":\"2026-03-31T00:00:00\",\"notionalAmount\":100000.0,\"discountFunctionType\":\"LINEAR\",\"maxDiscountRate\":0.02,\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"bankFactoringRateAnnualized\":0.30,\"reverseFactoringRateAnnualized\":0.25,\"monitoringEventTimes\":[\"2026-03-02T00:00:00\",\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\",\"2026-03-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('FactoringDecisionModel HIGH RATES added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 factoring_inv005: FactoringDecision with HIGH factoring rates');",
+        "    console.log('   bankFactoring=30% APR, reverseFactoring=25% APR');",
+        "    console.log('   \\u2192 Discount APR (24.3%) < both \\u2192 discount should WIN');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add HIGH-rate Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8082/addScenario",
+          "protocol": "http",
+          "host": ["34.203.247.32:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"dyndisc_factoring_highrate_30d\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"factoring_inv005\",\"riskFactorType\":\"FactoringDecision\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('HIGH-rate scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 dyndisc_factoring_highrate_30d: high-rate factoring scenario');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7. Run FactoringDecision HIGH-rate Simulation (discount WINS)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://34.203.247.32:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["34.203.247.32:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"INV-2026-005-FACTORING-HR\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"SupplierMNO\",\"creatorID\":\"BuyerXYZ\",\"discountingModels\":[\"factoring_inv005\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc_factoring_highrate_30d\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario 2: Discount WINS over expensive factoring', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('SCENARIO 2: DISCOUNT WINS — HIGH-RATE FACTORING');",
+        "    console.log('  Invoice: INV-2026-005-FACTORING-HR ($100K)');",
+        "    console.log('  Ch1: Dynamic discount (LINEAR 2% \\u2192 APR 24.3%) \\u2190 cheapest');",
+        "    console.log('  Ch2: Bank factoring (30% APR) \\u2190 expensive');",
+        "    console.log('  Ch3: Reverse factoring (25% APR) \\u2190 expensive');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "",
+        "    // Event counts",
+        "    var counts = {};",
+        "    events.forEach(function(e){ counts[e.type] = (counts[e.type]||0) + 1; });",
+        "    console.log('Total events: ' + events.length);",
+        "    Object.keys(counts).forEach(function(k){ console.log('  ' + k + ': ' + counts[k]); });",
+        "    console.log('');",
+        "",
+        "    // IED-before-PP ordering check",
+        "    var ied = events.filter(function(e){ return e.type === 'IED'; })[0];",
+        "    var firstPP = events.filter(function(e){ return e.type === 'PP'; })[0];",
+        "    if (ied && firstPP) {",
+        "        var iedOK = ied.time <= firstPP.time;",
+        "        console.log(iedOK ? '\\u2705 IED before first PP' : '\\u274c IED AFTER first PP \\u2014 ordering bug!');",
+        "        console.log('  IED: ' + ied.time + '  First PP: ' + firstPP.time);",
+        "    }",
+        "    console.log('');",
+        "",
+        "    // Settlement PP: the first PP with payoff > 0",
+        "    var settlementPP = null;",
+        "    var postSettlementPPs = [];",
+        "    events.filter(function(e){ return e.type === 'PP'; }).forEach(function(p){",
+        "        if (!settlementPP && Math.abs(p.payoff) > 0) {",
+        "            settlementPP = p;",
+        "        } else if (settlementPP) {",
+        "            postSettlementPPs.push(p);",
+        "        }",
+        "    });",
+        "",
+        "    if (settlementPP) {",
+        "        var discount = 100000 - Math.abs(settlementPP.payoff);",
+        "        var discountPct = (discount / 100000 * 100).toFixed(2);",
+        "        console.log('\\u2550\\u2550 SETTLEMENT \\u2550\\u2550');",
+        "        console.log('\\u2705 Settlement PP found at ' + settlementPP.time);",
+        "        console.log('  Payoff: $' + Math.abs(settlementPP.payoff).toFixed(2));",
+        "        console.log('  Discount: $' + discount.toFixed(2) + ' (' + discountPct + '%)');",
+        "        console.log('  nominalValue after: $' + settlementPP.nominalValue.toFixed(2));",
+        "    } else {",
+        "        console.log('\\u274c No settlement PP \\u2014 discount should have won!');",
+        "    }",
+        "",
+        "    // Post-settlement: should all be $0",
+        "    if (postSettlementPPs.length > 0) {",
+        "        var allZero = postSettlementPPs.every(function(p){ return p.payoff === 0 && p.nominalValue === 0; });",
+        "        console.log('');",
+        "        console.log('\\u2550\\u2550 POST-SETTLEMENT \\u2550\\u2550');",
+        "        console.log('  ' + postSettlementPPs.length + ' remaining PPs, all zero: ' + (allZero ? '\\u2705' : '\\u274c'));",
+        "    }",
+        "",
+        "    // Maturity check",
+        "    var md = events.filter(function(e){ return e.type === 'MD'; })[0];",
+        "    if (md) {",
+        "        console.log('');",
+        "        console.log('\\u2550\\u2550 MATURITY \\u2550\\u2550');",
+        "        console.log('  MD payoff: $' + md.payoff.toFixed(2));",
+        "        var mdOK = Math.abs(md.payoff) < 1;",
+        "        console.log(mdOK ? '\\u2705 Contract fully closed by settlement' : '\\u274c Expected $0 (already settled)');",
+        "    }",
+        "",
+        "    console.log('');",
+        "    console.log('\\u2550\\u2550 COST ANALYSIS (Day 1, 29 days remaining) \\u2550\\u2550');",
+        "    console.log('  Discount cost:   $100K \\u00d7 1.93% = $1,933 (APR 24.3%) \\u2190 CHEAPEST');",
+        "    console.log('  Bank factoring:  $100K \\u00d7 30% \\u00d7 29/365 = $2,384');",
+        "    console.log('  Reverse factoring: $100K \\u00d7 25% \\u00d7 29/365 = $1,986');",
+        "    console.log('  \\u2192 Discount wins \\u2192 early settlement triggered');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "});",
+        "",
+        "pm.test('Settlement PP has correct discount', function(){",
+        "    var events = pm.response.json()[0].events;",
+        "    var settlementPPs = events.filter(function(e){ return e.type === 'PP' && Math.abs(e.payoff) > 0; });",
+        "    pm.expect(settlementPPs.length).to.eql(1, 'Exactly one settlement PP');",
+        "    // Day 1: LINEAR discount = 2% × (1 - 1/30) = 1.933%, net = 98,067",
+        "    pm.expect(settlementPPs[0].payoff).to.be.within(97000, 99000);",
+        "});",
+        "",
+        "pm.test('IED before first PP', function(){",
+        "    var events = pm.response.json()[0].events;",
+        "    var ied = events.filter(function(e){ return e.type === 'IED'; })[0];",
+        "    var firstPP = events.filter(function(e){ return e.type === 'PP'; })[0];",
+        "    pm.expect(ied.time <= firstPP.time).to.be.true;",
+        "});",
+        "",
+        "pm.test('MD is zero (contract closed)', function(){",
+        "    var events = pm.response.json()[0].events;",
+        "    var md = events.filter(function(e){ return e.type === 'MD'; })[0];",
+        "    pm.expect(Math.abs(md.payoff)).to.be.below(1);",
+        "});"
+      ]}}]
+    }
+  ]
+}

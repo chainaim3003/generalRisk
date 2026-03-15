@@ -1,0 +1,286 @@
+{
+  "info": {
+    "_postman_id": "swppv-pc-90d-001",
+    "name": "SupplyChain-SWPPV-PortCongestion-90d",
+    "description": "ACTUS SWPPV contract: PORT CONGESTION single-factor simulation.\n\n$6M plain vanilla IRS, MX-autoparts corridor.\nPort delay impact on SWPPV payments.\n\nPer ACTUS official documentation:\n- SWPPV: nominalInterestRate (fixed IPFX) + nominalInterestRate2 (floating IPFL)\n- See: https://documentation.actusfrf.org/docs/examples/basic-contract-types/example_SWPPV\n\nRisk Factor: PORT CONGESTION model only (single dimension).\nBehavioral model from Risk-Factor-2.md Domain 2: Tariff/Trade Finance.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add Tariff Index (MX-autoparts)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": [
+            "localhost:8082"
+          ],
+          "path": [
+            "addReferenceIndex"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"TARIFF_IDX_MX_01\",\"marketObjectCode\":\"TARIFF_INDEX_MX\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.025},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.05},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.1},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.15},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.2},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-10T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-20T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.2},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.15},{\"time\":\"2026-05-20T00:00:00\",\"value\":0.1},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.05}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('OK',function(){pm.response.to.have.status(200);console.log('\\u2705 TARIFF_IDX_MX_01: MX-autoparts tariff loaded');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Add PORT_CONGESTION_INDEX",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": [
+            "localhost:8082"
+          ],
+          "path": [
+            "addReferenceIndex"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"PORT_CONG_01\",\"marketObjectCode\":\"PORT_CONGESTION_INDEX\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":4.0},{\"time\":\"2026-03-10T00:00:00\",\"value\":4.5},{\"time\":\"2026-03-15T00:00:00\",\"value\":5.5},{\"time\":\"2026-03-20T00:00:00\",\"value\":7.0},{\"time\":\"2026-03-25T00:00:00\",\"value\":9.0},{\"time\":\"2026-03-31T00:00:00\",\"value\":11.0},{\"time\":\"2026-04-10T00:00:00\",\"value\":12.0},{\"time\":\"2026-04-20T00:00:00\",\"value\":11.5},{\"time\":\"2026-04-30T00:00:00\",\"value\":10.0},{\"time\":\"2026-05-10T00:00:00\",\"value\":8.0},{\"time\":\"2026-05-20T00:00:00\",\"value\":6.0},{\"time\":\"2026-05-31T00:00:00\",\"value\":5.0}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('OK',function(){pm.response.to.have.status(200);console.log('\\u2705 Port congestion index loaded');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Add USD_SOFR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": [
+            "localhost:8082"
+          ],
+          "path": [
+            "addReferenceIndex"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SOFR_IDX_01\",\"marketObjectCode\":\"USD_SOFR\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.043},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.043},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.044},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.045},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.046},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.045},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.044}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('OK',function(){pm.response.to.have.status(200);console.log('\\u2705 SOFR reference rate loaded');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Add PORT CONGESTION Model",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8082/addPortCongestionModel",
+          "protocol": "http",
+          "host": [
+            "localhost:8082"
+          ],
+          "path": [
+            "addPortCongestionModel"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"pc_swppv_MX_01\",\"portCongestionIndexMOC\":\"PORT_CONGESTION_INDEX\",\"tariffIndexMOC\":\"TARIFF_INDEX_MX\",\"baseDwellDays\":4.0,\"congestionSensitivity\":0.5,\"maxDelayDays\":10.0,\"financialImpactPerDay\":0.002,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('OK',function(){pm.response.to.have.status(200);console.log('\\u2705 pc_swppv_MX_01: PORT CONGESTION model loaded');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Add Scenario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": [
+            "localhost:8082"
+          ],
+          "path": [
+            "addScenario"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"swppv_pc_MX_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"TARIFF_IDX_MX_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"PORT_CONG_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SOFR_IDX_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"pc_swppv_MX_01\",\"riskFactorType\":\"PortCongestionModel\"}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('OK',function(){pm.response.to.have.status(200);console.log('\\u2705 swppv_pc_MX_scn01: scenario created');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Run SWPPV PORT CONGESTION Simulation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": [
+            "localhost:8083"
+          ],
+          "path": [
+            "rf2",
+            "scenarioSimulation"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"SWPPV\",\"contractID\":\"SWPPV-PC-MX-autoparts-01\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RF\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":6000000,\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML1\",\"nominalInterestRate\":0.055,\"nominalInterestRate2\":0.043,\"dayCountConvention\":\"A365\",\"cycleAnchorDateOfRateReset\":\"2026-03-01T00:00:00\",\"rateSpread\":0.015,\"marketObjectCodeOfRateReset\":\"USD_SOFR\",\"fixingPeriod\":\"P0D\",\"deliverySettlement\":\"D\",\"tariffModels\":[\"pc_swppv_MX_01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"swppv_pc_MX_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-05-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Simulation success',function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data=pm.response.json();",
+              "    pm.expect(data[0].status).to.eql('Success');",
+              "    var events=data[0].events;",
+              "    console.log('\\u2550'.repeat(60));",
+              "    console.log('SWPPV \\u2014 PORT CONGESTION (Single Factor)');",
+              "    console.log('  Contract: $6M plain vanilla IRS');",
+              "    console.log('  Receive Fixed 5.5% (IPFX) | Pay Floating SOFR+2bps (IPFL)');",
+              "    console.log('  Corridor: MX-autoparts');",
+              "    console.log('  Scenario: Port delay impact on SWPPV payments');",
+              "    console.log('\\u2550'.repeat(60));",
+              "    console.log('Total events: '+events.length);",
+              "    var c={};events.forEach(function(e){c[e.type]=(c[e.type]||0)+1;});",
+              "    Object.keys(c).forEach(function(k){console.log('  '+k+': '+c[k]);});",
+              "    console.log('');console.log('ALL EVENTS:');",
+              "    events.forEach(function(e){console.log('  '+e.time+' '+e.type+' payoff=$'+e.payoff.toFixed(2)+' nominal='+e.nominalValue.toFixed(2)+' rate='+(e.nominalRate||0).toFixed(6));});",
+              "    var ips=events.filter(function(e){return e.type==='IP'||e.type==='IPFX'||e.type==='IPFL';});",
+              "    if(ips.length>0){console.log('');console.log('INTEREST/SWAP PAYMENTS:');",
+              "        ips.forEach(function(m){console.log('  '+m.time+' '+m.type+' $'+m.payoff.toFixed(2)+' rate='+(m.nominalRate||0).toFixed(6));});}",
+              "    var pps=events.filter(function(e){return e.type==='PP'||e.type==='MRD';});",
+              "    if(pps.length>0){console.log('');console.log('BEHAVIORAL CALLOUTS:');",
+              "        pps.forEach(function(m){console.log('  '+m.time+' '+m.type+' payoff=$'+m.payoff.toFixed(2));});}",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

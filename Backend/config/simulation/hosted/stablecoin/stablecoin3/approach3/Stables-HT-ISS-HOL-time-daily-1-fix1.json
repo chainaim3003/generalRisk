@@ -1,0 +1,861 @@
+{
+  "info": {
+    "_postman_id": "sc3-hol-daily-001-fix1",
+    "name": "Stables-HT-HOL-time-daily-1-fix1",
+    "description": "HOLDER PERSPECTIVE: Hybrid Treasury Multi-Contract Behavioral Simulation\n\n4 BEHAVIORAL MODELS x 31 DAILY EPOCHS = 124 PP EVENTS on liability contract\n\nMODELS (all existing in risksrv3, zero code changes):\n  RedemptionPressureModel (6.2)   \u2014 609-event calibrated: peg deviation \u2192 daily redemption rate\n  EarlyWarningModel (6.7)         \u2014 4 signals with 2-8 hour lead time (F1: 0.63-0.80)\n  BackingRatioModel (6.1)         \u2014 is the issuer solvent? Can they honor my redemption?\n  MaturityLadderModel (6.3)       \u2014 when does next T-bill mature? Is cash coming?\n\n8 REFERENCE INDEXES feed the 4 models at every daily epoch.\n\n6 PAM CONTRACTS (same portfolio as ISS, viewed from holder side):\n  Cash Reserve:    $5,000   (immediate liquidity available to holder)\n  T-Bill 4-Week:   $25,000  (matures Mar 15 \u2192 cash spike)\n  T-Bill 8-Week:   $25,000  (matures Mar 30 \u2192 cash spike)\n  T-Bill 13-Week:  $25,000  (matures Apr 15)\n  T-Bill 26-Week:  $23,000  (matures Jun 15)\n  Liability:       $100,000 (stablecoin supply, all 4 models attached)\n\nHOLDER DECISION FRAMEWORK:\n  Day 1-7:   All quiet. Safe to park funds.\n  Day 8-14:  EW signals escalate. RedemptionPressure rises. Consider exit.\n  Day 15:    T-bill maturity calms market. Cash recovers. Hold.\n  Day 30:    Second maturity. Portfolio rebalanced.\n\nRESEARCH BASIS:\n  609 de-peg events: redemption rate calibration (Lyons & Viswanath-Natraj 2023)\n  EW signal validation: F1 scores 0.63-0.80 from same dataset\n  SVB/USDC March 2023: 103% backed but $3.3B frozen\n\nCONFIRMED: Zero code changes. Collection JSON only. All endpoints pre-exist.\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "actus_risk_host",
+      "value": "34.203.247.32:8082"
+    },
+    {
+      "key": "actus_sim_host",
+      "value": "34.203.247.32:8083"
+    }
+  ],
+  "item": [
+    {
+      "name": "\u2550\u2550\u2550 PHASE 1: Reference Indexes (8) \u2550\u2550\u2550",
+      "item": [
+        {
+          "name": "1.1 SC_TOTAL_RESERVES",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_RESERVES_01\",\n  \"marketObjectCode\": \"SC_TOTAL_RESERVES\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 102800\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 102500\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 102000\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 101200\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 100500\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 99800\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 98500\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 97500\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 96800\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 96200\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 95800\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 95500\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 95300\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 96500\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 96000\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 95600\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 96200\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 97000\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 97500\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 98200\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 99000\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 99500\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 100000\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 100500\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 101000\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 101500\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 101800\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 102000\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 102500\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 102800\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_TOTAL_RESERVES loaded', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 HOL_RESERVES_01: Public reserve data visible to holder');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 SC_CASH_RESERVE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_CASH_01\",\n  \"marketObjectCode\": \"SC_CASH_RESERVE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 5000\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 4800\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 4500\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 4200\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 3800\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 3500\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 3200\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 2800\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 2500\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 2200\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 2000\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 1800\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 1600\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 1500\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 28300\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 27000\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 26000\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 25500\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 24500\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 23000\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 22000\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 21500\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 21000\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 20500\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 20000\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 19500\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 19000\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 18500\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 18200\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 48500\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 48000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_CASH_RESERVE loaded', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 HOL_CASH_01: Cash available for redemptions');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 STABLECOIN_PEG_DEV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_PEG_DEV_01\",\n  \"marketObjectCode\": \"STABLECOIN_PEG_DEV\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 0.001\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 0.002\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 0.004\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 0.007\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 0.012\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 0.028\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 0.035\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 0.04\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 0.042\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 0.038\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 0.03\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0.018\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 0.012\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 0.008\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 0.004\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 0.002\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 0.001\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0.0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('STABLECOIN_PEG_DEV loaded', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 HOL_PEG_DEV_01: 0%\u21924.2% peak\u21920% (609-event calibrated)');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 PEG_RISK_SCORE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_PEG_RISK_01\",\n  \"marketObjectCode\": \"PEG_RISK_SCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 4\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 6\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 9\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 12\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 16\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 22\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 30\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 36\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 42\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 46\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 48\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 44\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 38\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 22\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 18\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 14\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 10\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 8\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 6\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 5\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 4\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 3\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('PEG_RISK_SCORE loaded', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 HOL_PEG_RISK_01: Composite risk for MaturityLadder');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.5 SC_CURVE_IMBALANCE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_CURVE_01\",\n  \"marketObjectCode\": \"SC_CURVE_IMBALANCE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 0.03\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 0.04\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 0.07\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 0.1\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 0.14\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 0.18\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 0.22\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 0.25\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 0.28\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 0.3\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 0.32\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 0.35\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0.25\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 0.18\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 0.13\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 0.1\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 0.08\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 0.06\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 0.04\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 0.03\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0.02\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_CURVE_IMBALANCE loaded', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 HOL_CURVE_01: EW signal 1 (threshold >15%, F1=0.80)');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.6 SC_ORDERBOOK_DECLINE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ORDERBOOK_01\",\n  \"marketObjectCode\": \"SC_ORDERBOOK_DECLINE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 0.06\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 0.08\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 0.1\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 0.15\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 0.2\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 0.25\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 0.3\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 0.35\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 0.42\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 0.48\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 0.52\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 0.55\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 0.3\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 0.22\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 0.18\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 0.14\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 0.1\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 0.08\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 0.06\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0.05\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_ORDERBOOK_DECLINE loaded', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 HOL_ORDERBOOK_01: EW signal 2 (threshold >40%, F1=0.70)');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.7 SC_CEX_OUTFLOW_MULT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_CEX_01\",\n  \"marketObjectCode\": \"SC_CEX_OUTFLOW_MULT\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 1.1\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 1.1\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 1.2\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 1.3\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 1.5\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 1.8\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 2.0\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 2.2\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 2.5\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 2.8\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 3.2\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 3.8\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 2.5\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 1.8\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 1.5\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 1.3\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 1.2\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 1.1\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 1.1\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 1.0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_CEX_OUTFLOW_MULT loaded', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 HOL_CEX_01: EW signal 3 (threshold >3x, F1=0.69)');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.8 SC_SENTIMENT_ZSCORE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_SENT_01\",\n  \"marketObjectCode\": \"SC_SENTIMENT_ZSCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 0.3\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 0.1\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": -0.2\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": -0.5\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": -0.8\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": -1.0\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": -1.2\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": -1.5\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": -1.7\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": -1.9\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": -2.2\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": -2.5\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": -1.8\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": -1.2\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": -0.8\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": -0.5\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": -0.3\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": -0.1\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 0.1\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 0.2\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 0.3\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 0.3\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0.5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_SENTIMENT_ZSCORE loaded', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 HOL_SENT_01: EW signal 4 (threshold <-2.0, F1=0.63)');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550\u2550\u2550 PHASE 2: Behavioral Models (4) \u2550\u2550\u2550",
+      "item": [
+        {
+          "name": "2.1 RedemptionPressureModel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addRedemptionPressureModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addRedemptionPressureModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"rp_hol_01\",\n  \"pegDeviationMOC\": \"STABLECOIN_PEG_DEV\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"pegDeviationThreshold\": 0.005,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\",\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('addRedemptionPressureModel ok', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 rp_hol_01: RedemptionPressureModel (31 daily epochs)');",
+                  "    console.log('   pegDeviationThreshold=0.005 (0.5% triggers redemptions)');",
+                  "    console.log('   609-event calibrated: 0.5%\u21922.3%, 3%\u219214.2%, 5%\u219228.5% daily');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 EarlyWarningModel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addEarlyWarningModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addEarlyWarningModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"ew_hol_01\",\n  \"curveImbalanceMOC\": \"SC_CURVE_IMBALANCE\",\n  \"orderbookDeclineMOC\": \"SC_ORDERBOOK_DECLINE\",\n  \"cexOutflowMOC\": \"SC_CEX_OUTFLOW_MULT\",\n  \"sentimentZscoreMOC\": \"SC_SENTIMENT_ZSCORE\",\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\",\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('addEarlyWarningModel ok', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 ew_hol_01: EarlyWarningModel (31 daily epochs)');",
+                  "    console.log('   4 signals: curve>15%, orderbook>40%, CEX>3x, sentiment<-2z');",
+                  "    console.log('   Posture: NORMAL(0.0)\u2192WATCH(0.1)\u2192ELEVATED(0.3)\u2192HIGH(0.6)\u2192MAX(1.0)');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 BackingRatioModel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addBackingRatioModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addBackingRatioModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"br_hol_01\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.2,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\",\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('addBackingRatioModel ok', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 br_hol_01: BackingRatioModel (31 daily epochs)');",
+                  "    console.log('   Holder view: is the issuer solvent? Can they pay me?');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.4 MaturityLadderModel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addMaturityLadderModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addMaturityLadderModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"ml_hol_01\",\n  \"pegRiskScoreMOC\": \"PEG_RISK_SCORE\",\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\",\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('addMaturityLadderModel ok', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 ml_hol_01: MaturityLadderModel (31 daily epochs)');",
+                  "    console.log('   Holder view: when does next T-bill mature? Is cash coming?');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550\u2550\u2550 PHASE 3: Scenario Assembly \u2550\u2550\u2550",
+      "item": [
+        {
+          "name": "3.1 Create HOL Scenario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"sc_hol_ht_daily_01\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"HOL_RESERVES_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_PEG_DEV_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_PEG_RISK_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_CURVE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_ORDERBOOK_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_CEX_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_SENT_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"rp_hol_01\",\n      \"riskFactorType\": \"RedemptionPressureModel\"\n    },\n    {\n      \"riskFactorID\": \"ew_hol_01\",\n      \"riskFactorType\": \"EarlyWarningModel\"\n    },\n    {\n      \"riskFactorID\": \"br_hol_01\",\n      \"riskFactorType\": \"BackingRatioModel\"\n    },\n    {\n      \"riskFactorID\": \"ml_hol_01\",\n      \"riskFactorType\": \"MaturityLadderModel\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('addScenario ok', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\u2705 sc_hol_ht_daily_01: 8 RI + 4 BH = 12 descriptors');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550\u2550\u2550 PHASE 4: Verification (5) \u2550\u2550\u2550",
+      "item": [
+        {
+          "name": "4.1 Verify RedemptionPressureModel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findRedemptionPressureModel/rp_hol_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findRedemptionPressureModel",
+                "rp_hol_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('rp_hol_01 verified',function(){pm.response.to.have.status(200);",
+                  "var d=pm.response.json();pm.expect(d.riskFactorId).to.eql('rp_hol_01');",
+                  "pm.expect(d.pegDeviationThreshold).to.eql(0.005);",
+                  "console.log('\u2705 rp_hol_01: pegDevThresh='+d.pegDeviationThreshold);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 Verify EarlyWarningModel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findEarlyWarningModel/ew_hol_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findEarlyWarningModel",
+                "ew_hol_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ew_hol_01 verified',function(){pm.response.to.have.status(200);",
+                  "var d=pm.response.json();pm.expect(d.riskFactorId).to.eql('ew_hol_01');",
+                  "console.log('\u2705 ew_hol_01: 4 MOCs wired');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.3 Verify BackingRatioModel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findBackingRatioModel/br_hol_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findBackingRatioModel",
+                "br_hol_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('br_hol_01 verified',function(){pm.response.to.have.status(200);",
+                  "var d=pm.response.json();pm.expect(d.riskFactorId).to.eql('br_hol_01');",
+                  "console.log('\u2705 br_hol_01: backing='+d.backingThreshold);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.4 Verify MaturityLadderModel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findMaturityLadderModel/ml_hol_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findMaturityLadderModel",
+                "ml_hol_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ml_hol_01 verified',function(){pm.response.to.have.status(200);",
+                  "var d=pm.response.json();pm.expect(d.riskFactorId).to.eql('ml_hol_01');",
+                  "console.log('\u2705 ml_hol_01: pegRiskScoreMOC='+d.pegRiskScoreMOC);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.5 Verify Scenario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findScenario/sc_hol_ht_daily_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findScenario",
+                "sc_hol_ht_daily_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HOL Scenario verified',function(){pm.response.to.have.status(200);",
+                  "var d=pm.response.json();pm.expect(d.scenarioID).to.eql('sc_hol_ht_daily_01');",
+                  "var t=d.riskFactorDescriptors.map(function(r){return r.riskFactorType;});",
+                  "pm.expect(t).to.include('RedemptionPressureModel');",
+                  "pm.expect(t).to.include('EarlyWarningModel');",
+                  "pm.expect(t).to.include('BackingRatioModel');",
+                  "pm.expect(t).to.include('MaturityLadderModel');",
+                  "console.log('\u2705 Scenario: '+d.riskFactorDescriptors.length+' descriptors');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550\u2550\u2550 PHASE 5: Simulation \u2550\u2550\u2550",
+      "item": [
+        {
+          "name": "5.1 Run HOL Simulation (6 contracts, 31 daily epochs, 4 models)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actus_sim_host}}"
+              ],
+              "path": [
+                "rf2",
+                "scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HOL-CashReserve-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-01T00:00:00\",\n      \"maturityDate\": \"2026-03-31T00:00:00\",\n      \"notionalPrincipal\": 5000,\n      \"premiumDiscountAtIED\": 0\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HOL-TBill-4W-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-15T00:00:00\",\n      \"maturityDate\": \"2026-03-15T00:00:00\",\n      \"notionalPrincipal\": 25000,\n      \"premiumDiscountAtIED\": -200,\n      \"purchaseDate\": \"2026-02-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24800\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HOL-TBill-8W-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-01T00:00:00\",\n      \"maturityDate\": \"2026-03-30T00:00:00\",\n      \"notionalPrincipal\": 25000,\n      \"premiumDiscountAtIED\": -280,\n      \"purchaseDate\": \"2026-02-01T00:00:00\",\n      \"priceAtPurchaseDate\": 24720\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HOL-TBill-13W-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-15T00:00:00\",\n      \"maturityDate\": \"2026-04-15T00:00:00\",\n      \"notionalPrincipal\": 25000,\n      \"premiumDiscountAtIED\": -350,\n      \"purchaseDate\": \"2026-01-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24650\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HOL-TBill-26W-001\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2025-12-15T00:00:00\",\n      \"initialExchangeDate\": \"2025-12-15T00:00:00\",\n      \"maturityDate\": \"2026-06-15T00:00:00\",\n      \"notionalPrincipal\": 23000,\n      \"premiumDiscountAtIED\": -460,\n      \"purchaseDate\": \"2025-12-15T00:00:00\",\n      \"priceAtPurchaseDate\": 22540\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"HOL-StableCoin-Liability\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-03-31T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\n        \"rp_hol_01\",\n        \"ew_hol_01\",\n        \"br_hol_01\",\n        \"ml_hol_01\"\n      ]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_hol_ht_daily_01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-31T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HOL simulation succeeds', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    var data = pm.response.json();",
+                  "    console.log('\\u2550'.repeat(70));",
+                  "    console.log('HOLDER PERSPECTIVE: 4 MODELS x 31 DAYS = 124 PP EVENTS');",
+                  "    console.log('  Models: RedemptionPressure + EarlyWarning + BackingRatio + MaturityLadder');",
+                  "    console.log('\\u2550'.repeat(70));",
+                  "    console.log('Contracts: ' + data.length);",
+                  "    data.forEach(function(c){",
+                  "        var cid = c.contractID || c.contractId || 'unknown';",
+                  "        console.log('');",
+                  "        console.log('\\u2501 ' + cid + ' (' + c.status + ')');",
+                  "        if(c.events){",
+                  "            var counts={};",
+                  "            c.events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+                  "            Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+                  "            var pps=c.events.filter(function(e){return e.type==='PP';});",
+                  "            if(pps.length>0){",
+                  "                console.log('  PP detail (first 10):');",
+                  "                pps.slice(0,10).forEach(function(p){",
+                  "                    console.log('    '+p.time+' payoff=$'+(p.payoff||0).toFixed(2)+' nom=$'+(p.nominalValue||0).toFixed(2));",
+                  "                });",
+                  "                if(pps.length>10) console.log('    ... and '+(pps.length-10)+' more PP events');",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "    console.log('\\u2550'.repeat(70));",
+                  "});",
+                  "pm.test('All contracts succeeded', function(){",
+                  "    var data=pm.response.json();",
+                  "    data.forEach(function(c){pm.expect(c.status).to.eql('Success');});",
+                  "});",
+                  "pm.test('Liability has 124 PP events (4 models x 31 days)', function(){",
+                  "    var data=pm.response.json();",
+                  "    var sc=data.find(function(c){return (c.contractID||'').indexOf('Liability')>=0;});",
+                  "    if(sc){",
+                  "        var pps=sc.events.filter(function(e){return e.type==='PP';});",
+                  "        console.log('\\u2705 HOL Liability PP events: '+pps.length);",
+                  "        pm.expect(pps.length).to.eql(124);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

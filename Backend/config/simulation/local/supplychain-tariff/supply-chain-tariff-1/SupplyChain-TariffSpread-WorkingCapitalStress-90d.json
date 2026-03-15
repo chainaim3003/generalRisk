@@ -1,0 +1,246 @@
+{
+  "info": {
+    "_postman_id": "sc-ts-wcs-90d-001",
+    "name": "SupplyChain-TariffSpread-WorkingCapitalStress-90d",
+    "description": "ACTUS Supply Chain Tariff: TARIFF SPREAD + WORKING CAPITAL STRESS (India-US textile corridor).\n\nTWO supply chain tariff behavioral models run simultaneously:\n  1. TariffSpreadModel (7.1) — Armington elasticity-based credit spread widening\n  2. WorkingCapitalStressModel (7.2) — CCC expansion from tariff-induced DSO/DIO stress\n\nScenario: India-US textile exporter, $5M working capital facility\n  Baseline tariff: 10% (HS Chapter 52-63 textiles)\n  Tariff escalation: 10% → 25% over 30 days, holds, then partial rollback\n  Armington elasticity: 2.8 (textiles sector, GTAP v11)\n  DSO baseline: 45 days, extends to 65 under stress\n  DIO baseline: 30 days, extends to 42 under stress\n  Revenue decline: ~33% at peak tariff (elasticity × tariff × pass-through)\n\nReferences:\n  - Hertel (1997) Global Trade Analysis\n  - Armington (1969) substitution elasticities\n  - GTAP Database v11: textile sector elasticities\n  - Corong et al. (2017) GTAP 10 documentation\n  - India-US bilateral trade data (WITS/TRAINS)\n\nContract: PAM representing exporter working capital loan\n  notionalPrincipal = 5000000 ($5M revolving facility)\n  nominalInterestRate = 0.0525 (SOFR + 100bps baseline)\n  cycleOfRateReset: monthly\n  tariffModels: [ts_ind01, wcs_ind01]\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add TARIFF_INDEX (India-US textile tariff rate)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"TARIFF_IDX_01\",\"marketObjectCode\":\"TARIFF_INDEX\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.10},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.10},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.12},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.15},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.18},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.22},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-10T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-20T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-25T00:00:00\",\"value\":0.25},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.25},{\"time\":\"2026-05-05T00:00:00\",\"value\":0.22},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.20},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.18},{\"time\":\"2026-05-20T00:00:00\",\"value\":0.16},{\"time\":\"2026-05-25T00:00:00\",\"value\":0.15},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.15}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TARIFF_INDEX added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 TARIFF_IDX_01: 10% baseline \\u2192 25% peak (day 31) \\u2192 15% partial rollback');",
+        "    console.log('   India-US HS52-63 textiles. Armington elasticity=2.8 (GTAP v11)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add REVENUE_INDEX (normalized revenue multiplier)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"REVENUE_IDX_01\",\"marketObjectCode\":\"REVENUE_INDEX\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":1.0},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.97},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.90},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.78},{\"time\":\"2026-04-10T00:00:00\",\"value\":0.72},{\"time\":\"2026-04-20T00:00:00\",\"value\":0.68},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.67},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.75},{\"time\":\"2026-05-20T00:00:00\",\"value\":0.82},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.88}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('REVENUE_INDEX added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 REVENUE_IDX_01: 1.0 \\u2192 0.67 trough \\u2192 0.88 recovery');",
+        "    console.log('   33% revenue decline at peak tariff stress');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add DSO_INDEX (days sales outstanding multiplier)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"DSO_IDX_01\",\"marketObjectCode\":\"DSO_INDEX\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":1.0},{\"time\":\"2026-03-15T00:00:00\",\"value\":1.05},{\"time\":\"2026-03-31T00:00:00\",\"value\":1.20},{\"time\":\"2026-04-15T00:00:00\",\"value\":1.35},{\"time\":\"2026-04-30T00:00:00\",\"value\":1.45},{\"time\":\"2026-05-15T00:00:00\",\"value\":1.25},{\"time\":\"2026-05-31T00:00:00\",\"value\":1.10}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('DSO_INDEX added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 DSO_IDX_01: 1.0x \\u2192 1.45x peak \\u2192 1.10x recovery');",
+        "    console.log('   DSO extends from 45 \\u2192 65 days under tariff stress');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add TariffSpreadModel (ts_ind01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addTariffSpreadModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addTariffSpreadModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ts_ind01\",\"tariffIndexMOC\":\"TARIFF_INDEX\",\"baseSpread\":0.02,\"baseTariffIndex\":0.10,\"baseTariffSensitivity\":0.5,\"maxSpreadCap\":0.08,\"armingtonElasticity\":2.8,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TariffSpreadModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 ts_ind01: TariffSpreadModel (bi-weekly monitoring, 90 days)');",
+        "    console.log('   baseSpread=2%, baseTariff=10%, sensitivity=0.5, armington=2.8');",
+        "    console.log('   At 25% tariff: spreadAdj = 0.5*(2.8/2)*(0.25-0.10) = 10.5% \\u2192 capped at 8%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add WorkingCapitalStressModel (wcs_ind01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addWorkingCapitalStressModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addWorkingCapitalStressModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"wcs_ind01\",\"tariffIndexMOC\":\"TARIFF_INDEX\",\"revenueIndexMOC\":\"REVENUE_INDEX\",\"dsoIndexMOC\":\"DSO_INDEX\",\"baseDSO\":45.0,\"baseDIO\":30.0,\"baseDPO\":35.0,\"tariffDSOSensitivity\":0.5,\"tariffDIOSensitivity\":0.3,\"maxDrawdownFraction\":1.0,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-31T00:00:00\",\"2026-04-15T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-15T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('WorkingCapitalStressModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 wcs_ind01: WorkingCapitalStressModel (bi-weekly, 90 days)');",
+        "    console.log('   Base CCC: DSO(45)+DIO(30)-DPO(35) = 40 days');",
+        "    console.log('   Peak stress CCC: 56.25+32.25-35 = 53.5 days (+34% expansion)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add Tariff Stress Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"tariff_ind_us_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"TARIFF_IDX_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"REVENUE_IDX_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"DSO_IDX_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ts_ind01\",\"riskFactorType\":\"TariffSpreadModel\"},{\"riskFactorID\":\"wcs_ind01\",\"riskFactorType\":\"WorkingCapitalStressModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Tariff scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 tariff_ind_us_scn01: 3 indexes + 2 tariff behavioral models');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7a. Verify TariffSpreadModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findTariffSpreadModel/ts_ind01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findTariffSpreadModel", "ts_ind01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TariffSpreadModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('ts_ind01');",
+        "    pm.expect(d.armingtonElasticity).to.eql(2.8);",
+        "    console.log('\\u2705 ts_ind01 confirmed: armington=' + d.armingtonElasticity + ', maxCap=' + d.maxSpreadCap);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7b. Verify WorkingCapitalStressModel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8082/findWorkingCapitalStressModel/wcs_ind01",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["findWorkingCapitalStressModel", "wcs_ind01"]
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('WorkingCapitalStressModel verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d = pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('wcs_ind01');",
+        "    console.log('\\u2705 wcs_ind01 confirmed: baseDSO=' + d.baseDSO + ', baseDIO=' + d.baseDIO);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run India-US Tariff Stress Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"IndiaExporter-WCLoan-01\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0525,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":5000000,\"premiumDiscountAtIED\":0,\"cycleOfRateReset\":\"P1ML0\",\"cycleAnchorDateOfRateReset\":\"2026-03-31T00:00:00\",\"marketObjectCodeOfRateReset\":\"USD_SOFR\",\"rateMultiplier\":1.0,\"rateSpread\":0.01,\"tariffModels\":[\"ts_ind01\",\"wcs_ind01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"tariff_ind_us_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-05-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('India-US tariff stress simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('INDIA-US TARIFF STRESS: SPREAD + WORKING CAPITAL');",
+        "    console.log('  Exporter: $5M WC facility, textiles HS52-63');",
+        "    console.log('  Tariff: 10% \\u2192 25% peak \\u2192 15% partial rollback');",
+        "    console.log('  Armington elasticity: 2.8 (GTAP v11 textiles)');",
+        "    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');",
+        "    console.log('Total events: ' + events.length);",
+        "    var counts = {};",
+        "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "    Object.keys(counts).forEach(function(k){console.log('  '+k+': '+counts[k]);});",
+        "    var mrds = events.filter(function(e){return e.type==='MRD';});",
+        "    if(mrds.length>0){console.log(''); console.log('BEHAVIORAL CALLOUTS:');",
+        "        mrds.forEach(function(m){console.log('  '+m.time+' payoff=$'+m.payoff.toFixed(2));});}",
+        "    var ips = events.filter(function(e){return e.type==='IP';});",
+        "    if(ips.length>0){console.log(''); console.log('INTEREST PAYMENTS:');",
+        "        ips.forEach(function(m){console.log('  '+m.time+' IP=$'+m.payoff.toFixed(2));});}",
+        "});"
+      ]}}]
+    }
+  ]
+}

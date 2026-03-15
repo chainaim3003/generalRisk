@@ -23,12 +23,12 @@ export function processStableCoinData(
   concentrationLimit: number,
   qualityThreshold: number
 ): StableCoinRiskData {
-  console.log('\n📊 Processing StableCoin data...');
+  console.error('\n📊 Processing StableCoin data...');
 
   // If ACTUS returns 0 periods, default to 12 months
   let periodsCount = actusResponse.periodsCount;
   if (periodsCount === 0) {
-    console.log('   \u26a0\ufe0f  ACTUS returned 0 periods, defaulting to 12 months');
+    console.error('   \u26a0\ufe0f  ACTUS returned 0 periods, defaulting to 12 months');
     periodsCount = 12;
   }
 
@@ -51,7 +51,7 @@ export function processStableCoinData(
     .filter(c => c.contractRole === 'RPL')
     .reduce((sum, c) => sum + Math.abs(parseFloat(c.notionalPrincipal)), 0);
 
-  console.log(`   Total Liabilities (Outstanding Tokens): ${totalLiabilities.toFixed(2)}`);
+  console.error(`   Total Liabilities (Outstanding Tokens): ${totalLiabilities.toFixed(2)}`);
 
   const outstandingTokens = new Array(periodsCount).fill(totalLiabilities);
   const tokenValue = 1.0; // Assume $1 per token
@@ -126,13 +126,13 @@ function categorizeReserves(
     const corpPct = total > 0 ? (corporateReserves[0] / total * 100).toFixed(1) : '0.0';
     const otherPct = total > 0 ? (otherReserves[0] / total * 100).toFixed(1) : '0.0';
 
-    console.log(`   Cash & Equivalents: ${cashReserves[0].toFixed(0)} (${cashPct}%)`);
-    console.log(`   US Treasury Securities: ${treasuryReserves[0].toFixed(0)} (${treasuryPct}%)`);
-    console.log(`   Corporate Bonds: ${corporateReserves[0].toFixed(0)} (${corpPct}%)`);
-    console.log(`   Other Assets: ${otherReserves[0].toFixed(0)} (${otherPct}%)`);
-    console.log(`   Total Reserve Assets: ${total.toFixed(0)}`);
+    console.error(`   Cash & Equivalents: ${cashReserves[0].toFixed(0)} (${cashPct}%)`);
+    console.error(`   US Treasury Securities: ${treasuryReserves[0].toFixed(0)} (${treasuryPct}%)`);
+    console.error(`   Corporate Bonds: ${corporateReserves[0].toFixed(0)} (${corpPct}%)`);
+    console.error(`   Other Assets: ${otherReserves[0].toFixed(0)} (${otherPct}%)`);
+    console.error(`   Total Reserve Assets: ${total.toFixed(0)}`);
   } else {
-    console.log(`   ⚠️  No periods returned from ACTUS - using static principal values`);
+    console.error(`   ⚠️  No periods returned from ACTUS - using static principal values`);
   }
 
   return {
@@ -218,7 +218,7 @@ function calculateQualityMetrics(contracts: ACTUSContract[]): QualityMetrics {
  * Calculate risk metrics from StableCoin data
  */
 export function calculateRiskMetrics(data: StableCoinRiskData): RiskMetrics {
-  console.log('\n📈 Calculating risk metrics...');
+  console.error('\n📈 Calculating risk metrics...');
 
   const periodsCount = data.periodsCount;
   const backingRatios: number[] = [];
@@ -273,10 +273,10 @@ export function calculateRiskMetrics(data: StableCoinRiskData): RiskMetrics {
   const qualityCompliant = averageAssetQuality >= data.qualityThreshold;
   const overallCompliant = backingCompliant && liquidityCompliant && concentrationCompliant && qualityCompliant;
 
-  console.log(`   Average Backing Ratio: ${averageBackingRatio.toFixed(2)}%`);
-  console.log(`   Average Liquidity Ratio: ${averageLiquidityRatio.toFixed(2)}%`);
-  console.log(`   Max Concentration Risk: ${maxConcentrationRisk.toFixed(2)}%`);
-  console.log(`   Asset Quality Score: ${averageAssetQuality.toFixed(2)}`);
+  console.error(`   Average Backing Ratio: ${averageBackingRatio.toFixed(2)}%`);
+  console.error(`   Average Liquidity Ratio: ${averageLiquidityRatio.toFixed(2)}%`);
+  console.error(`   Max Concentration Risk: ${maxConcentrationRisk.toFixed(2)}%`);
+  console.error(`   Asset Quality Score: ${averageAssetQuality.toFixed(2)}`);
 
   return {
     backingRatios,

@@ -1,0 +1,242 @@
+{
+  "info": {
+    "_postman_id": "sc2-tbm-100k-001",
+    "name": "StableCoin-TreasuryBacked-MultiContract-100K-30d",
+    "description": "ACTUS: TREASURY-BACKED MULTI-CONTRACT SIMULATION ($100K Reserve)\n\nGAP ADDRESSED: §11.1 — All existing simulations model a SINGLE PAM contract.\nThis simulation models the RESERVE SIDE with MULTIPLE T-bill contracts\nrunning simultaneously alongside the stablecoin liability.\n\nCORE THESIS: A stablecoin can be 103% BACKED but only 1.1% LIQUID.\nThis simulation proves it by modeling the maturity ladder explicitly.\n\n5 ACTUS Contracts:\n  TBill-A-100K (PAM, $24,500, matures Mar 15) — 4-week\n  TBill-B-100K (PAM, $24,500, matures Mar 30) — 8-week\n  TBill-C-100K (PAM, $24,500, matures Apr 15) — 13-week\n  TBill-D-100K (PAM, $24,500, matures Apr 30) — 13-week\n  StableCoin-100K-Liability (PAM, $100,000 supply)\n\nMATURITY LADDER shows cash inflows:\n  Day 15 (Mar 15): +$24,500 from T-Bill A → cash spike\n  Day 30 (Mar 30): +$24,500 from T-Bill B → cash spike\n\nBehavioral Models: BackingRatio + RedemptionPressure + MaturityLadder\nMarket Risk: T-bill mark-to-market via SC_TBILL_MV reference index\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "actus_risk_host", "value": "localhost:8082"},
+    {"key": "actus_sim_host", "value": "localhost:8083"}
+  ],
+  "item": [
+    {
+      "name": "═══ SETUP: Reference Indexes (Market Risk Data) ═══",
+      "item": [
+        {
+          "name": "1.1 Add SC_TBILL_MV — T-Bill Mark-to-Market aggregate",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"SC_TBILL_MV_100K_01\",\n  \"marketObjectCode\": \"SC_TBILL_MV\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 98000},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 97900},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 97800},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 97700},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 97600},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 97500},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 97400},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 97300},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 97200},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 97100},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 97000},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 96900},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 96800},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 96700},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 73500},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 73400},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 73300},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 73200},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 73100},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 73000},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 72900},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 72800},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 72700},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 72600},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 72500},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 72400},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 72300},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 72200},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 72100},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 49000}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_TBILL_MV loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ SC_TBILL_MV_100K_01: T-Bill mark-to-market aggregate');",
+            "    console.log('   Day 1:  $98,000 (4 T-bills at discount)');",
+            "    console.log('   Day 15: $73,500 (T-Bill A matured → moved to cash)');",
+            "    console.log('   Day 30: $49,000 (T-Bills A+B matured)');",
+            "    console.log('   Shows DETERMINISTIC maturity ladder cash inflows');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.2 Add SC_TOTAL_RESERVES (combined cash + T-bill MV)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"SC_RESERVES_MC_100K_01\",\n  \"marketObjectCode\": \"SC_TOTAL_RESERVES\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 104000},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 103700},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 103300},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 102700},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 101800},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 101000},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 100200},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 99300},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 99000},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 98600},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 98200},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 97900},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 98000},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 98200},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 99500},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 98400},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 96300},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 94200},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 93600},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 93000},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 93400},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 93800},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 93900},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 94100},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 94000},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 94200},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 94300},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 94200},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 94300},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 71500}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_TOTAL_RESERVES loaded (multi-contract)', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ SC_RESERVES_MC_100K_01: Combined reserves (cash + T-bill MV)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.3 Add SC_CASH_RESERVE (cash component)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"SC_CASH_MC_100K_01\",\n  \"marketObjectCode\": \"SC_CASH_RESERVE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 6000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 4200},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 2000},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 1000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 26000},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 21000},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 21000},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 21500},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 22500}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_CASH loaded (multi-contract)', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ SC_CASH_MC_100K_01: Cash reserve component');",
+            "    console.log('   Shows T-Bill A maturity spike on Day 15: $1K → $26K');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.4 Add PEG_RISK_SCORE (for MaturityLadderModel)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"SC_PEG_RISK_100K_01\",\n  \"marketObjectCode\": \"PEG_RISK_SCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 5},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 8},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 12},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 16},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 22},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 28},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 32},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 38},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 42},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 48},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 44},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 38},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 25},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 18},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 14},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 10},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 6},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 4},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 1},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('PEG_RISK_SCORE loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ SC_PEG_RISK_100K_01: PEG_RISK_SCORE 0→48→0');",
+            "    console.log('   Decision tree: <15=ROLL, 15-29=SHORTEN, 30-44=CASH, >=45=EMERGENCY');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ SETUP: Behavioral Models ═══",
+      "item": [
+        {
+          "name": "2.1 Add BackingRatioModel",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addBackingRatioModel",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addBackingRatioModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"br_mc_100k_01\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('BackingRatioModel added (multi-contract)', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ br_mc_100k_01: BackingRatioModel for multi-contract');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "2.2 Add MaturityLadderModel",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addMaturityLadderModel",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addMaturityLadderModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"ml_mc_100k_01\",\n  \"pegRiskScoreMOC\": \"PEG_RISK_SCORE\",\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('MaturityLadderModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ ml_mc_100k_01: MaturityLadderModel (T-bill roll decisions)');",
+            "    console.log('   <15=NORMAL_ROLL, 15-29=SHORTEN, 30-44=CASH, >=45=EMERGENCY');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "2.3 Create Multi-Contract Scenario",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addScenario"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"sc_multi_contract_100k_01\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_TBILL_MV_100K_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_RESERVES_MC_100K_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_CASH_MC_100K_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_PEG_RISK_100K_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_mc_100k_01\", \"riskFactorType\": \"BackingRatioModel\"},\n    {\"riskFactorID\": \"ml_mc_100k_01\", \"riskFactorType\": \"MaturityLadderModel\"}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Multi-contract scenario created', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ sc_multi_contract_100k_01: 4 indexes + 2 behavioral models');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ SIMULATION: Multi-Contract T-Bill + Liability ═══",
+      "item": [
+        {
+          "name": "3.1 Run Multi-Contract Simulation (5 contracts, 30 days)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": ["{{actus_sim_host}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-A-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-15T00:00:00\",\n      \"maturityDate\": \"2026-03-15T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -250,\n      \"purchaseDate\": \"2026-02-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24250\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-B-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-01T00:00:00\",\n      \"maturityDate\": \"2026-03-30T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -320,\n      \"purchaseDate\": \"2026-02-01T00:00:00\",\n      \"priceAtPurchaseDate\": 24180\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-C-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-15T00:00:00\",\n      \"maturityDate\": \"2026-04-15T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -380,\n      \"purchaseDate\": \"2026-01-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24120\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-D-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -450,\n      \"purchaseDate\": \"2026-01-01T00:00:00\",\n      \"priceAtPurchaseDate\": 24050\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"StableCoin-100K-Liability-MC\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_mc_100k_01\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_multi_contract_100k_01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Multi-contract simulation succeeds', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var data = pm.response.json();",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('MULTI-CONTRACT TREASURY-BACKED SIMULATION ($100K)');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('Contracts simulated: ' + data.length);",
+            "    data.forEach(function(c){",
+            "        console.log('');",
+            "        console.log('  Contract: ' + c.contractId + ' (' + c.status + ')');",
+            "        if(c.events){",
+            "            console.log('  Events: ' + c.events.length);",
+            "            c.events.forEach(function(e){",
+            "                console.log('    ' + e.time + ' ' + e.type + ' payoff=$' + (e.payoff||0).toFixed(2));",
+            "            });",
+            "        }",
+            "    });",
+            "    console.log('');",
+            "    console.log('MATURITY LADDER (CASH INFLOWS):');",
+            "    console.log('  Mar 15: TBill-A matures → +$24,500 cash');",
+            "    console.log('  Mar 30: TBill-B matures → +$24,500 cash');",
+            "    console.log('  Apr 15: TBill-C matures → +$24,500 cash');",
+            "    console.log('  Apr 30: TBill-D matures → +$24,500 cash');",
+            "    console.log('  These DETERMINISTIC inflows are the maturity ladder.');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "});"
+          ]}}]
+        }
+      ]
+    }
+  ]
+}

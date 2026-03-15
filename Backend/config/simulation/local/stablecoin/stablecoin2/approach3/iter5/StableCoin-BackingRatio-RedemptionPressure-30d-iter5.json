@@ -1,0 +1,210 @@
+{
+  "info": {
+    "_postman_id": "sc-br-rp-30d-iter5",
+    "name": "StableCoin-BackingRatio-RedemptionPressure-30d-iter5",
+    "description": "APPROACH 3 iter5 — BACKING RATIO + REDEMPTION PRESSURE.\n\nPortfolio: $101,000 reserves / $100,000 token supply (1% over-collateral)\n  L1 cash/tbills: $85,000  L2A commpaper: $6,000  L2B defi: $4,000\n  Starting liquidity: ($12k+$11k)/$100k = 23.0% (above 20% MiCA Art.45)\n\nTHRESHOLDS (GENIUS/MiCA — unchanged from iter5):\n  BACKING_THRESHOLD  = 1.00 (100% MtM-adjusted)\n  LIQUIDITY_THRESHOLD= 0.20 (20% cash/supply — MiCA Art.45)\n\n30-DAY LIFECYCLE — MINT HALT AND RESTORE:\n  Day 1:   MINT ALLOWED — backing 101.1%, liquidity 23.0%\n  Days 2-3: Peg creeps up (0.05-0.1%) — cadence escalates\n  Days 4-6: Peg 0.1-0.3% — WATCH cadence — redemption begins\n  Days 7-10: EW signals fire — ELEVATED — redemption accelerates\n  Day 11:  \u2605 MINT HALTED — EW=4/4 fires simultaneously\n           Redemption rate: peg ~1.3% = 5.7%/day\n  Days 11-17: HALTED — liquidity drains 23% \u2192 17%\n              Backing stays 101% (rate shock mild, max 8bps)\n  Day 18:  \u2605 tbill-4wk-001 matures \u2192 +$10,000 cash\n             Liquidity: 17.0% \u2192 28.1% (above 20% threshold)\n             EW signals cleared (all 4 below threshold)\n  Day 19:  \u2605 MINT RESTORED — all 4 conditions met\n  Days 20-30: De-escalation, normal redemption tapers\n\nKEY CHANGE vs stablecoin-1:\n  Reserves $101k (not $102M), supply $100k\n  liquidityThreshold=0.20 (MiCA Art.45, not 0.35)\n  backingThreshold=1.00 (GENIUS/MiCA, not tolerant)\n  HALT is EW-driven (not backing-driven)\n  RESTORE is liquidity-driven (T-bill maturity)\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add SC_TOTAL_RESERVES_I5 (iter5 portfolio MtM)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_RESERVES_I5\",\"marketObjectCode\":\"SC_TOTAL_RESERVES\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":101000},{\"time\":\"2026-03-04T00:00:00\",\"value\":101000},{\"time\":\"2026-03-05T00:00:00\",\"value\":100980},{\"time\":\"2026-03-06T00:00:00\",\"value\":100960},{\"time\":\"2026-03-07T00:00:00\",\"value\":100940},{\"time\":\"2026-03-08T00:00:00\",\"value\":100920},{\"time\":\"2026-03-09T00:00:00\",\"value\":100900},{\"time\":\"2026-03-10T00:00:00\",\"value\":100880},{\"time\":\"2026-03-11T00:00:00\",\"value\":100860},{\"time\":\"2026-03-12T00:00:00\",\"value\":100840},{\"time\":\"2026-03-13T00:00:00\",\"value\":100820},{\"time\":\"2026-03-14T00:00:00\",\"value\":100800},{\"time\":\"2026-03-15T00:00:00\",\"value\":100780},{\"time\":\"2026-03-16T00:00:00\",\"value\":100760},{\"time\":\"2026-03-17T00:00:00\",\"value\":100740},{\"time\":\"2026-03-18T00:00:00\",\"value\":100720},{\"time\":\"2026-03-19T00:00:00\",\"value\":100710},{\"time\":\"2026-03-20T00:00:00\",\"value\":100700},{\"time\":\"2026-03-21T00:00:00\",\"value\":100700},{\"time\":\"2026-03-22T00:00:00\",\"value\":100720},{\"time\":\"2026-03-23T00:00:00\",\"value\":100740},{\"time\":\"2026-03-24T00:00:00\",\"value\":100760},{\"time\":\"2026-03-25T00:00:00\",\"value\":100790},{\"time\":\"2026-03-26T00:00:00\",\"value\":100830},{\"time\":\"2026-03-27T00:00:00\",\"value\":100870},{\"time\":\"2026-03-28T00:00:00\",\"value\":100920},{\"time\":\"2026-03-29T00:00:00\",\"value\":100960},{\"time\":\"2026-03-30T00:00:00\",\"value\":101000},{\"time\":\"2026-03-31T00:00:00\",\"value\":101000},{\"time\":\"2026-04-01T00:00:00\",\"value\":101000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_TOTAL_RESERVES_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 SC_RESERVES_I5: $101,000 (101.0%) \\u2192 $100,700 trough \\u2192 $101,000');",
+        "    console.log('   Rate shock mild (max 8bps) \\u2192 MtM stays >=face throughout');",
+        "    console.log('   Backing ratio stays above 100% \\u2014 NOT the halt trigger');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add SC_CASH_RESERVE_I5 (iter5 liquidity drain + T-bill restore)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_CASH_I5\",\"marketObjectCode\":\"SC_CASH_RESERVE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":23000},{\"time\":\"2026-03-04T00:00:00\",\"value\":22900},{\"time\":\"2026-03-05T00:00:00\",\"value\":22700},{\"time\":\"2026-03-06T00:00:00\",\"value\":22400},{\"time\":\"2026-03-07T00:00:00\",\"value\":22000},{\"time\":\"2026-03-08T00:00:00\",\"value\":21500},{\"time\":\"2026-03-09T00:00:00\",\"value\":21000},{\"time\":\"2026-03-10T00:00:00\",\"value\":20400},{\"time\":\"2026-03-11T00:00:00\",\"value\":20100},{\"time\":\"2026-03-12T00:00:00\",\"value\":19800},{\"time\":\"2026-03-13T00:00:00\",\"value\":19400},{\"time\":\"2026-03-14T00:00:00\",\"value\":18900},{\"time\":\"2026-03-15T00:00:00\",\"value\":18300},{\"time\":\"2026-03-16T00:00:00\",\"value\":17800},{\"time\":\"2026-03-17T00:00:00\",\"value\":17400},{\"time\":\"2026-03-18T00:00:00\",\"value\":17000},{\"time\":\"2026-03-19T00:00:00\",\"value\":17100},{\"time\":\"2026-03-20T00:00:00\",\"value\":17200},{\"time\":\"2026-03-21T00:00:00\",\"value\":27100},{\"time\":\"2026-03-22T00:00:00\",\"value\":27400},{\"time\":\"2026-03-23T00:00:00\",\"value\":27700},{\"time\":\"2026-03-24T00:00:00\",\"value\":27900},{\"time\":\"2026-03-25T00:00:00\",\"value\":28000},{\"time\":\"2026-03-26T00:00:00\",\"value\":27600},{\"time\":\"2026-03-27T00:00:00\",\"value\":27200},{\"time\":\"2026-03-28T00:00:00\",\"value\":26700},{\"time\":\"2026-03-29T00:00:00\",\"value\":26200},{\"time\":\"2026-03-30T00:00:00\",\"value\":25800},{\"time\":\"2026-03-31T00:00:00\",\"value\":25500},{\"time\":\"2026-04-01T00:00:00\",\"value\":25000}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_CASH_RESERVE_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 SC_CASH_I5: $23,000 (23.0%) \\u2192 $17,000 (17.0%) trough day 18');",
+        "    console.log('   Day 18 (2026-03-21): tbill-4wk-001 matures \\u2192 +$10,000 cash');",
+        "    console.log('   Jump: $17,000 \\u2192 $27,100 = 27.1% \\u2192 above 20% threshold \\u2705');",
+        "    console.log('   MiCA Art.45: RESTORE trigger when liq >= 20%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add STABLECOIN_PEG_DEV_I5 (iter5 peg curve — 2.5% peak)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_PEG_DEV_I5\",\"marketObjectCode\":\"STABLECOIN_PEG_DEV\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":0.0005},{\"time\":\"2026-03-04T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.003},{\"time\":\"2026-03-06T00:00:00\",\"value\":0.008},{\"time\":\"2026-03-07T00:00:00\",\"value\":0.013},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.017},{\"time\":\"2026-03-09T00:00:00\",\"value\":0.019},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.020},{\"time\":\"2026-03-11T00:00:00\",\"value\":0.021},{\"time\":\"2026-03-12T00:00:00\",\"value\":0.022},{\"time\":\"2026-03-13T00:00:00\",\"value\":0.022},{\"time\":\"2026-03-14T00:00:00\",\"value\":0.023},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.024},{\"time\":\"2026-03-16T00:00:00\",\"value\":0.025},{\"time\":\"2026-03-17T00:00:00\",\"value\":0.025},{\"time\":\"2026-03-18T00:00:00\",\"value\":0.024},{\"time\":\"2026-03-19T00:00:00\",\"value\":0.020},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.016},{\"time\":\"2026-03-21T00:00:00\",\"value\":0.014},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.011},{\"time\":\"2026-03-23T00:00:00\",\"value\":0.008},{\"time\":\"2026-03-24T00:00:00\",\"value\":0.005},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.003},{\"time\":\"2026-03-26T00:00:00\",\"value\":0.002},{\"time\":\"2026-03-27T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-28T00:00:00\",\"value\":0.001},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.0005},{\"time\":\"2026-03-30T00:00:00\",\"value\":0.0003},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.0003},{\"time\":\"2026-04-01T00:00:00\",\"value\":0.0002}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('STABLECOIN_PEG_DEV_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 SC_PEG_DEV_I5: 0.05% \\u2192 WATCH(0.1% d2) \\u2192 ELEVATED(0.3% d3)');",
+        "    console.log('   \\u2192 CRITICAL(1.0% d5) \\u2192 PEAK 2.5% d16 \\u2192 recovery 0.02% d29');",
+        "    console.log('   Day 11 (halt): peg ~2.1% \\u2192 redemption rate 11.4%/day');",
+        "    console.log('   Day 18 (restore): peg 1.4% \\u2192 cadence still CRITICAL but ALLOWED \\u2705');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add BackingRatioModel iter5 (br_sc_i5 — MiCA 20% liquidity)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addBackingRatioModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addBackingRatioModel"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"br_sc_i5\",\"totalReservesMOC\":\"SC_TOTAL_RESERVES\",\"cashReserveMOC\":\"SC_CASH_RESERVE\",\"backingThreshold\":1.0,\"liquidityThreshold\":0.20,\"monitoringEventTimes\":[\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('BackingRatioModel iter5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 br_sc_i5: BackingRatioModel iter5 (28-day monitoring)');",
+        "    console.log('   backingThreshold=1.0 (100% GENIUS/MiCA requirement)');",
+        "    console.log('   liquidityThreshold=0.20 (MiCA Art.45 — upgraded from 0.35)');",
+        "    console.log('   Key: backing stays >=100% throughout (EW is the halt signal)');",
+        "    console.log('   Liquidity drops below 20% by day 16, restored day 18 (tbill matures)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add RedemptionPressureModel iter5 (rp_sc_i5 — 609-event calibration)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addRedemptionPressureModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addRedemptionPressureModel"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"rp_sc_i5\",\"pegDeviationMOC\":\"STABLECOIN_PEG_DEV\",\"cashReserveMOC\":\"SC_CASH_RESERVE\",\"pegDeviationThreshold\":0.001,\"monitoringEventTimes\":[\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('RedemptionPressureModel iter5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 rp_sc_i5: RedemptionPressureModel iter5 (28-day monitoring)');",
+        "    console.log('   pegDeviationThreshold=0.001 (0.1% WATCH level for iter5)');",
+        "    console.log('   609-event calibration — empirical redemption curves:');",
+        "    console.log('     0.1% peg \\u2192 WATCH cadence triggers');",
+        "    console.log('     0.3% peg \\u2192 ELEVATED cadence triggers');",
+        "    console.log('     1.0%+ peg \\u2192 CRITICAL cadence + drain accelerates');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add Stablecoin iter5 Stress Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost:8082"], "path": ["addScenario"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"sc_iter5_stress_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_RESERVES_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_CASH_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_PEG_DEV_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"br_sc_i5\",\"riskFactorType\":\"BackingRatioModel\"},{\"riskFactorID\":\"rp_sc_i5\",\"riskFactorType\":\"RedemptionPressureModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('iter5 stress scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 sc_iter5_stress_scn01: 3 indexes + BackingRatioModel + RedemptionPressureModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7a. Verify BackingRatioModel iter5",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://localhost:8082/findBackingRatioModel/br_sc_i5", "protocol": "http", "host": ["localhost:8082"], "path": ["findBackingRatioModel", "br_sc_i5"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('BackingRatioModel iter5 verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d=pm.response.json();",
+        "    pm.expect(d.backingThreshold).to.eql(1.0);",
+        "    pm.expect(d.liquidityThreshold).to.eql(0.20);",
+        "    console.log('\\u2705 br_sc_i5: backing='+d.backingThreshold+' liq='+d.liquidityThreshold+' (MiCA Art.45)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7b. Verify RedemptionPressureModel iter5",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://localhost:8082/findRedemptionPressureModel/rp_sc_i5", "protocol": "http", "host": ["localhost:8082"], "path": ["findRedemptionPressureModel", "rp_sc_i5"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('RedemptionPressureModel iter5 verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d=pm.response.json();",
+        "    pm.expect(d.pegDeviationThreshold).to.eql(0.001);",
+        "    console.log('\\u2705 rp_sc_i5: pegThresh='+d.pegDeviationThreshold+' (0.1% WATCH level)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run Backing + Redemption iter5 Simulation — HALT DAY 11, RESTORE DAY 18",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost:8083"], "path": ["rf2", "scenarioSimulation"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"PAM\",\"statusDate\":\"2026-03-02T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"StableCoinA-BR-I5\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-03T00:00:00\",\"maturityDate\":\"2026-04-01T00:00:00\",\"notionalPrincipal\":100000,\"nominalInterestRate\":0.0,\"currency\":\"USD\",\"dayCountConvention\":\"A365\",\"stablecoinModels\":[\"br_sc_i5\",\"rp_sc_i5\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"sc_iter5_stress_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-01T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Backing + Redemption iter5 simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('');",
+        "    console.log('\\u2554\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2557');",
+        "    console.log('\\u2551  BACKING RATIO + REDEMPTION PRESSURE iter5                         \\u2551');",
+        "    console.log('\\u2551  $101k reserves / $100k supply | Liq threshold: 20% (MiCA Art.45)  \\u2551');",
+        "    console.log('\\u2560\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2563');",
+        "    console.log('\\u2551  Day 1:  MINT ALLOWED \\u2705 backing 101.1%, liq 23.0%               \\u2551');",
+        "    console.log('\\u2551  Day 11: \\u2605 MINT HALTED \\ud83d\\uded1 EW=4/4 fires (peg 2.1%, liq 20.1%)     \\u2551');",
+        "    console.log('\\u2551  Day 16: liq drops below 20% (dual halt condition confirmed)       \\u2551');",
+        "    console.log('\\u2551  Day 18: \\u2605 tbill-4wk matures \\u2192 liq 17%\\u219228.1% \\u2192 EW cleared        \\u2551');",
+        "    console.log('\\u2551  Day 19: \\u2605 MINT RESTORED \\u2705 (backing 101%+, liq 27.1%, EW 0/4)   \\u2551');",
+        "    console.log('\\u255a\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u255d');",
+        "    var counts = {};",
+        "    events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+        "    console.log('Events: ' + JSON.stringify(counts));",
+        "    var mrds = events.filter(function(e){return e.type==='MRD'||e.type==='PP';});",
+        "    if(mrds.length > 0){",
+        "        mrds.forEach(function(m){ console.log('  '+m.time+' type='+m.type+' payoff='+m.payoff.toFixed(2)); });",
+        "    }",
+        "});",
+        "pm.test('Events generated', function(){ pm.expect(pm.response.json()[0].events.length).to.be.above(0); });"
+      ]}}]
+    }
+  ]
+}

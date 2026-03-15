@@ -1,0 +1,84 @@
+{
+  "info": {
+    "_postman_id": "sc3-07-delayed",
+    "name": "07b-SWAPS-Corridor-IN-Textiles-DELAYED-Jan2027",
+    "description": "SWAPS IN-Textiles: DELAYED entry Jan 2027. CFO waited until peak stress to hedge. Fixed rate now 5.4% (market priced higher because SOFR is already 5.5%). Only 2 years remaining. Compare with 07-SWAPS-Corridor-IN-Textiles-PFL-FIXED.json (Mar 2026 entry at 5.0%).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Run 07b-DELAYED-Jan2027 (PFL)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://34.203.247.32:8083/eventsBatch",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32:8083"
+          ],
+          "path": [
+            "eventsBatch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"SWAPS\",\"contractID\":\"SWAPS-INTextiles-DELAYED-01\",\"contractRole\":\"PFL\",\"currency\":\"USD\",\"contractDealDate\":\"2027-01-01T00:00:00\",\"statusDate\":\"2027-01-01T00:00:00\",\"deliverySettlement\":\"D\",\"contractStructure\":[{\"object\":{\"contractType\":\"PAM\",\"contractID\":\"SWAPS-DELAYED-leg1-fixed\",\"contractDealDate\":\"2027-01-01T00:00:00\",\"initialExchangeDate\":\"2027-01-01T00:00:00\",\"currency\":\"USD\",\"statusDate\":\"2027-01-01T00:00:00\",\"notionalPrincipal\":\"800000\",\"dayCountConvention\":\"30E360\",\"nominalInterestRate\":\"0.054\",\"maturityDate\":\"2029-01-01T00:00:00\",\"cycleAnchorDateOfInterestPayment\":\"2027-04-01T00:00:00\",\"cycleOfInterestPayment\":\"P3ML1\",\"premiumDiscountAtIED\":\"0\"},\"referenceType\":\"CNT\",\"referenceRole\":\"FIL\"},{\"object\":{\"contractType\":\"PAM\",\"contractID\":\"SWAPS-DELAYED-leg2-float\",\"contractDealDate\":\"2027-01-01T00:00:00\",\"initialExchangeDate\":\"2027-01-01T00:00:00\",\"currency\":\"USD\",\"statusDate\":\"2027-01-01T00:00:00\",\"notionalPrincipal\":\"800000\",\"dayCountConvention\":\"30E360\",\"nominalInterestRate\":\"0.055\",\"maturityDate\":\"2029-01-01T00:00:00\",\"cycleAnchorDateOfInterestPayment\":\"2027-04-01T00:00:00\",\"cycleOfInterestPayment\":\"P3ML1\",\"cycleOfRateReset\":\"P3ML1\",\"cycleAnchorDateOfRateReset\":\"2027-01-01T00:00:00\",\"marketObjectCodeOfRateReset\":\"USD_SOFR_STRESS\",\"rateMultiplier\":\"1.0\",\"rateSpread\":\"0.0\",\"premiumDiscountAtIED\":\"0\"},\"referenceType\":\"CNT\",\"referenceRole\":\"SEL\"}]}],\"riskFactors\":[{\"marketObjectCode\":\"USD_SOFR_STRESS\",\"base\":1.0,\"data\":[{\"time\":\"2027-01-01T00:00:00\",\"value\":0.055},{\"time\":\"2027-04-01T00:00:00\",\"value\":0.054},{\"time\":\"2027-07-01T00:00:00\",\"value\":0.051},{\"time\":\"2027-10-01T00:00:00\",\"value\":0.048},{\"time\":\"2028-01-01T00:00:00\",\"value\":0.046},{\"time\":\"2028-04-01T00:00:00\",\"value\":0.045},{\"time\":\"2028-07-01T00:00:00\",\"value\":0.045},{\"time\":\"2028-10-01T00:00:00\",\"value\":0.045},{\"time\":\"2029-01-01T00:00:00\",\"value\":0.045}]}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Simulation success', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    console.log('='.repeat(64));",
+              "    console.log('SWAPS IN-Textiles DELAYED ENTRY (Jan 2027, PFL)');",
+              "    console.log('Fixed rate: 5.4% (higher - market priced at peak)');",
+              "    console.log('Tenor: 2 years (Jan 2027 - Jan 2029)');",
+              "    console.log('='.repeat(64));",
+              "    var r = data[0];",
+              "    if(r.status !== 'Success'){ console.log('FAILED: ' + (r.statusMessage||'unknown')); return; }",
+              "    var events = r.events;",
+              "    console.log('Status: ' + r.status + ' | Events: ' + events.length);",
+              "    var counts = {};",
+              "    events.forEach(function(e){ counts[e.type] = (counts[e.type]||0)+1; });",
+              "    Object.keys(counts).sort().forEach(function(k){ console.log('  ' + k + ': ' + counts[k]); });",
+              "    var totalIP = 0;",
+              "    console.log('');",
+              "    console.log('INTEREST PAYMENTS (per quarter):');",
+              "    var ipEvents = events.filter(function(e){return e.type==='IP';});",
+              "    for(var i=0; i<ipEvents.length; i+=2){",
+              "        var e1 = ipEvents[i]; var e2 = ipEvents[i+1];",
+              "        if(!e2) break;",
+              "        var net = e1.payoff + e2.payoff;",
+              "        totalIP += e1.payoff + e2.payoff;",
+              "        var dt = e1.time.substring(0,10);",
+              "        var fixedP = e1.nominalValue < 0 ? e1 : e2;",
+              "        var floatP = e1.nominalValue > 0 ? e1 : e2;",
+              "        console.log('  ' + dt + '  fixed=' + fixedP.payoff.toFixed(0) + '  float=' + floatP.payoff.toFixed(0) + '  NET=' + net.toFixed(0) + (net>0?' (swap PAYS exporter)':net<0?' (swap COSTS exporter)':' (break-even)'));",
+              "    }",
+              "    console.log('');",
+              "    console.log('TOTAL NET IP over 2 years: $' + totalIP.toFixed(2));",
+              "    console.log('='.repeat(64));",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

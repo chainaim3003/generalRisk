@@ -1,0 +1,376 @@
+{
+  "info": {
+    "_postman_id": "c71ce1d1-b7bb-43f6-904c-ffcb27f79785",
+    "name": "ETH-Liq-Coll1-mon-30",
+    "description": "ACTUS DeFi ETH 30-day loan with prepayment model.  \nRun with Collection Runner. No data file needed.  \nOpen Postman Console (View > Show Postman Console) to see detailed output.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52631821",
+    "_collection_link": "https://go.postman.co/collection/36637562-c71ce1d1-b7bb-43f6-904c-ffcb27f79785?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Add DeFi Rate Index",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 1: DeFi rate index added', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('PASS: DEFI_RAT_MON_01 loaded (31 daily rates, 5.0% to 7.65%)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\": \"DEFI_RAT_MON_01\", \"marketObjectCode\": \"DEFI_RATE\", \"base\": 1.0, \"data\": [{\"time\": \"2026-02-18T00:00:00\", \"value\": 0.05}, {\"time\": \"2026-02-19T00:00:00\", \"value\": 0.052733}, {\"time\": \"2026-02-20T00:00:00\", \"value\": 0.054556}, {\"time\": \"2026-02-21T00:00:00\", \"value\": 0.05499}, {\"time\": \"2026-02-22T00:00:00\", \"value\": 0.054205}, {\"time\": \"2026-02-23T00:00:00\", \"value\": 0.052948}, {\"time\": \"2026-02-24T00:00:00\", \"value\": 0.052185}, {\"time\": \"2026-02-25T00:00:00\", \"value\": 0.052653}, {\"time\": \"2026-02-26T00:00:00\", \"value\": 0.054506}, {\"time\": \"2026-02-27T00:00:00\", \"value\": 0.05725}, {\"time\": \"2026-02-28T00:00:00\", \"value\": 0.059971}, {\"time\": \"2026-03-01T00:00:00\", \"value\": 0.061765}, {\"time\": \"2026-03-02T00:00:00\", \"value\": 0.062164}, {\"time\": \"2026-03-03T00:00:00\", \"value\": 0.061357}, {\"time\": \"2026-03-04T00:00:00\", \"value\": 0.060101}, {\"time\": \"2026-03-05T00:00:00\", \"value\": 0.059361}, {\"time\": \"2026-03-06T00:00:00\", \"value\": 0.059862}, {\"time\": \"2026-03-07T00:00:00\", \"value\": 0.061746}, {\"time\": \"2026-03-08T00:00:00\", \"value\": 0.064501}, {\"time\": \"2026-03-09T00:00:00\", \"value\": 0.067209}, {\"time\": \"2026-03-10T00:00:00\", \"value\": 0.068972}, {\"time\": \"2026-03-11T00:00:00\", \"value\": 0.069337}, {\"time\": \"2026-03-12T00:00:00\", \"value\": 0.068509}, {\"time\": \"2026-03-13T00:00:00\", \"value\": 0.067254}, {\"time\": \"2026-03-14T00:00:00\", \"value\": 0.066537}, {\"time\": \"2026-03-15T00:00:00\", \"value\": 0.067073}, {\"time\": \"2026-03-16T00:00:00\", \"value\": 0.068986}, {\"time\": \"2026-03-17T00:00:00\", \"value\": 0.071751}, {\"time\": \"2026-03-18T00:00:00\", \"value\": 0.074446}, {\"time\": \"2026-03-19T00:00:00\", \"value\": 0.076178}, {\"time\": \"2026-03-20T00:00:00\", \"value\": 0.07651}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32"
+          ],
+          "port": "8082",
+          "path": [
+            "addReferenceIndex"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Add ETH Price Index",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 2: ETH price index added', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('PASS: ETH_PRICE_MON_01 loaded (31 daily prices, $2800 to $1870)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\": \"ETH_PRICE_MON_01\", \"marketObjectCode\": \"ETH_USD\", \"base\": 1.0, \"data\": [{\"time\": \"2026-02-18T00:00:00\", \"value\": 2800}, {\"time\": \"2026-02-19T00:00:00\", \"value\": 2775}, {\"time\": \"2026-02-20T00:00:00\", \"value\": 2750}, {\"time\": \"2026-02-21T00:00:00\", \"value\": 2710}, {\"time\": \"2026-02-22T00:00:00\", \"value\": 2690}, {\"time\": \"2026-02-23T00:00:00\", \"value\": 2665}, {\"time\": \"2026-02-24T00:00:00\", \"value\": 2640}, {\"time\": \"2026-02-25T00:00:00\", \"value\": 2600}, {\"time\": \"2026-02-26T00:00:00\", \"value\": 2560}, {\"time\": \"2026-02-27T00:00:00\", \"value\": 2530}, {\"time\": \"2026-02-28T00:00:00\", \"value\": 2490}, {\"time\": \"2026-03-01T00:00:00\", \"value\": 2460}, {\"time\": \"2026-03-02T00:00:00\", \"value\": 2430}, {\"time\": \"2026-03-03T00:00:00\", \"value\": 2410}, {\"time\": \"2026-03-04T00:00:00\", \"value\": 2380}, {\"time\": \"2026-03-05T00:00:00\", \"value\": 2350}, {\"time\": \"2026-03-06T00:00:00\", \"value\": 2310}, {\"time\": \"2026-03-07T00:00:00\", \"value\": 2280}, {\"time\": \"2026-03-08T00:00:00\", \"value\": 2240}, {\"time\": \"2026-03-09T00:00:00\", \"value\": 2200}, {\"time\": \"2026-03-10T00:00:00\", \"value\": 2170}, {\"time\": \"2026-03-11T00:00:00\", \"value\": 2140}, {\"time\": \"2026-03-12T00:00:00\", \"value\": 2110}, {\"time\": \"2026-03-13T00:00:00\", \"value\": 2080}, {\"time\": \"2026-03-14T00:00:00\", \"value\": 2050}, {\"time\": \"2026-03-15T00:00:00\", \"value\": 2020}, {\"time\": \"2026-03-16T00:00:00\", \"value\": 1990}, {\"time\": \"2026-03-17T00:00:00\", \"value\": 1960}, {\"time\": \"2026-03-18T00:00:00\", \"value\": 1930}, {\"time\": \"2026-03-19T00:00:00\", \"value\": 1900}, {\"time\": \"2026-03-20T00:00:00\", \"value\": 1870}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://34.203.247.32:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32"
+          ],
+          "port": "8082",
+          "path": [
+            "addReferenceIndex"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Add Prepayment Model",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 3: Prepayment model added', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('added successfully');",
+              "    console.log('PASS: defi_pp_mon_01 loaded (7x4 surface, 4 check dates)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\": \"defi_pp_mon_01\", \"referenceRateId\": \"DEFI_RATE\", \"prepaymentEventTimes\": [\"2026-02-25T00:00:00\", \"2026-03-04T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-18T00:00:00\"], \"surface\": {\"interpolationMethod\": \"linear\", \"extrapolationMethod\": \"constant\", \"margins\": [{\"dimension\": 1, \"values\": [0.03, 0.02, 0.01, 0.0, -0.01, -0.02, -0.03]}, {\"dimension\": 2, \"values\": [0, 0.025, 0.05, 0.083]}], \"data\": [[0.15, 0.12, 0.1, 0.08], [0.1, 0.08, 0.06, 0.05], [0.05, 0.04, 0.03, 0.02], [0.02, 0.01, 0.005, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://34.203.247.32:8082/addTwoDimensionalPrepaymentModel",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32"
+          ],
+          "port": "8082",
+          "path": [
+            "addTwoDimensionalPrepaymentModel"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Add Scenario",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 4: Scenario created', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.text()).to.include('Successfully');",
+              "    console.log('PASS: defi_mon_scn01 created (2 indexes + 1 prepayment model)');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\": \"defi_mon_scn01\", \"riskFactorDescriptors\": [{\"riskFactorID\": \"DEFI_RAT_MON_01\", \"riskFactorType\": \"ReferenceIndex\"}, {\"riskFactorID\": \"ETH_PRICE_MON_01\", \"riskFactorType\": \"ReferenceIndex\"}, {\"riskFactorID\": \"defi_pp_mon_01\", \"riskFactorType\": \"TwoDimensionalPrepaymentModel\"}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://34.203.247.32:8082/addScenario",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32"
+          ],
+          "port": "8082",
+          "path": [
+            "addScenario"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5a. Verify Reference Indexes",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 5a: Reference indexes in DB', function () {",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    var ids = data.map(function(r){ return r.riskFactorID; });",
+              "    pm.expect(ids).to.include('DEFI_RAT_MON_01');",
+              "    pm.expect(ids).to.include('ETH_PRICE_MON_01');",
+              "    console.log('PASS: Found ' + data.length + ' indexes: ' + ids.join(', '));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://34.203.247.32:8082/findAllReferenceIndexes",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32"
+          ],
+          "port": "8082",
+          "path": [
+            "findAllReferenceIndexes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5b. Verify Scenarios",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 5b: Scenario in DB', function () {",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    var ids = data.map(function(s){ return s.scenarioID; });",
+              "    pm.expect(ids).to.include('defi_mon_scn01');",
+              "    console.log('PASS: Found scenarios: ' + ids.join(', '));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://34.203.247.32:8082/findAllScenarios",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32"
+          ],
+          "port": "8082",
+          "path": [
+            "findAllScenarios"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5c. Verify Prepayment Model",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 5c: Prepayment model in DB', function () {",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data.riskFactorId).to.eql('defi_pp_mon_01');",
+              "    console.log('PASS: defi_pp_mon_01 confirmed, referenceRate=' + data.referenceRateId);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://34.203.247.32:8082/findTwoDimensionalPrepaymentModel/defi_pp_mon_01",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32"
+          ],
+          "port": "8082",
+          "path": [
+            "findTwoDimensionalPrepaymentModel",
+            "defi_pp_mon_01"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Run Simulation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Step 6: Simulation succeeded', function () {",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    pm.expect(data[0].status).to.eql('Success');",
+              "    var events = data[0].events;",
+              "    console.log('PASS: ' + events.length + ' events generated');",
+              "    var counts = {};",
+              "    events.forEach(function(e){ counts[e.type] = (counts[e.type]||0)+1; });",
+              "    Object.keys(counts).forEach(function(k){ console.log('  ' + k + ': ' + counts[k]); });",
+              "    var pps = events.filter(function(e){ return e.type==='PP'; });",
+              "    pps.forEach(function(pp){",
+              "        var action = pp.payoff > 0 ? 'PREPAID $'+pp.payoff : 'no prepay';",
+              "        console.log('  PP ' + pp.time + ' -> ' + action + ' | notional=$' + pp.nominalValue);",
+              "    });",
+              "    var ip = events.filter(function(e){return e.type==='IP';})[0];",
+              "    var md = events.filter(function(e){return e.type==='MD';})[0];",
+              "    console.log('  Interest paid: $' + ip.payoff.toFixed(2));",
+              "    console.log('  Principal returned: $' + md.payoff.toFixed(2));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\": [{\"calendar\": \"NC\", \"businessDayConvention\": \"SCF\", \"contractType\": \"PAM\", \"statusDate\": \"2026-02-17T00:00:00\", \"contractRole\": \"RPA\", \"contractID\": \"DeFi-ETH-Loan-01\", \"cycleAnchorDateOfInterestPayment\": \"2026-03-20T00:00:00\", \"cycleOfInterestPayment\": \"P1ML0\", \"nominalInterestRate\": 0.05, \"dayCountConvention\": \"30E360\", \"currency\": \"USD\", \"contractDealDate\": \"2026-02-17T00:00:00\", \"initialExchangeDate\": \"2026-02-18T00:00:00\", \"maturityDate\": \"2026-03-20T00:00:00\", \"notionalPrincipal\": 5000, \"premiumDiscountAtIED\": 0, \"cycleAnchorDateOfRateReset\": \"2026-02-19T00:00:00\", \"cycleOfRateReset\": \"P1DL1\", \"rateSpread\": 0.0, \"marketObjectCodeOfRateReset\": \"DEFI_RATE\", \"prepaymentModels\": [\"defi_pp_mon_01\"]}], \"scenarioDescriptor\": {\"scenarioID\": \"defi_mon_scn01\", \"scenarioType\": \"scenario\"}, \"simulateTo\": \"2026-03-21T00:00:00\", \"monitoringTimes\": []}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://34.203.247.32:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32"
+          ],
+          "port": "8083",
+          "path": [
+            "rf2",
+            "scenarioSimulation"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

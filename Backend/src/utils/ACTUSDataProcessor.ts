@@ -15,29 +15,29 @@
  * This shows exactly what the ACTUS API is returning
  */
 export function printCoreACTUSResponse(rawResponse: any, apiUrl: string): void {
-    console.log('\n=== CORE ACTUS API RESPONSE DEBUG ===');
-    console.log(`API URL: ${apiUrl}`);
-    console.log(`Response Status: ${rawResponse.status || 'Unknown'}`);
-    console.log(`Response Headers: ${JSON.stringify(rawResponse.headers || {}, null, 2)}`);
+    console.error('\n=== CORE ACTUS API RESPONSE DEBUG ===');
+    console.error(`API URL: ${apiUrl}`);
+    console.error(`Response Status: ${rawResponse.status || 'Unknown'}`);
+    console.error(`Response Headers: ${JSON.stringify(rawResponse.headers || {}, null, 2)}`);
     
     const data = rawResponse.data || rawResponse;
-    console.log('\n--- Raw Response Data Structure ---');
-    console.log(`Type: ${typeof data}`);
-    console.log(`Keys: ${Object.keys(data || {})}`);
+    console.error('\n--- Raw Response Data Structure ---');
+    console.error(`Type: ${typeof data}`);
+    console.error(`Keys: ${Object.keys(data || {})}`);
     
     if (data) {
-        console.log('\n--- Raw Data Sample ---');
-        console.log(JSON.stringify(data, null, 2));
+        console.error('\n--- Raw Data Sample ---');
+        console.error(JSON.stringify(data, null, 2));
         
         // Specific checks for common ACTUS response patterns
-        if (data.inflow) console.log(`Inflow periods: ${Array.isArray(data.inflow) ? data.inflow.length : 'Not array'}`);
-        if (data.outflow) console.log(`Outflow periods: ${Array.isArray(data.outflow) ? data.outflow.length : 'Not array'}`);
-        if (data.monthsCount !== undefined) console.log(`Months count: ${data.monthsCount}`);
-        if (data.periodsCount !== undefined) console.log(`Periods count: ${data.periodsCount}`);
-        if (data.contractDetails) console.log(`Contract details: ${Array.isArray(data.contractDetails) ? data.contractDetails.length : 'Not array'} contracts`);
+        if (data.inflow) console.error(`Inflow periods: ${Array.isArray(data.inflow) ? data.inflow.length : 'Not array'}`);
+        if (data.outflow) console.error(`Outflow periods: ${Array.isArray(data.outflow) ? data.outflow.length : 'Not array'}`);
+        if (data.monthsCount !== undefined) console.error(`Months count: ${data.monthsCount}`);
+        if (data.periodsCount !== undefined) console.error(`Periods count: ${data.periodsCount}`);
+        if (data.contractDetails) console.error(`Contract details: ${Array.isArray(data.contractDetails) ? data.contractDetails.length : 'Not array'} contracts`);
     }
     
-    console.log('=== END CORE ACTUS RESPONSE DEBUG ===\n');
+    console.error('=== END CORE ACTUS RESPONSE DEBUG ===\n');
 }
 
 // =================================== Post-Processing Logic ===================================
@@ -67,8 +67,8 @@ export function processRawACTUSData(rawData: any): {
     monthsCount: number;
     contractDetails: any[];
 } {
-    console.log('\n=== PROCESSING RAW ACTUS DATA ===');
-    console.log('Raw data type:', typeof rawData);
+    console.error('\n=== PROCESSING RAW ACTUS DATA ===');
+    console.error('Raw data type:', typeof rawData);
     
     // Parse the data if it's a string, or use directly if it's already an array
     let parsedData: ACTUSContract[];
@@ -80,9 +80,9 @@ export function processRawACTUSData(rawData: any): {
         throw new Error('Invalid ACTUS data format - expected string or array');
     }
     
-    console.log(`Parsed ${parsedData.length} contracts`);
+    console.error(`Parsed ${parsedData.length} contracts`);
     parsedData.forEach((contract, i) => {
-        console.log(`Contract ${i}: ${contract.contractId} (${contract.type || 'unknown'}) with ${contract.events?.length || 0} events`);
+        console.error(`Contract ${i}: ${contract.contractId} (${contract.type || 'unknown'}) with ${contract.events?.length || 0} events`);
     });
     
     // Extract all dates to calculate the date range (EXACT logic from working test)
@@ -91,7 +91,7 @@ export function processRawACTUSData(rawData: any): {
     );
     
     if (allDates.length === 0) {
-        console.log('⚠️ No events found in contracts');
+        console.error('⚠️ No events found in contracts');
         return {
             inflow: [],
             outflow: [],
@@ -109,8 +109,8 @@ export function processRawACTUSData(rawData: any): {
         1
     );
     
-    console.log(`Date range: ${minDate.toISOString()} to ${maxDate.toISOString()}`);
-    console.log(`Calculated ${monthsCount} periods`);
+    console.error(`Date range: ${minDate.toISOString()} to ${maxDate.toISOString()}`);
+    console.error(`Calculated ${monthsCount} periods`);
     
     // Initialize arrays (EXACT logic from working test - [0] init + .push())
     const inflow: number[][] = Array.from({ length: monthsCount }, () => [0]);
@@ -140,18 +140,18 @@ export function processRawACTUSData(rawData: any): {
         totalPayoff: (c.events || []).reduce((sum, e) => sum + e.payoff, 0)
     }));
     
-    console.log('Post-processing complete:');
-    console.log(`- Inflow periods: ${inflow.length}`);
-    console.log(`- Outflow periods: ${outflow.length}`);
+    console.error('Post-processing complete:');
+    console.error(`- Inflow periods: ${inflow.length}`);
+    console.error(`- Outflow periods: ${outflow.length}`);
     
     // Debug: show sample data
-    console.log('- Sample inflow data:');
+    console.error('- Sample inflow data:');
     inflow.slice(0, 3).forEach((period, i) => {
         const total = period.reduce((sum, val) => sum + val, 0);
-        console.log(`  Period ${i}: ${period.length} events, total: ${total}`);
+        console.error(`  Period ${i}: ${period.length} events, total: ${total}`);
     });
     
-    console.log('=== END PROCESSING RAW ACTUS DATA ===\n');
+    console.error('=== END PROCESSING RAW ACTUS DATA ===\n');
     
     return { inflow, outflow, monthsCount, contractDetails };
 }

@@ -1,0 +1,1044 @@
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "6dde6cdd-88b2-4811-a355-3f05868bb6a2",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "1744"
+  },
+  "Request Body": "{\n  \"riskFactorID\": \"SC_PEG_RISK_SEQ_01\",\n  \"marketObjectCode\": \"PEG_RISK_SCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 5},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 8},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 12},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 16},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 22},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 28},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 32},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 38},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 42},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 48},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 44},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 38},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 25},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 18},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 14},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 10},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 6},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 4},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 1},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 0}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Mon, 02 Mar 2026 18:19:30 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'════════════════════════════════════════════════════════════'
+'APPROACH 2 — FIX 2: THREE-ITERATION CONVERGENCE'
+'════════════════════════════════════════════════════════════'
+''
+'Fix 1 result: Iter1=$66,152 vs Iter2=$99,812 → 50.9% delta'
+'Fix 2 adds Iteration 3 to verify convergence.'
+''
+'✅ Phase 1: PEG_RISK_SCORE loaded'
+POST http://localhost:8082/addScenario: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "14ca2670-38f0-45cd-9736-b7805a593c74",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "153"
+  },
+  "Request Body": "{\n  \"scenarioID\": \"sc_tbill_only_100k\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_PEG_RISK_SEQ_01\", \"riskFactorType\": \"ReferenceIndex\"}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "28",
+    "date": "Mon, 02 Mar 2026 18:19:30 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "Scenario added Successfully\n"
+}
+'✅ sc_tbill_only_100k created'
+POST http://localhost:8083/rf2/scenarioSimulation: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53806
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8083
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "e2a1d85e-ab51-4b88-bff3-a7dbbefd3149",
+    "host": "localhost:8083",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "2601"
+  },
+  "Request Body": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-A-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-15T00:00:00\",\n      \"maturityDate\": \"2026-03-15T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -250,\n      \"purchaseDate\": \"2026-02-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24250\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-B-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-01T00:00:00\",\n      \"maturityDate\": \"2026-03-30T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -320,\n      \"purchaseDate\": \"2026-02-01T00:00:00\",\n      \"priceAtPurchaseDate\": 24180\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-C-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-15T00:00:00\",\n      \"maturityDate\": \"2026-04-15T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -380,\n      \"purchaseDate\": \"2026-01-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24120\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-D-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -450,\n      \"purchaseDate\": \"2026-01-01T00:00:00\",\n      \"priceAtPurchaseDate\": 24050\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_tbill_only_100k\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}",
+  "Response Headers": {
+    "vary": [
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Mon, 02 Mar 2026 18:19:31 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "[{\"scenarioId\":\"sc_tbill_only_100k\",\"contractID\":\"TBill-A-100K\",\"status\":\"Success\",\"message\":\"\",\"events\":[{\"type\":\"IP\",\"time\":\"2026-03-15T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":24500.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"MD\",\"time\":\"2026-03-15T00:00\",\"payoff\":24500.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0}]},{\"scenarioId\":\"sc_tbill_only_100k\",\"contractID\":\"TBill-B-100K\",\"status\":\"Success\",\"message\":\"\",\"events\":[{\"type\":\"IP\",\"time\":\"2026-03-30T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":24500.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"MD\",\"time\":\"2026-03-30T00:00\",\"payoff\":24500.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0}]},{\"scenarioId\":\"sc_tbill_only_100k\",\"contractID\":\"TBill-C-100K\",\"status\":\"Success\",\"message\":\"\",\"events\":[{\"type\":\"IP\",\"time\":\"2026-04-15T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":24500.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"MD\",\"time\":\"2026-04-15T00:00\",\"payoff\":24500.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0}]},{\"scenarioId\":\"sc_tbill_only_100k\",\"contractID\":\"TBill-D-100K\",\"status\":\"Success\",\"message\":\"\",\"events\":[{\"type\":\"IP\",\"time\":\"2026-04-30T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":24500.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"MD\",\"time\":\"2026-04-30T00:00\",\"payoff\":24500.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0}]}]"
+}
+'════════════════════════════════════════════════════════════'
+'PHASE 2: T-BILL ONLY SIMULATION — ACTUAL EVENTS'
+'════════════════════════════════════════════════════════════'
+'Contracts returned: 4'
+'  TBill-A-100K: 2026-03-15T00:00 IP payoff=$0.00'
+'  TBill-A-100K: 2026-03-15T00:00 MD payoff=$24500.00'
+'  TBill-B-100K: 2026-03-30T00:00 IP payoff=$0.00'
+'  TBill-B-100K: 2026-03-30T00:00 MD payoff=$24500.00'
+'  TBill-C-100K: 2026-04-15T00:00 IP payoff=$0.00'
+'  TBill-C-100K: 2026-04-15T00:00 MD payoff=$24500.00'
+'  TBill-D-100K: 2026-04-30T00:00 IP payoff=$0.00'
+'  TBill-D-100K: 2026-04-30T00:00 MD payoff=$24500.00'
+''
+'DERIVED DAILY TIMELINE:'
+'  2026-03-01 | Cash=$6000.00 | TBillMV=$97295.77 | Total=$103295.77'
+'  2026-03-15 | Cash=$30500.00 | TBillMV=$73110.77 | Total=$103610.77 ← TBill-A-100K MD +$24500.00'
+'  2026-03-30 | Cash=$55000.00 | TBillMV=$48815.15 | Total=$103815.15 ← TBill-B-100K MD +$24500.00'
+'  2026-04-15 | Cash=$79500.00 | TBillMV=$24443.26 | Total=$103943.26 ← TBill-C-100K MD +$24500.00'
+'  2026-04-30 | Cash=$104000.00 | TBillMV=$0.00 | Total=$104000.00 ← TBill-D-100K MD +$24500.00'
+'✅ Daily data stored for Phase 3.'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "9928852d-b0db-4ffc-b548-5def7d90f2bd",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "3003"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_TBILL_MV_DYN_I1\",\"marketObjectCode\":\"SC_TBILL_MV\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":97295.77},{\"time\":\"2026-03-02T00:00:00\",\"value\":97318.34},{\"time\":\"2026-03-03T00:00:00\",\"value\":97340.9},{\"time\":\"2026-03-04T00:00:00\",\"value\":97363.47},{\"time\":\"2026-03-05T00:00:00\",\"value\":97386.04},{\"time\":\"2026-03-06T00:00:00\",\"value\":97408.6},{\"time\":\"2026-03-07T00:00:00\",\"value\":97431.17},{\"time\":\"2026-03-08T00:00:00\",\"value\":97453.74},{\"time\":\"2026-03-09T00:00:00\",\"value\":97475.37},{\"time\":\"2026-03-10T00:00:00\",\"value\":97497.93},{\"time\":\"2026-03-11T00:00:00\",\"value\":97520.5},{\"time\":\"2026-03-12T00:00:00\",\"value\":97543.07},{\"time\":\"2026-03-13T00:00:00\",\"value\":97565.63},{\"time\":\"2026-03-14T00:00:00\",\"value\":97588.2},{\"time\":\"2026-03-15T00:00:00\",\"value\":73110.77},{\"time\":\"2026-03-16T00:00:00\",\"value\":73124.39},{\"time\":\"2026-03-17T00:00:00\",\"value\":73138.02},{\"time\":\"2026-03-18T00:00:00\",\"value\":73151.64},{\"time\":\"2026-03-19T00:00:00\",\"value\":73165.27},{\"time\":\"2026-03-20T00:00:00\",\"value\":73178.89},{\"time\":\"2026-03-21T00:00:00\",\"value\":73192.52},{\"time\":\"2026-03-22T00:00:00\",\"value\":73206.14},{\"time\":\"2026-03-23T00:00:00\",\"value\":73219.77},{\"time\":\"2026-03-24T00:00:00\",\"value\":73233.39},{\"time\":\"2026-03-25T00:00:00\",\"value\":73247.02},{\"time\":\"2026-03-26T00:00:00\",\"value\":73260.64},{\"time\":\"2026-03-27T00:00:00\",\"value\":73274.27},{\"time\":\"2026-03-28T00:00:00\",\"value\":73287.89},{\"time\":\"2026-03-29T00:00:00\",\"value\":73301.52},{\"time\":\"2026-03-30T00:00:00\",\"value\":48815.15},{\"time\":\"2026-03-31T00:00:00\",\"value\":48823.15},{\"time\":\"2026-04-01T00:00:00\",\"value\":48831.16},{\"time\":\"2026-04-02T00:00:00\",\"value\":48839.17},{\"time\":\"2026-04-03T00:00:00\",\"value\":48847.17},{\"time\":\"2026-04-04T00:00:00\",\"value\":48855.18},{\"time\":\"2026-04-05T00:00:00\",\"value\":48863.19},{\"time\":\"2026-04-06T00:00:00\",\"value\":48871.19},{\"time\":\"2026-04-07T00:00:00\",\"value\":48879.2},{\"time\":\"2026-04-08T00:00:00\",\"value\":48887.21},{\"time\":\"2026-04-09T00:00:00\",\"value\":48895.22},{\"time\":\"2026-04-10T00:00:00\",\"value\":48903.22},{\"time\":\"2026-04-11T00:00:00\",\"value\":48911.23},{\"time\":\"2026-04-12T00:00:00\",\"value\":48919.24},{\"time\":\"2026-04-13T00:00:00\",\"value\":48927.24},{\"time\":\"2026-04-14T00:00:00\",\"value\":48935.25},{\"time\":\"2026-04-15T00:00:00\",\"value\":24443.26},{\"time\":\"2026-04-16T00:00:00\",\"value\":24447.04},{\"time\":\"2026-04-17T00:00:00\",\"value\":24450.82},{\"time\":\"2026-04-18T00:00:00\",\"value\":24454.61},{\"time\":\"2026-04-19T00:00:00\",\"value\":24458.39},{\"time\":\"2026-04-20T00:00:00\",\"value\":24462.17},{\"time\":\"2026-04-21T00:00:00\",\"value\":24465.95},{\"time\":\"2026-04-22T00:00:00\",\"value\":24469.74},{\"time\":\"2026-04-23T00:00:00\",\"value\":24473.52},{\"time\":\"2026-04-24T00:00:00\",\"value\":24477.3},{\"time\":\"2026-04-25T00:00:00\",\"value\":24481.09},{\"time\":\"2026-04-26T00:00:00\",\"value\":24484.87},{\"time\":\"2026-04-27T00:00:00\",\"value\":24488.65},{\"time\":\"2026-04-28T00:00:00\",\"value\":24492.43},{\"time\":\"2026-04-29T00:00:00\",\"value\":24496.22},{\"time\":\"2026-04-30T00:00:00\",\"value\":0}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Mon, 02 Mar 2026 18:19:30 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_TBILL_MV_DYN_I1'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "325a01e7-f109-4137-8eff-ae1f264a0649",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "2820"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_CASH_DYN_I1\",\"marketObjectCode\":\"SC_CASH_RESERVE\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":6000},{\"time\":\"2026-03-02T00:00:00\",\"value\":6000},{\"time\":\"2026-03-03T00:00:00\",\"value\":6000},{\"time\":\"2026-03-04T00:00:00\",\"value\":6000},{\"time\":\"2026-03-05T00:00:00\",\"value\":6000},{\"time\":\"2026-03-06T00:00:00\",\"value\":6000},{\"time\":\"2026-03-07T00:00:00\",\"value\":6000},{\"time\":\"2026-03-08T00:00:00\",\"value\":6000},{\"time\":\"2026-03-09T00:00:00\",\"value\":6000},{\"time\":\"2026-03-10T00:00:00\",\"value\":6000},{\"time\":\"2026-03-11T00:00:00\",\"value\":6000},{\"time\":\"2026-03-12T00:00:00\",\"value\":6000},{\"time\":\"2026-03-13T00:00:00\",\"value\":6000},{\"time\":\"2026-03-14T00:00:00\",\"value\":6000},{\"time\":\"2026-03-15T00:00:00\",\"value\":30500},{\"time\":\"2026-03-16T00:00:00\",\"value\":30500},{\"time\":\"2026-03-17T00:00:00\",\"value\":30500},{\"time\":\"2026-03-18T00:00:00\",\"value\":30500},{\"time\":\"2026-03-19T00:00:00\",\"value\":30500},{\"time\":\"2026-03-20T00:00:00\",\"value\":30500},{\"time\":\"2026-03-21T00:00:00\",\"value\":30500},{\"time\":\"2026-03-22T00:00:00\",\"value\":30500},{\"time\":\"2026-03-23T00:00:00\",\"value\":30500},{\"time\":\"2026-03-24T00:00:00\",\"value\":30500},{\"time\":\"2026-03-25T00:00:00\",\"value\":30500},{\"time\":\"2026-03-26T00:00:00\",\"value\":30500},{\"time\":\"2026-03-27T00:00:00\",\"value\":30500},{\"time\":\"2026-03-28T00:00:00\",\"value\":30500},{\"time\":\"2026-03-29T00:00:00\",\"value\":30500},{\"time\":\"2026-03-30T00:00:00\",\"value\":55000},{\"time\":\"2026-03-31T00:00:00\",\"value\":55000},{\"time\":\"2026-04-01T00:00:00\",\"value\":55000},{\"time\":\"2026-04-02T00:00:00\",\"value\":55000},{\"time\":\"2026-04-03T00:00:00\",\"value\":55000},{\"time\":\"2026-04-04T00:00:00\",\"value\":55000},{\"time\":\"2026-04-05T00:00:00\",\"value\":55000},{\"time\":\"2026-04-06T00:00:00\",\"value\":55000},{\"time\":\"2026-04-07T00:00:00\",\"value\":55000},{\"time\":\"2026-04-08T00:00:00\",\"value\":55000},{\"time\":\"2026-04-09T00:00:00\",\"value\":55000},{\"time\":\"2026-04-10T00:00:00\",\"value\":55000},{\"time\":\"2026-04-11T00:00:00\",\"value\":55000},{\"time\":\"2026-04-12T00:00:00\",\"value\":55000},{\"time\":\"2026-04-13T00:00:00\",\"value\":55000},{\"time\":\"2026-04-14T00:00:00\",\"value\":55000},{\"time\":\"2026-04-15T00:00:00\",\"value\":79500},{\"time\":\"2026-04-16T00:00:00\",\"value\":79500},{\"time\":\"2026-04-17T00:00:00\",\"value\":79500},{\"time\":\"2026-04-18T00:00:00\",\"value\":79500},{\"time\":\"2026-04-19T00:00:00\",\"value\":79500},{\"time\":\"2026-04-20T00:00:00\",\"value\":79500},{\"time\":\"2026-04-21T00:00:00\",\"value\":79500},{\"time\":\"2026-04-22T00:00:00\",\"value\":79500},{\"time\":\"2026-04-23T00:00:00\",\"value\":79500},{\"time\":\"2026-04-24T00:00:00\",\"value\":79500},{\"time\":\"2026-04-25T00:00:00\",\"value\":79500},{\"time\":\"2026-04-26T00:00:00\",\"value\":79500},{\"time\":\"2026-04-27T00:00:00\",\"value\":79500},{\"time\":\"2026-04-28T00:00:00\",\"value\":79500},{\"time\":\"2026-04-29T00:00:00\",\"value\":79500},{\"time\":\"2026-04-30T00:00:00\",\"value\":104000}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Mon, 02 Mar 2026 18:19:30 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_CASH_DYN_I1 (optimistic, no redemptions)'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "7e95a6d1-3448-4f98-8350-ee71b24d6803",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "3074"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_RESERVES_DYN_I1\",\"marketObjectCode\":\"SC_TOTAL_RESERVES\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":103295.77},{\"time\":\"2026-03-02T00:00:00\",\"value\":103318.34},{\"time\":\"2026-03-03T00:00:00\",\"value\":103340.9},{\"time\":\"2026-03-04T00:00:00\",\"value\":103363.47},{\"time\":\"2026-03-05T00:00:00\",\"value\":103386.04},{\"time\":\"2026-03-06T00:00:00\",\"value\":103408.6},{\"time\":\"2026-03-07T00:00:00\",\"value\":103431.17},{\"time\":\"2026-03-08T00:00:00\",\"value\":103453.74},{\"time\":\"2026-03-09T00:00:00\",\"value\":103475.37},{\"time\":\"2026-03-10T00:00:00\",\"value\":103497.93},{\"time\":\"2026-03-11T00:00:00\",\"value\":103520.5},{\"time\":\"2026-03-12T00:00:00\",\"value\":103543.07},{\"time\":\"2026-03-13T00:00:00\",\"value\":103565.63},{\"time\":\"2026-03-14T00:00:00\",\"value\":103588.2},{\"time\":\"2026-03-15T00:00:00\",\"value\":103610.77},{\"time\":\"2026-03-16T00:00:00\",\"value\":103624.39},{\"time\":\"2026-03-17T00:00:00\",\"value\":103638.02},{\"time\":\"2026-03-18T00:00:00\",\"value\":103651.64},{\"time\":\"2026-03-19T00:00:00\",\"value\":103665.27},{\"time\":\"2026-03-20T00:00:00\",\"value\":103678.89},{\"time\":\"2026-03-21T00:00:00\",\"value\":103692.52},{\"time\":\"2026-03-22T00:00:00\",\"value\":103706.14},{\"time\":\"2026-03-23T00:00:00\",\"value\":103719.77},{\"time\":\"2026-03-24T00:00:00\",\"value\":103733.39},{\"time\":\"2026-03-25T00:00:00\",\"value\":103747.02},{\"time\":\"2026-03-26T00:00:00\",\"value\":103760.64},{\"time\":\"2026-03-27T00:00:00\",\"value\":103774.27},{\"time\":\"2026-03-28T00:00:00\",\"value\":103787.89},{\"time\":\"2026-03-29T00:00:00\",\"value\":103801.52},{\"time\":\"2026-03-30T00:00:00\",\"value\":103815.15},{\"time\":\"2026-03-31T00:00:00\",\"value\":103823.15},{\"time\":\"2026-04-01T00:00:00\",\"value\":103831.16},{\"time\":\"2026-04-02T00:00:00\",\"value\":103839.17},{\"time\":\"2026-04-03T00:00:00\",\"value\":103847.17},{\"time\":\"2026-04-04T00:00:00\",\"value\":103855.18},{\"time\":\"2026-04-05T00:00:00\",\"value\":103863.19},{\"time\":\"2026-04-06T00:00:00\",\"value\":103871.19},{\"time\":\"2026-04-07T00:00:00\",\"value\":103879.2},{\"time\":\"2026-04-08T00:00:00\",\"value\":103887.21},{\"time\":\"2026-04-09T00:00:00\",\"value\":103895.22},{\"time\":\"2026-04-10T00:00:00\",\"value\":103903.22},{\"time\":\"2026-04-11T00:00:00\",\"value\":103911.23},{\"time\":\"2026-04-12T00:00:00\",\"value\":103919.24},{\"time\":\"2026-04-13T00:00:00\",\"value\":103927.24},{\"time\":\"2026-04-14T00:00:00\",\"value\":103935.25},{\"time\":\"2026-04-15T00:00:00\",\"value\":103943.26},{\"time\":\"2026-04-16T00:00:00\",\"value\":103947.04},{\"time\":\"2026-04-17T00:00:00\",\"value\":103950.82},{\"time\":\"2026-04-18T00:00:00\",\"value\":103954.61},{\"time\":\"2026-04-19T00:00:00\",\"value\":103958.39},{\"time\":\"2026-04-20T00:00:00\",\"value\":103962.17},{\"time\":\"2026-04-21T00:00:00\",\"value\":103965.95},{\"time\":\"2026-04-22T00:00:00\",\"value\":103969.74},{\"time\":\"2026-04-23T00:00:00\",\"value\":103973.52},{\"time\":\"2026-04-24T00:00:00\",\"value\":103977.3},{\"time\":\"2026-04-25T00:00:00\",\"value\":103981.09},{\"time\":\"2026-04-26T00:00:00\",\"value\":103984.87},{\"time\":\"2026-04-27T00:00:00\",\"value\":103988.65},{\"time\":\"2026-04-28T00:00:00\",\"value\":103992.43},{\"time\":\"2026-04-29T00:00:00\",\"value\":103996.22},{\"time\":\"2026-04-30T00:00:00\",\"value\":104000}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Mon, 02 Mar 2026 18:19:30 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_RESERVES_DYN_I1'
+POST http://localhost:8082/addBackingRatioModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "85f21977-3a7c-4385-a66d-3ad738ec8ec9",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "939"
+  },
+  "Request Body": "{\n  \"riskFactorId\": \"br_seq_100k_i1\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "37",
+    "date": "Mon, 02 Mar 2026 18:19:31 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "BackingRatioModel added successfully\n"
+}
+'✅ br_seq_100k_i1'
+POST http://localhost:8082/addMaturityLadderModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "218a13d0-a158-4e64-a9e1-580a245a7de9",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "839"
+  },
+  "Request Body": "{\n  \"riskFactorId\": \"ml_seq_100k_i1\",\n  \"pegRiskScoreMOC\": \"PEG_RISK_SCORE\",\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "39",
+    "date": "Mon, 02 Mar 2026 18:19:31 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "MaturityLadderModel added successfully\n"
+}
+'✅ ml_seq_100k_i1'
+POST http://localhost:8082/addScenario: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "50df0af9-aec3-494f-b0ec-397717ecc88e",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "548"
+  },
+  "Request Body": "{\n  \"scenarioID\": \"sc_seq_iter1_100k\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_TBILL_MV_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_RESERVES_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_CASH_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_PEG_RISK_SEQ_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_seq_100k_i1\", \"riskFactorType\": \"BackingRatioModel\"},\n    {\"riskFactorID\": \"ml_seq_100k_i1\", \"riskFactorType\": \"MaturityLadderModel\"}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "28",
+    "date": "Mon, 02 Mar 2026 18:19:31 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "Scenario added Successfully\n"
+}
+'✅ sc_seq_iter1_100k'
+POST http://localhost:8083/rf2/scenarioSimulation: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53806
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8083
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "4d5a7e80-d533-4ab5-86d3-95e0c35eac63",
+    "host": "localhost:8083",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "878"
+  },
+  "Request Body": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"StableCoin-100K-Liability-I1\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_seq_100k_i1\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_seq_iter1_100k\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}",
+  "Response Headers": {
+    "vary": [
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Mon, 02 Mar 2026 18:19:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "[{\"scenarioId\":\"sc_seq_iter1_100k\",\"contractID\":\"StableCoin-100K-Liability-I1\",\"status\":\"Success\",\"message\":\"\",\"events\":[{\"type\":\"PP\",\"time\":\"2026-03-01T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"IED\",\"time\":\"2026-03-01T00:00\",\"payoff\":-100000.0,\"currency\":\"USD\",\"nominalValue\":100000.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-02T00:00\",\"payoff\":14000.000000000002,\"currency\":\"USD\",\"nominalValue\":86000.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-03T00:00\",\"payoff\":11200.0,\"currency\":\"USD\",\"nominalValue\":74800.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-04T00:00\",\"payoff\":8960.0,\"currency\":\"USD\",\"nominalValue\":65840.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-05T00:00\",\"payoff\":7168.0,\"currency\":\"USD\",\"nominalValue\":58672.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-06T00:00\",\"payoff\":5734.400000000001,\"currency\":\"USD\",\"nominalValue\":52937.6,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-07T00:00\",\"payoff\":4587.52,\"currency\":\"USD\",\"nominalValue\":48350.08,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-08T00:00\",\"payoff\":3670.0160000000005,\"currency\":\"USD\",\"nominalValue\":44680.064,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-09T00:00\",\"payoff\":2936.0128000000004,\"currency\":\"USD\",\"nominalValue\":41744.0512,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-10T00:00\",\"payoff\":2348.8102400000007,\"currency\":\"USD\",\"nominalValue\":39395.24096,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-11T00:00\",\"payoff\":1879.0481920000009,\"currency\":\"USD\",\"nominalValue\":37516.192768,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-12T00:00\",\"payoff\":1503.2385536000008,\"currency\":\"USD\",\"nominalValue\":36012.9542144,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-13T00:00\",\"payoff\":1202.59084288,\"currency\":\"USD\",\"nominalValue\":34810.36337152,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-14T00:00\",\"payoff\":962.0726743040002,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-15T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-16T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-17T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-18T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-19T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-20T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-21T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-22T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-23T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-24T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-25T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-26T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-27T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-28T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-29T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-30T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"IP\",\"time\":\"2026-04-30T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":33848.290697216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"MD\",\"time\":\"2026-04-30T00:00\",\"payoff\":33848.290697216,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0}]}]"
+}
+'════════════════════════════════════════════════════════════'
+'PHASE 5: LIABILITY — ITERATION 1'
+'════════════════════════════════════════════════════════════'
+'Events: 33'
+'  2026-03-02T00:00 PP payoff=$14000.00 remaining=$86000.00'
+'  2026-03-03T00:00 PP payoff=$11200.00 remaining=$74800.00'
+'  2026-03-04T00:00 PP payoff=$8960.00 remaining=$65840.00'
+'  2026-03-05T00:00 PP payoff=$7168.00 remaining=$58672.00'
+'  2026-03-06T00:00 PP payoff=$5734.40 remaining=$52937.60'
+'  2026-03-07T00:00 PP payoff=$4587.52 remaining=$48350.08'
+'  2026-03-08T00:00 PP payoff=$3670.02 remaining=$44680.06'
+'  2026-03-09T00:00 PP payoff=$2936.01 remaining=$41744.05'
+'  2026-03-10T00:00 PP payoff=$2348.81 remaining=$39395.24'
+'  2026-03-11T00:00 PP payoff=$1879.05 remaining=$37516.19'
+'  2026-03-12T00:00 PP payoff=$1503.24 remaining=$36012.95'
+'  2026-03-13T00:00 PP payoff=$1202.59 remaining=$34810.36'
+'  2026-03-14T00:00 PP payoff=$962.07 remaining=$33848.29'
+'  Total Iter 1 redemptions: $66151.71'
+'✅ Stored for Phase 6 feedback.'
+'Phase 6: Iter 2 cash index — 13 redemption days, cumulative=$66151.71'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "7e01a9df-3d7b-4c79-8620-cde35906a37e",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "2704"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_CASH_DYN_I2\",\"marketObjectCode\":\"SC_CASH_RESERVE\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":6000},{\"time\":\"2026-03-02T00:00:00\",\"value\":0},{\"time\":\"2026-03-03T00:00:00\",\"value\":0},{\"time\":\"2026-03-04T00:00:00\",\"value\":0},{\"time\":\"2026-03-05T00:00:00\",\"value\":0},{\"time\":\"2026-03-06T00:00:00\",\"value\":0},{\"time\":\"2026-03-07T00:00:00\",\"value\":0},{\"time\":\"2026-03-08T00:00:00\",\"value\":0},{\"time\":\"2026-03-09T00:00:00\",\"value\":0},{\"time\":\"2026-03-10T00:00:00\",\"value\":0},{\"time\":\"2026-03-11T00:00:00\",\"value\":0},{\"time\":\"2026-03-12T00:00:00\",\"value\":0},{\"time\":\"2026-03-13T00:00:00\",\"value\":0},{\"time\":\"2026-03-14T00:00:00\",\"value\":0},{\"time\":\"2026-03-15T00:00:00\",\"value\":0},{\"time\":\"2026-03-16T00:00:00\",\"value\":0},{\"time\":\"2026-03-17T00:00:00\",\"value\":0},{\"time\":\"2026-03-18T00:00:00\",\"value\":0},{\"time\":\"2026-03-19T00:00:00\",\"value\":0},{\"time\":\"2026-03-20T00:00:00\",\"value\":0},{\"time\":\"2026-03-21T00:00:00\",\"value\":0},{\"time\":\"2026-03-22T00:00:00\",\"value\":0},{\"time\":\"2026-03-23T00:00:00\",\"value\":0},{\"time\":\"2026-03-24T00:00:00\",\"value\":0},{\"time\":\"2026-03-25T00:00:00\",\"value\":0},{\"time\":\"2026-03-26T00:00:00\",\"value\":0},{\"time\":\"2026-03-27T00:00:00\",\"value\":0},{\"time\":\"2026-03-28T00:00:00\",\"value\":0},{\"time\":\"2026-03-29T00:00:00\",\"value\":0},{\"time\":\"2026-03-30T00:00:00\",\"value\":0},{\"time\":\"2026-03-31T00:00:00\",\"value\":0},{\"time\":\"2026-04-01T00:00:00\",\"value\":0},{\"time\":\"2026-04-02T00:00:00\",\"value\":0},{\"time\":\"2026-04-03T00:00:00\",\"value\":0},{\"time\":\"2026-04-04T00:00:00\",\"value\":0},{\"time\":\"2026-04-05T00:00:00\",\"value\":0},{\"time\":\"2026-04-06T00:00:00\",\"value\":0},{\"time\":\"2026-04-07T00:00:00\",\"value\":0},{\"time\":\"2026-04-08T00:00:00\",\"value\":0},{\"time\":\"2026-04-09T00:00:00\",\"value\":0},{\"time\":\"2026-04-10T00:00:00\",\"value\":0},{\"time\":\"2026-04-11T00:00:00\",\"value\":0},{\"time\":\"2026-04-12T00:00:00\",\"value\":0},{\"time\":\"2026-04-13T00:00:00\",\"value\":0},{\"time\":\"2026-04-14T00:00:00\",\"value\":0},{\"time\":\"2026-04-15T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-16T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-17T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-18T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-19T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-20T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-21T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-22T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-23T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-24T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-25T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-26T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-27T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-28T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-29T00:00:00\",\"value\":13348.29},{\"time\":\"2026-04-30T00:00:00\",\"value\":37848.29}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Mon, 02 Mar 2026 18:19:31 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_CASH_DYN_I2 (Iter 1 redemptions subtracted)'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "8e9e2da0-933f-4197-ba3d-a1128cea32f1",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "3037"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_RESERVES_DYN_I2\",\"marketObjectCode\":\"SC_TOTAL_RESERVES\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":103295.77},{\"time\":\"2026-03-02T00:00:00\",\"value\":97318.34},{\"time\":\"2026-03-03T00:00:00\",\"value\":97340.9},{\"time\":\"2026-03-04T00:00:00\",\"value\":97363.47},{\"time\":\"2026-03-05T00:00:00\",\"value\":97386.04},{\"time\":\"2026-03-06T00:00:00\",\"value\":97408.6},{\"time\":\"2026-03-07T00:00:00\",\"value\":97431.17},{\"time\":\"2026-03-08T00:00:00\",\"value\":97453.74},{\"time\":\"2026-03-09T00:00:00\",\"value\":97475.37},{\"time\":\"2026-03-10T00:00:00\",\"value\":97497.93},{\"time\":\"2026-03-11T00:00:00\",\"value\":97520.5},{\"time\":\"2026-03-12T00:00:00\",\"value\":97543.07},{\"time\":\"2026-03-13T00:00:00\",\"value\":97565.63},{\"time\":\"2026-03-14T00:00:00\",\"value\":97588.2},{\"time\":\"2026-03-15T00:00:00\",\"value\":73110.77},{\"time\":\"2026-03-16T00:00:00\",\"value\":73124.39},{\"time\":\"2026-03-17T00:00:00\",\"value\":73138.02},{\"time\":\"2026-03-18T00:00:00\",\"value\":73151.64},{\"time\":\"2026-03-19T00:00:00\",\"value\":73165.27},{\"time\":\"2026-03-20T00:00:00\",\"value\":73178.89},{\"time\":\"2026-03-21T00:00:00\",\"value\":73192.52},{\"time\":\"2026-03-22T00:00:00\",\"value\":73206.14},{\"time\":\"2026-03-23T00:00:00\",\"value\":73219.77},{\"time\":\"2026-03-24T00:00:00\",\"value\":73233.39},{\"time\":\"2026-03-25T00:00:00\",\"value\":73247.02},{\"time\":\"2026-03-26T00:00:00\",\"value\":73260.64},{\"time\":\"2026-03-27T00:00:00\",\"value\":73274.27},{\"time\":\"2026-03-28T00:00:00\",\"value\":73287.89},{\"time\":\"2026-03-29T00:00:00\",\"value\":73301.52},{\"time\":\"2026-03-30T00:00:00\",\"value\":48815.15},{\"time\":\"2026-03-31T00:00:00\",\"value\":48823.15},{\"time\":\"2026-04-01T00:00:00\",\"value\":48831.16},{\"time\":\"2026-04-02T00:00:00\",\"value\":48839.17},{\"time\":\"2026-04-03T00:00:00\",\"value\":48847.17},{\"time\":\"2026-04-04T00:00:00\",\"value\":48855.18},{\"time\":\"2026-04-05T00:00:00\",\"value\":48863.19},{\"time\":\"2026-04-06T00:00:00\",\"value\":48871.19},{\"time\":\"2026-04-07T00:00:00\",\"value\":48879.2},{\"time\":\"2026-04-08T00:00:00\",\"value\":48887.21},{\"time\":\"2026-04-09T00:00:00\",\"value\":48895.22},{\"time\":\"2026-04-10T00:00:00\",\"value\":48903.22},{\"time\":\"2026-04-11T00:00:00\",\"value\":48911.23},{\"time\":\"2026-04-12T00:00:00\",\"value\":48919.24},{\"time\":\"2026-04-13T00:00:00\",\"value\":48927.24},{\"time\":\"2026-04-14T00:00:00\",\"value\":48935.25},{\"time\":\"2026-04-15T00:00:00\",\"value\":37791.55},{\"time\":\"2026-04-16T00:00:00\",\"value\":37795.33},{\"time\":\"2026-04-17T00:00:00\",\"value\":37799.11},{\"time\":\"2026-04-18T00:00:00\",\"value\":37802.9},{\"time\":\"2026-04-19T00:00:00\",\"value\":37806.68},{\"time\":\"2026-04-20T00:00:00\",\"value\":37810.46},{\"time\":\"2026-04-21T00:00:00\",\"value\":37814.240000000005},{\"time\":\"2026-04-22T00:00:00\",\"value\":37818.03},{\"time\":\"2026-04-23T00:00:00\",\"value\":37821.81},{\"time\":\"2026-04-24T00:00:00\",\"value\":37825.59},{\"time\":\"2026-04-25T00:00:00\",\"value\":37829.380000000005},{\"time\":\"2026-04-26T00:00:00\",\"value\":37833.16},{\"time\":\"2026-04-27T00:00:00\",\"value\":37836.94},{\"time\":\"2026-04-28T00:00:00\",\"value\":37840.72},{\"time\":\"2026-04-29T00:00:00\",\"value\":37844.51},{\"time\":\"2026-04-30T00:00:00\",\"value\":37848.29}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Mon, 02 Mar 2026 18:19:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_RESERVES_DYN_I2'
+POST http://localhost:8082/addBackingRatioModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "5e59a0e5-de5e-4703-8055-97e72afabe34",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "939"
+  },
+  "Request Body": "{\n  \"riskFactorId\": \"br_seq_100k_i2\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "37",
+    "date": "Mon, 02 Mar 2026 18:19:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "BackingRatioModel added successfully\n"
+}
+'✅ br_seq_100k_i2'
+POST http://localhost:8082/addScenario: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "94c26b04-5825-461c-a28f-a1efcde6cbd7",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "548"
+  },
+  "Request Body": "{\n  \"scenarioID\": \"sc_seq_iter2_100k\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_TBILL_MV_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_RESERVES_DYN_I2\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_CASH_DYN_I2\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_PEG_RISK_SEQ_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_seq_100k_i2\", \"riskFactorType\": \"BackingRatioModel\"},\n    {\"riskFactorID\": \"ml_seq_100k_i1\", \"riskFactorType\": \"MaturityLadderModel\"}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "28",
+    "date": "Mon, 02 Mar 2026 18:19:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "Scenario added Successfully\n"
+}
+'✅ sc_seq_iter2_100k'
+POST http://localhost:8083/rf2/scenarioSimulation: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53806
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8083
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "9bbd6874-f519-4df2-8039-97cc408ee2b8",
+    "host": "localhost:8083",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "878"
+  },
+  "Request Body": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"StableCoin-100K-Liability-I2\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_seq_100k_i2\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_seq_iter2_100k\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}",
+  "Response Headers": {
+    "vary": [
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Mon, 02 Mar 2026 18:19:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "[{\"scenarioId\":\"sc_seq_iter2_100k\",\"contractID\":\"StableCoin-100K-Liability-I2\",\"status\":\"Success\",\"message\":\"\",\"events\":[{\"type\":\"PP\",\"time\":\"2026-03-01T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"IED\",\"time\":\"2026-03-01T00:00\",\"payoff\":-100000.0,\"currency\":\"USD\",\"nominalValue\":100000.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-02T00:00\",\"payoff\":2681.660000000008,\"currency\":\"USD\",\"nominalValue\":97318.34,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-03T00:00\",\"payoff\":19463.668,\"currency\":\"USD\",\"nominalValue\":77854.67199999999,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-04T00:00\",\"payoff\":15570.934399999998,\"currency\":\"USD\",\"nominalValue\":62283.73759999999,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-05T00:00\",\"payoff\":12456.747519999999,\"currency\":\"USD\",\"nominalValue\":49826.990079999996,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-06T00:00\",\"payoff\":9965.398016,\"currency\":\"USD\",\"nominalValue\":39861.592064,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-07T00:00\",\"payoff\":7972.318412799999,\"currency\":\"USD\",\"nominalValue\":31889.273651199997,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-08T00:00\",\"payoff\":6377.85473024,\"currency\":\"USD\",\"nominalValue\":25511.418920959997,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-09T00:00\",\"payoff\":5102.283784192,\"currency\":\"USD\",\"nominalValue\":20409.135136767996,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-10T00:00\",\"payoff\":4081.8270273535995,\"currency\":\"USD\",\"nominalValue\":16327.308109414396,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-11T00:00\",\"payoff\":3265.4616218828796,\"currency\":\"USD\",\"nominalValue\":13061.846487531517,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-12T00:00\",\"payoff\":2612.3692975063036,\"currency\":\"USD\",\"nominalValue\":10449.477190025213,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-13T00:00\",\"payoff\":2089.8954380050427,\"currency\":\"USD\",\"nominalValue\":8359.58175202017,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-14T00:00\",\"payoff\":1671.9163504040343,\"currency\":\"USD\",\"nominalValue\":6687.6654016161365,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-15T00:00\",\"payoff\":1337.5330803232273,\"currency\":\"USD\",\"nominalValue\":5350.132321292909,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-16T00:00\",\"payoff\":1070.0264642585819,\"currency\":\"USD\",\"nominalValue\":4280.1058570343275,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-17T00:00\",\"payoff\":856.0211714068655,\"currency\":\"USD\",\"nominalValue\":3424.084685627462,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-18T00:00\",\"payoff\":684.8169371254925,\"currency\":\"USD\",\"nominalValue\":2739.2677485019694,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-19T00:00\",\"payoff\":547.853549700394,\"currency\":\"USD\",\"nominalValue\":2191.4141988015754,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-20T00:00\",\"payoff\":438.2828397603151,\"currency\":\"USD\",\"nominalValue\":1753.1313590412603,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-21T00:00\",\"payoff\":350.6262718082521,\"currency\":\"USD\",\"nominalValue\":1402.5050872330082,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-22T00:00\",\"payoff\":280.5010174466017,\"currency\":\"USD\",\"nominalValue\":1122.0040697864065,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-23T00:00\",\"payoff\":224.40081395728131,\"currency\":\"USD\",\"nominalValue\":897.6032558291251,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-24T00:00\",\"payoff\":179.52065116582503,\"currency\":\"USD\",\"nominalValue\":718.0826046633001,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-25T00:00\",\"payoff\":143.61652093266002,\"currency\":\"USD\",\"nominalValue\":574.4660837306401,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-26T00:00\",\"payoff\":114.89321674612802,\"currency\":\"USD\",\"nominalValue\":459.5728669845121,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-27T00:00\",\"payoff\":91.91457339690243,\"currency\":\"USD\",\"nominalValue\":367.65829358760965,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-28T00:00\",\"payoff\":73.53165871752194,\"currency\":\"USD\",\"nominalValue\":294.12663487008774,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-29T00:00\",\"payoff\":58.82532697401755,\"currency\":\"USD\",\"nominalValue\":235.3013078960702,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-30T00:00\",\"payoff\":47.06026157921404,\"currency\":\"USD\",\"nominalValue\":188.24104631685617,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"IP\",\"time\":\"2026-04-30T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":188.24104631685617,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"MD\",\"time\":\"2026-04-30T00:00\",\"payoff\":188.24104631685617,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0}]}]"
+}
+'════════════════════════════════════════════════════════════'
+'PHASE 7: LIABILITY — ITERATION 2'
+'════════════════════════════════════════════════════════════'
+'Events: 33'
+'  2026-03-02T00:00 PP payoff=$2681.66 remaining=$97318.34'
+'  2026-03-03T00:00 PP payoff=$19463.67 remaining=$77854.67'
+'  2026-03-04T00:00 PP payoff=$15570.93 remaining=$62283.74'
+'  2026-03-05T00:00 PP payoff=$12456.75 remaining=$49826.99'
+'  2026-03-06T00:00 PP payoff=$9965.40 remaining=$39861.59'
+'  2026-03-07T00:00 PP payoff=$7972.32 remaining=$31889.27'
+'  2026-03-08T00:00 PP payoff=$6377.85 remaining=$25511.42'
+'  2026-03-09T00:00 PP payoff=$5102.28 remaining=$20409.14'
+'  2026-03-10T00:00 PP payoff=$4081.83 remaining=$16327.31'
+'  2026-03-11T00:00 PP payoff=$3265.46 remaining=$13061.85'
+'  2026-03-12T00:00 PP payoff=$2612.37 remaining=$10449.48'
+'  2026-03-13T00:00 PP payoff=$2089.90 remaining=$8359.58'
+'  2026-03-14T00:00 PP payoff=$1671.92 remaining=$6687.67'
+'  2026-03-15T00:00 PP payoff=$1337.53 remaining=$5350.13'
+'  2026-03-16T00:00 PP payoff=$1070.03 remaining=$4280.11'
+'  2026-03-17T00:00 PP payoff=$856.02 remaining=$3424.08'
+'  2026-03-18T00:00 PP payoff=$684.82 remaining=$2739.27'
+'  2026-03-19T00:00 PP payoff=$547.85 remaining=$2191.41'
+'  2026-03-20T00:00 PP payoff=$438.28 remaining=$1753.13'
+'  2026-03-21T00:00 PP payoff=$350.63 remaining=$1402.51'
+'  2026-03-22T00:00 PP payoff=$280.50 remaining=$1122.00'
+'  2026-03-23T00:00 PP payoff=$224.40 remaining=$897.60'
+'  2026-03-24T00:00 PP payoff=$179.52 remaining=$718.08'
+'  2026-03-25T00:00 PP payoff=$143.62 remaining=$574.47'
+'  2026-03-26T00:00 PP payoff=$114.89 remaining=$459.57'
+'  2026-03-27T00:00 PP payoff=$91.91 remaining=$367.66'
+'  2026-03-28T00:00 PP payoff=$73.53 remaining=$294.13'
+'  2026-03-29T00:00 PP payoff=$58.83 remaining=$235.30'
+'  2026-03-30T00:00 PP payoff=$47.06 remaining=$188.24'
+'  Total Iter 2 redemptions: $99811.76'
+'✅ Stored for Phase 8 feedback.'
+'════════════════════════════════════════════════════════════'
+'PHASE 8: FEEDBACK Iter 2 → Iter 3'
+'════════════════════════════════════════════════════════════'
+'Redemption days: 29, Cumulative=$99811.76'
+'Sample corrected cash (Iter 3):'
+'  2026-03-01: $6000.00'
+'  2026-03-02: $3318.34'
+'  2026-03-05: $0.00'
+'  2026-03-10: $0.00'
+'  2026-03-15: $0.00'
+'  2026-03-30: $0.00'
+'  2026-04-15: $0.00'
+'  2026-04-30: $4188.24'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "f7fb1f99-2953-471b-ab89-c8c3293ffef8",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "2604"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_CASH_DYN_I3\",\"marketObjectCode\":\"SC_CASH_RESERVE\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":6000},{\"time\":\"2026-03-02T00:00:00\",\"value\":3318.34},{\"time\":\"2026-03-03T00:00:00\",\"value\":0},{\"time\":\"2026-03-04T00:00:00\",\"value\":0},{\"time\":\"2026-03-05T00:00:00\",\"value\":0},{\"time\":\"2026-03-06T00:00:00\",\"value\":0},{\"time\":\"2026-03-07T00:00:00\",\"value\":0},{\"time\":\"2026-03-08T00:00:00\",\"value\":0},{\"time\":\"2026-03-09T00:00:00\",\"value\":0},{\"time\":\"2026-03-10T00:00:00\",\"value\":0},{\"time\":\"2026-03-11T00:00:00\",\"value\":0},{\"time\":\"2026-03-12T00:00:00\",\"value\":0},{\"time\":\"2026-03-13T00:00:00\",\"value\":0},{\"time\":\"2026-03-14T00:00:00\",\"value\":0},{\"time\":\"2026-03-15T00:00:00\",\"value\":0},{\"time\":\"2026-03-16T00:00:00\",\"value\":0},{\"time\":\"2026-03-17T00:00:00\",\"value\":0},{\"time\":\"2026-03-18T00:00:00\",\"value\":0},{\"time\":\"2026-03-19T00:00:00\",\"value\":0},{\"time\":\"2026-03-20T00:00:00\",\"value\":0},{\"time\":\"2026-03-21T00:00:00\",\"value\":0},{\"time\":\"2026-03-22T00:00:00\",\"value\":0},{\"time\":\"2026-03-23T00:00:00\",\"value\":0},{\"time\":\"2026-03-24T00:00:00\",\"value\":0},{\"time\":\"2026-03-25T00:00:00\",\"value\":0},{\"time\":\"2026-03-26T00:00:00\",\"value\":0},{\"time\":\"2026-03-27T00:00:00\",\"value\":0},{\"time\":\"2026-03-28T00:00:00\",\"value\":0},{\"time\":\"2026-03-29T00:00:00\",\"value\":0},{\"time\":\"2026-03-30T00:00:00\",\"value\":0},{\"time\":\"2026-03-31T00:00:00\",\"value\":0},{\"time\":\"2026-04-01T00:00:00\",\"value\":0},{\"time\":\"2026-04-02T00:00:00\",\"value\":0},{\"time\":\"2026-04-03T00:00:00\",\"value\":0},{\"time\":\"2026-04-04T00:00:00\",\"value\":0},{\"time\":\"2026-04-05T00:00:00\",\"value\":0},{\"time\":\"2026-04-06T00:00:00\",\"value\":0},{\"time\":\"2026-04-07T00:00:00\",\"value\":0},{\"time\":\"2026-04-08T00:00:00\",\"value\":0},{\"time\":\"2026-04-09T00:00:00\",\"value\":0},{\"time\":\"2026-04-10T00:00:00\",\"value\":0},{\"time\":\"2026-04-11T00:00:00\",\"value\":0},{\"time\":\"2026-04-12T00:00:00\",\"value\":0},{\"time\":\"2026-04-13T00:00:00\",\"value\":0},{\"time\":\"2026-04-14T00:00:00\",\"value\":0},{\"time\":\"2026-04-15T00:00:00\",\"value\":0},{\"time\":\"2026-04-16T00:00:00\",\"value\":0},{\"time\":\"2026-04-17T00:00:00\",\"value\":0},{\"time\":\"2026-04-18T00:00:00\",\"value\":0},{\"time\":\"2026-04-19T00:00:00\",\"value\":0},{\"time\":\"2026-04-20T00:00:00\",\"value\":0},{\"time\":\"2026-04-21T00:00:00\",\"value\":0},{\"time\":\"2026-04-22T00:00:00\",\"value\":0},{\"time\":\"2026-04-23T00:00:00\",\"value\":0},{\"time\":\"2026-04-24T00:00:00\",\"value\":0},{\"time\":\"2026-04-25T00:00:00\",\"value\":0},{\"time\":\"2026-04-26T00:00:00\",\"value\":0},{\"time\":\"2026-04-27T00:00:00\",\"value\":0},{\"time\":\"2026-04-28T00:00:00\",\"value\":0},{\"time\":\"2026-04-29T00:00:00\",\"value\":0},{\"time\":\"2026-04-30T00:00:00\",\"value\":4188.24}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Mon, 02 Mar 2026 18:19:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_CASH_DYN_I3 (Iter 2 redemptions subtracted)'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "db741c5a-d1cd-4484-ad7d-e8881f4957e5",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "3017"
+  },
+  "Request Body": "{\"riskFactorID\":\"SC_RESERVES_DYN_I3\",\"marketObjectCode\":\"SC_TOTAL_RESERVES\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":103295.77},{\"time\":\"2026-03-02T00:00:00\",\"value\":100636.68},{\"time\":\"2026-03-03T00:00:00\",\"value\":97340.9},{\"time\":\"2026-03-04T00:00:00\",\"value\":97363.47},{\"time\":\"2026-03-05T00:00:00\",\"value\":97386.04},{\"time\":\"2026-03-06T00:00:00\",\"value\":97408.6},{\"time\":\"2026-03-07T00:00:00\",\"value\":97431.17},{\"time\":\"2026-03-08T00:00:00\",\"value\":97453.74},{\"time\":\"2026-03-09T00:00:00\",\"value\":97475.37},{\"time\":\"2026-03-10T00:00:00\",\"value\":97497.93},{\"time\":\"2026-03-11T00:00:00\",\"value\":97520.5},{\"time\":\"2026-03-12T00:00:00\",\"value\":97543.07},{\"time\":\"2026-03-13T00:00:00\",\"value\":97565.63},{\"time\":\"2026-03-14T00:00:00\",\"value\":97588.2},{\"time\":\"2026-03-15T00:00:00\",\"value\":73110.77},{\"time\":\"2026-03-16T00:00:00\",\"value\":73124.39},{\"time\":\"2026-03-17T00:00:00\",\"value\":73138.02},{\"time\":\"2026-03-18T00:00:00\",\"value\":73151.64},{\"time\":\"2026-03-19T00:00:00\",\"value\":73165.27},{\"time\":\"2026-03-20T00:00:00\",\"value\":73178.89},{\"time\":\"2026-03-21T00:00:00\",\"value\":73192.52},{\"time\":\"2026-03-22T00:00:00\",\"value\":73206.14},{\"time\":\"2026-03-23T00:00:00\",\"value\":73219.77},{\"time\":\"2026-03-24T00:00:00\",\"value\":73233.39},{\"time\":\"2026-03-25T00:00:00\",\"value\":73247.02},{\"time\":\"2026-03-26T00:00:00\",\"value\":73260.64},{\"time\":\"2026-03-27T00:00:00\",\"value\":73274.27},{\"time\":\"2026-03-28T00:00:00\",\"value\":73287.89},{\"time\":\"2026-03-29T00:00:00\",\"value\":73301.52},{\"time\":\"2026-03-30T00:00:00\",\"value\":48815.15},{\"time\":\"2026-03-31T00:00:00\",\"value\":48823.15},{\"time\":\"2026-04-01T00:00:00\",\"value\":48831.16},{\"time\":\"2026-04-02T00:00:00\",\"value\":48839.17},{\"time\":\"2026-04-03T00:00:00\",\"value\":48847.17},{\"time\":\"2026-04-04T00:00:00\",\"value\":48855.18},{\"time\":\"2026-04-05T00:00:00\",\"value\":48863.19},{\"time\":\"2026-04-06T00:00:00\",\"value\":48871.19},{\"time\":\"2026-04-07T00:00:00\",\"value\":48879.2},{\"time\":\"2026-04-08T00:00:00\",\"value\":48887.21},{\"time\":\"2026-04-09T00:00:00\",\"value\":48895.22},{\"time\":\"2026-04-10T00:00:00\",\"value\":48903.22},{\"time\":\"2026-04-11T00:00:00\",\"value\":48911.23},{\"time\":\"2026-04-12T00:00:00\",\"value\":48919.24},{\"time\":\"2026-04-13T00:00:00\",\"value\":48927.24},{\"time\":\"2026-04-14T00:00:00\",\"value\":48935.25},{\"time\":\"2026-04-15T00:00:00\",\"value\":24443.26},{\"time\":\"2026-04-16T00:00:00\",\"value\":24447.04},{\"time\":\"2026-04-17T00:00:00\",\"value\":24450.82},{\"time\":\"2026-04-18T00:00:00\",\"value\":24454.61},{\"time\":\"2026-04-19T00:00:00\",\"value\":24458.39},{\"time\":\"2026-04-20T00:00:00\",\"value\":24462.17},{\"time\":\"2026-04-21T00:00:00\",\"value\":24465.95},{\"time\":\"2026-04-22T00:00:00\",\"value\":24469.74},{\"time\":\"2026-04-23T00:00:00\",\"value\":24473.52},{\"time\":\"2026-04-24T00:00:00\",\"value\":24477.3},{\"time\":\"2026-04-25T00:00:00\",\"value\":24481.09},{\"time\":\"2026-04-26T00:00:00\",\"value\":24484.87},{\"time\":\"2026-04-27T00:00:00\",\"value\":24488.65},{\"time\":\"2026-04-28T00:00:00\",\"value\":24492.43},{\"time\":\"2026-04-29T00:00:00\",\"value\":24496.22},{\"time\":\"2026-04-30T00:00:00\",\"value\":4188.24}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Mon, 02 Mar 2026 18:19:32 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'✅ SC_RESERVES_DYN_I3'
+POST http://localhost:8082/addBackingRatioModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "25e6e1a0-9583-4b9d-9f17-3f7d7ed2a866",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "939"
+  },
+  "Request Body": "{\n  \"riskFactorId\": \"br_seq_100k_i3\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "37",
+    "date": "Mon, 02 Mar 2026 18:19:33 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "BackingRatioModel added successfully\n"
+}
+'✅ br_seq_100k_i3'
+POST http://localhost:8082/addScenario: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "9c6cd466-e55d-4c8a-acc3-6f70eba2e89b",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "548"
+  },
+  "Request Body": "{\n  \"scenarioID\": \"sc_seq_iter3_100k\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_TBILL_MV_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_RESERVES_DYN_I3\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_CASH_DYN_I3\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_PEG_RISK_SEQ_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_seq_100k_i3\", \"riskFactorType\": \"BackingRatioModel\"},\n    {\"riskFactorID\": \"ml_seq_100k_i1\", \"riskFactorType\": \"MaturityLadderModel\"}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "28",
+    "date": "Mon, 02 Mar 2026 18:19:33 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "Scenario added Successfully\n"
+}
+'✅ sc_seq_iter3_100k'
+POST http://localhost:8083/rf2/scenarioSimulation: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53806
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8083
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "3b98b359-55a5-4d0a-8b4a-5839c2590001",
+    "host": "localhost:8083",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "878"
+  },
+  "Request Body": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"StableCoin-100K-Liability-I3\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_seq_100k_i3\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_seq_iter3_100k\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}",
+  "Response Headers": {
+    "vary": [
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Mon, 02 Mar 2026 18:19:34 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "[{\"scenarioId\":\"sc_seq_iter3_100k\",\"contractID\":\"StableCoin-100K-Liability-I3\",\"status\":\"Success\",\"message\":\"\",\"events\":[{\"type\":\"PP\",\"time\":\"2026-03-01T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"IED\",\"time\":\"2026-03-01T00:00\",\"payoff\":-100000.0,\"currency\":\"USD\",\"nominalValue\":100000.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-02T00:00\",\"payoff\":16681.66,\"currency\":\"USD\",\"nominalValue\":83318.34,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-03T00:00\",\"payoff\":16663.668,\"currency\":\"USD\",\"nominalValue\":66654.67199999999,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-04T00:00\",\"payoff\":13330.934399999998,\"currency\":\"USD\",\"nominalValue\":53323.73759999999,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-05T00:00\",\"payoff\":10664.747519999999,\"currency\":\"USD\",\"nominalValue\":42658.990079999996,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-06T00:00\",\"payoff\":8531.798015999999,\"currency\":\"USD\",\"nominalValue\":34127.192063999995,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-07T00:00\",\"payoff\":6825.438412799999,\"currency\":\"USD\",\"nominalValue\":27301.753651199997,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-08T00:00\",\"payoff\":5460.350730239999,\"currency\":\"USD\",\"nominalValue\":21841.402920959998,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-09T00:00\",\"payoff\":4368.280584192,\"currency\":\"USD\",\"nominalValue\":17473.122336768,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-10T00:00\",\"payoff\":3494.6244673536003,\"currency\":\"USD\",\"nominalValue\":13978.4978694144,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-11T00:00\",\"payoff\":2795.69957388288,\"currency\":\"USD\",\"nominalValue\":11182.79829553152,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-12T00:00\",\"payoff\":2236.559659106304,\"currency\":\"USD\",\"nominalValue\":8946.238636425216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-13T00:00\",\"payoff\":1789.2477272850433,\"currency\":\"USD\",\"nominalValue\":7156.990909140173,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-14T00:00\",\"payoff\":1431.3981818280347,\"currency\":\"USD\",\"nominalValue\":5725.592727312139,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-15T00:00\",\"payoff\":1145.1185454624278,\"currency\":\"USD\",\"nominalValue\":4580.474181849711,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-16T00:00\",\"payoff\":916.0948363699423,\"currency\":\"USD\",\"nominalValue\":3664.379345479769,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-17T00:00\",\"payoff\":732.8758690959539,\"currency\":\"USD\",\"nominalValue\":2931.5034763838153,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-18T00:00\",\"payoff\":586.3006952767631,\"currency\":\"USD\",\"nominalValue\":2345.202781107052,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-19T00:00\",\"payoff\":469.04055622141044,\"currency\":\"USD\",\"nominalValue\":1876.1622248856415,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-20T00:00\",\"payoff\":375.23244497712835,\"currency\":\"USD\",\"nominalValue\":1500.9297799085132,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-21T00:00\",\"payoff\":300.18595598170265,\"currency\":\"USD\",\"nominalValue\":1200.7438239268106,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-22T00:00\",\"payoff\":240.14876478536212,\"currency\":\"USD\",\"nominalValue\":960.5950591414485,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-23T00:00\",\"payoff\":192.1190118282897,\"currency\":\"USD\",\"nominalValue\":768.4760473131588,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-24T00:00\",\"payoff\":153.69520946263177,\"currency\":\"USD\",\"nominalValue\":614.7808378505271,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-25T00:00\",\"payoff\":122.95616757010542,\"currency\":\"USD\",\"nominalValue\":491.8246702804216,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-26T00:00\",\"payoff\":98.36493405608434,\"currency\":\"USD\",\"nominalValue\":393.4597362243373,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-27T00:00\",\"payoff\":78.69194724486746,\"currency\":\"USD\",\"nominalValue\":314.76778897946986,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-28T00:00\",\"payoff\":62.95355779589397,\"currency\":\"USD\",\"nominalValue\":251.81423118357588,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-29T00:00\",\"payoff\":50.36284623671518,\"currency\":\"USD\",\"nominalValue\":201.4513849468607,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"PP\",\"time\":\"2026-03-30T00:00\",\"payoff\":40.290276989372146,\"currency\":\"USD\",\"nominalValue\":161.16110795748858,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"IP\",\"time\":\"2026-04-30T00:00\",\"payoff\":0.0,\"currency\":\"USD\",\"nominalValue\":161.16110795748858,\"nominalRate\":0.0,\"nominalAccrued\":0.0},{\"type\":\"MD\",\"time\":\"2026-04-30T00:00\",\"payoff\":161.16110795748858,\"currency\":\"USD\",\"nominalValue\":0.0,\"nominalRate\":0.0,\"nominalAccrued\":0.0}]}]"
+}
+'════════════════════════════════════════════════════════════'
+'PHASE 10: LIABILITY — ITERATION 3'
+'════════════════════════════════════════════════════════════'
+'Events: 33'
+'  2026-03-02T00:00 PP payoff=$16681.66 remaining=$83318.34'
+'  2026-03-03T00:00 PP payoff=$16663.67 remaining=$66654.67'
+'  2026-03-04T00:00 PP payoff=$13330.93 remaining=$53323.74'
+'  2026-03-05T00:00 PP payoff=$10664.75 remaining=$42658.99'
+'  2026-03-06T00:00 PP payoff=$8531.80 remaining=$34127.19'
+'  2026-03-07T00:00 PP payoff=$6825.44 remaining=$27301.75'
+'  2026-03-08T00:00 PP payoff=$5460.35 remaining=$21841.40'
+'  2026-03-09T00:00 PP payoff=$4368.28 remaining=$17473.12'
+'  2026-03-10T00:00 PP payoff=$3494.62 remaining=$13978.50'
+'  2026-03-11T00:00 PP payoff=$2795.70 remaining=$11182.80'
+'  2026-03-12T00:00 PP payoff=$2236.56 remaining=$8946.24'
+'  2026-03-13T00:00 PP payoff=$1789.25 remaining=$7156.99'
+'  2026-03-14T00:00 PP payoff=$1431.40 remaining=$5725.59'
+'  2026-03-15T00:00 PP payoff=$1145.12 remaining=$4580.47'
+'  2026-03-16T00:00 PP payoff=$916.09 remaining=$3664.38'
+'  2026-03-17T00:00 PP payoff=$732.88 remaining=$2931.50'
+'  2026-03-18T00:00 PP payoff=$586.30 remaining=$2345.20'
+'  2026-03-19T00:00 PP payoff=$469.04 remaining=$1876.16'
+'  2026-03-20T00:00 PP payoff=$375.23 remaining=$1500.93'
+'  2026-03-21T00:00 PP payoff=$300.19 remaining=$1200.74'
+'  2026-03-22T00:00 PP payoff=$240.15 remaining=$960.60'
+'  2026-03-23T00:00 PP payoff=$192.12 remaining=$768.48'
+'  2026-03-24T00:00 PP payoff=$153.70 remaining=$614.78'
+'  2026-03-25T00:00 PP payoff=$122.96 remaining=$491.82'
+'  2026-03-26T00:00 PP payoff=$98.36 remaining=$393.46'
+'  2026-03-27T00:00 PP payoff=$78.69 remaining=$314.77'
+'  2026-03-28T00:00 PP payoff=$62.95 remaining=$251.81'
+'  2026-03-29T00:00 PP payoff=$50.36 remaining=$201.45'
+'  2026-03-30T00:00 PP payoff=$40.29 remaining=$161.16'
+'  Total Iter 3 redemptions: $99838.84'
+'✅ Stored for Phase 11 convergence check.'
+GET http://localhost:8082/findScenario/sc_seq_iter3_100k: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "4b012edf-6286-4b0c-8ec4-fcd8c08aa6e5",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive"
+  },
+  "Response Headers": {
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Mon, 02 Mar 2026 18:19:33 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "{\"scenarioID\":\"sc_seq_iter3_100k\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_TBILL_MV_DYN_I1\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_RESERVES_DYN_I3\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_CASH_DYN_I3\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_PEG_RISK_SEQ_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"br_seq_100k_i3\",\"riskFactorType\":\"BackingRatioModel\"},{\"riskFactorID\":\"ml_seq_100k_i1\",\"riskFactorType\":\"MaturityLadderModel\"}]}"
+}
+'════════════════════════════════════════════════════════════'
+'PHASE 11.1: THREE-ITERATION CONVERGENCE CHECK'
+'════════════════════════════════════════════════════════════'
+''
+'AGGREGATE SUMMARY:'
+'  Iteration 1: $66151.71 redeemed'
+'  Iteration 2: $99811.76 redeemed'
+'  Iteration 3: $99838.84 redeemed'
+''
+'  Δ(Iter1→2): $33660.05 (50.88%)'
+'  Δ(Iter2→3): $27.08 (0.03%)'
+''
+'DAY-BY-DAY: ITER 2 vs ITER 3'
+'DATE         | ITER 2       | ITER 3       | DELTA        | CONVERGED?'
+'─────────────┼──────────────┼──────────────┼──────────────┼───────────'
+'2026-03-01  |        $0.00 |        $0.00 |        $0.00 | ✅'
+'2026-03-02  |     $2681.66 |    $16681.66 |    $14000.00 | ❌'
+'2026-03-03  |    $19463.67 |    $16663.67 |     $2800.00 | ❌'
+'2026-03-04  |    $15570.93 |    $13330.93 |     $2240.00 | ❌'
+'2026-03-05  |    $12456.75 |    $10664.75 |     $1792.00 | ❌'
+'2026-03-06  |     $9965.40 |     $8531.80 |     $1433.60 | ❌'
+'2026-03-07  |     $7972.32 |     $6825.44 |     $1146.88 | ❌'
+'2026-03-08  |     $6377.85 |     $5460.35 |      $917.50 | ❌'
+'2026-03-09  |     $5102.28 |     $4368.28 |      $734.00 | ❌'
+'2026-03-10  |     $4081.83 |     $3494.62 |      $587.20 | ❌'
+'2026-03-11  |     $3265.46 |     $2795.70 |      $469.76 | ❌'
+'2026-03-12  |     $2612.37 |     $2236.56 |      $375.81 | ❌'
+'2026-03-13  |     $2089.90 |     $1789.25 |      $300.65 | ❌'
+'2026-03-14  |     $1671.92 |     $1431.40 |      $240.52 | ❌'
+'2026-03-15  |     $1337.53 |     $1145.12 |      $192.41 | ❌'
+'2026-03-16  |     $1070.03 |      $916.09 |      $153.93 | ❌'
+'2026-03-17  |      $856.02 |      $732.88 |      $123.15 | ❌'
+'2026-03-18  |      $684.82 |      $586.30 |       $98.52 | ✅'
+'2026-03-19  |      $547.85 |      $469.04 |       $78.81 | ✅'
+'2026-03-20  |      $438.28 |      $375.23 |       $63.05 | ✅'
+'2026-03-21  |      $350.63 |      $300.19 |       $50.44 | ✅'
+'2026-03-22  |      $280.50 |      $240.15 |       $40.35 | ✅'
+'2026-03-23  |      $224.40 |      $192.12 |       $32.28 | ✅'
+'2026-03-24  |      $179.52 |      $153.70 |       $25.83 | ✅'
+'2026-03-25  |      $143.62 |      $122.96 |       $20.66 | ✅'
+'2026-03-26  |      $114.89 |       $98.36 |       $16.53 | ✅'
+'2026-03-27  |       $91.91 |       $78.69 |       $13.22 | ✅'
+'2026-03-28  |       $73.53 |       $62.95 |       $10.58 | ✅'
+'2026-03-29  |       $58.83 |       $50.36 |        $8.46 | ✅'
+'2026-03-30  |       $47.06 |       $40.29 |        $6.77 | ✅'
+''
+'Converged days (Iter2→3): 14/30 (threshold: <$100)'
+''
+'✅ CONVERGED: Iter 2 ≈ Iter 3 (delta < $500).'
+'   The feedback loop has stabilized after 3 iterations.'
+'   Iter 3 is the BEST ESTIMATE of protocol behavior under stress.'
+'════════════════════════════════════════════════════════════'
+GET http://localhost:8082/findScenario/sc_seq_iter3_100k: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 53804
+      },
+      "remote": {
+        "address": "::1",
+        "family": "IPv6",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "d35445e1-a8e2-4305-8b7f-19276b5aaba1",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive"
+  },
+  "Response Headers": {
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Mon, 02 Mar 2026 18:19:33 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "{\"scenarioID\":\"sc_seq_iter3_100k\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_TBILL_MV_DYN_I1\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_RESERVES_DYN_I3\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_CASH_DYN_I3\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_PEG_RISK_SEQ_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"br_seq_100k_i3\",\"riskFactorType\":\"BackingRatioModel\"},{\"riskFactorID\":\"ml_seq_100k_i1\",\"riskFactorType\":\"MaturityLadderModel\"}]}"
+}
+'════════════════════════════════════════════════════════════'
+'PHASE 11.2: FINAL PORTFOLIO DASHBOARD (ITER 3 — BEST ESTIMATE)'
+'════════════════════════════════════════════════════════════'
+''
+'DATE         | CASH        | T-BILLS     | TOTAL RES   | SUPPLY      | BACKING  | LIQUIDITY | ACE  '
+'─────────────┼─────────────┼─────────────┼─────────────┼─────────────┼──────────┼───────────┼──────'
+'2026-03-01  |       $6000 |      $97296 |     $103296 |     $100000 |   103.3% |      6.0% | 🚫'
+'2026-03-02  |          $0 |      $97318 |      $97318 |      $83318 |   116.8% |      0.0% | 🚫'
+'2026-03-05  |          $0 |      $97386 |      $97386 |      $42659 |   228.3% |      0.0% | 🚫'
+'2026-03-08  |          $0 |      $97454 |      $97454 |      $21841 |   446.2% |      0.0% | 🚫'
+'2026-03-10  |          $0 |      $97498 |      $97498 |      $13978 |   697.5% |      0.0% | 🚫'
+'2026-03-12  |          $0 |      $97543 |      $97543 |       $8946 |  1090.3% |      0.0% | 🚫'
+'2026-03-14  |          $0 |      $97588 |      $97588 |       $5726 |  1704.4% |      0.0% | 🚫'
+'2026-03-15  |          $0 |      $73111 |      $73111 |       $4580 |  1596.1% |      0.0% | 🚫'
+'2026-03-18  |          $0 |      $73152 |      $73152 |       $2345 |  3119.2% |      0.0% | 🚫'
+'2026-03-22  |          $0 |      $73206 |      $73206 |        $961 |  7620.9% |      0.0% | 🚫'
+'2026-03-25  |          $0 |      $73247 |      $73247 |        $492 | 14892.9% |      0.0% | 🚫'
+'2026-03-30  |          $0 |      $48815 |      $48815 |        $161 | 30289.7% |      0.0% | 🚫'
+'2026-04-15  |          $0 |      $24443 |      $24443 |        $161 | 15167.0% |      0.0% | 🚫'
+'2026-04-30  |       $4161 |          $0 |       $4161 |        $161 |  2582.0% |   2582.0% | ✅'
+''
+'🚫 Stress period: 2026-03-01 to 2026-04-29 (60 days)'
+''
+'FINAL STATE:'
+'  Initial supply:  $100,000'
+'  Total redeemed:  $99838.84'
+'  Final supply:    $161.16'
+'  Supply burned:   99.8%'
+''
+'CONVERGENCE HISTORY:'
+'  Iter 1: optimistic (no feedback)  → model stops Mar 15'
+'  Iter 2: corrected (Iter 1 drain)  → model fires all 30 days'
+'  Iter 3: corrected (Iter 2 drain)  → BEST ESTIMATE'
+''
+'CONCLUSION:'
+'  With 6% initial liquidity and 14-day first maturity gap,'
+'  the protocol cannot survive the stress scenario.'
+'  The iterative feedback reveals a death spiral where'
+'  redemptions drain all cash, causing more redemptions.'
+'════════════════════════════════════════════════════════════'

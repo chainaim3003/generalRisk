@@ -1,0 +1,498 @@
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "f081c934-d5cb-4d05-ac14-9fe16d5dddef",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "1005"
+  },
+  "Request Body": "{\n  \"riskFactorID\": \"BTC_SPOT_01\",\n  \"marketObjectCode\": \"BTC_USD_SPOT\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 49500},\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 50000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 55000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 60000},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 65000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 70000},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 74000},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 78000},\n    {\"time\": \"2026-06-01T00:00:00\", \"value\": 76000},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 83000},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 90000},\n    {\"time\": \"2026-07-01T00:00:00\", \"value\": 88000},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 82000},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 79000},\n    {\"time\": \"2026-08-01T00:00:00\", \"value\": 77000},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 72000},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 65000}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'01 BTC_SPOT_01: 200'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "b2556835-c04c-44ab-9391-754315be2205",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "1053"
+  },
+  "Request Body": "{\n  \"riskFactorID\": \"PORTFOLIO_NAV_01\",\n  \"marketObjectCode\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 4000000},\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 4000000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 4100000},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 4200000},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 4300000},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 4158000},\n    {\"time\": \"2026-05-15T00:00:00\", \"value\": 4224000},\n    {\"time\": \"2026-05-31T00:00:00\", \"value\": 4290000},\n    {\"time\": \"2026-06-01T00:00:00\", \"value\": 4046000},\n    {\"time\": \"2026-06-15T00:00:00\", \"value\": 4141000},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 4238000},\n    {\"time\": \"2026-07-01T00:00:00\", \"value\": 4210000},\n    {\"time\": \"2026-07-15T00:00:00\", \"value\": 4128000},\n    {\"time\": \"2026-07-31T00:00:00\", \"value\": 4086000},\n    {\"time\": \"2026-08-01T00:00:00\", \"value\": 4059000},\n    {\"time\": \"2026-08-15T00:00:00\", \"value\": 3990000},\n    {\"time\": \"2026-08-31T00:00:00\", \"value\": 3894000}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'02 PORTFOLIO_NAV_01: 200'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "6a99c303-b1e9-45f0-80fe-cb24975f9bc0",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "318"
+  },
+  "Request Body": "{\n  \"riskFactorID\": \"HURDLE_RATE_01\",\n  \"marketObjectCode\": \"HURDLE_RATE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-02-28T00:00:00\", \"value\": 0.075},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 0.080},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 0.085},\n    {\"time\": \"2026-06-30T00:00:00\", \"value\": 0.085}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+'03 HURDLE_RATE_01: 200'
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "8c4adbb2-05d6-4c1f-a5aa-ad4bbbca57f6",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "494"
+  },
+  "Request Body": "{\"riskFactorID\":\"OUTFLOWS_01\",\"marketObjectCode\":\"PROJECTED_OUTFLOWS\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":30000},{\"time\":\"2026-03-31T00:00:00\",\"value\":30000},{\"time\":\"2026-04-30T00:00:00\",\"value\":36000},{\"time\":\"2026-05-31T00:00:00\",\"value\":45000},{\"time\":\"2026-06-15T00:00:00\",\"value\":90000},{\"time\":\"2026-06-30T00:00:00\",\"value\":135000},{\"time\":\"2026-07-15T00:00:00\",\"value\":60000},{\"time\":\"2026-07-31T00:00:00\",\"value\":45000},{\"time\":\"2026-08-31T00:00:00\",\"value\":30000}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+POST http://localhost:8082/addReferenceIndex: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "0648a959-090e-4214-8922-b3f45aedec36",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "273"
+  },
+  "Request Body": "{\"riskFactorID\":\"TBILL_MAT_01\",\"marketObjectCode\":\"TBILL_MATURITY_SCHEDULE\",\"base\":1,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0},{\"time\":\"2026-06-01T00:00:00\",\"value\":400000},{\"time\":\"2026-07-01T00:00:00\",\"value\":350000},{\"time\":\"2026-08-01T00:00:00\",\"value\":250000}]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "34",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ReferenceIndex added Successfully\n"
+}
+POST http://localhost:8082/addScheduledCashFlowModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "cee5609a-55da-4aa2-afd3-e143e1b1475e",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "299"
+  },
+  "Request Body": "{\"riskFactorId\":\"scf_tbill_flows_01\",\"cashFlowSchedule\":[{\"time\":\"2026-06-01T00:00:00\",\"amountUSD\":400000},{\"time\":\"2026-07-01T00:00:00\",\"amountUSD\":350000},{\"time\":\"2026-08-01T00:00:00\",\"amountUSD\":250000}],\"monitoringEventTimes\":[\"2026-06-01T00:00:00\",\"2026-07-01T00:00:00\",\"2026-08-01T00:00:00\"]}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "42",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "ScheduledCashFlowModel added successfully\n"
+}
+'[Derive] OUTFLOWS=200 TBILL_MAT=200 SCF=200'
+GET http://localhost:8082/: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "632552dd-518d-467e-b411-3176857409bc",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive"
+  },
+  "Response Headers": {
+    "vary": [
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "{\"timestamp\":\"2026-03-06T20:10:17.721+00:00\",\"status\":404,\"error\":\"Not Found\",\"path\":\"/\"}"
+}
+POST http://localhost:8082/addAllocationDriftModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "21c65539-3c01-44af-98cd-6905c5e16966",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "763"
+  },
+  "Request Body": "{\n  \"riskFactorId\": \"ad_btc01_spot\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.25,\n  \"maxAllocation\": 0.30,\n  \"minAllocation\": 0.20,\n  \"positionQuantity\": 20.0,\n  \"initialNotionalPrincipal\": 1000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": true,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "40",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "AllocationDriftModel added successfully\n"
+}
+'05 ad_btc01_spot (1 CLM, fixedQty=true, 20%/25%/30%): 200'
+POST http://localhost:8082/addAllocationDriftModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "e9ad9d27-5e64-4c48-bc15-26470594224c",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "811"
+  },
+  "Request Body": "{\n  \"riskFactorId\": \"ad_btc01_spot_mirror\",\n  \"mirrorSourceModelId\": \"ad_btc01_spot\",\n  \"spotPriceMOC\": \"BTC_USD_SPOT\",\n  \"portfolioTotalValueMOC\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"targetAllocation\": 0.25,\n  \"maxAllocation\": 0.30,\n  \"minAllocation\": 0.20,\n  \"positionQuantity\": 0.0,\n  \"initialNotionalPrincipal\": 4000000.0,\n  \"signalMultiplier\": 1.0,\n  \"useFixedQuantity\": true,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "40",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "AllocationDriftModel added successfully\n"
+}
+'06 ad_btc01_spot_mirror: 200'
+POST http://localhost:8082/addLiquidityBufferModel: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "f66c0644-e581-4d05-8669-9e9dff5e9713",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "627"
+  },
+  "Request Body": "{\n  \"riskFactorId\": \"lb_tr01\",\n  \"projectedOutflowsMOC\": \"PROJECTED_OUTFLOWS\",\n  \"tbillMaturityScheduleMOC\": \"TBILL_MATURITY_SCHEDULE\",\n  \"minBufferUSD\": 75000,\n  \"targetBufferUSD\": 150000,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "40",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "LiquidityBufferModel added successfully\n"
+}
+'07 lb_tr01: 200'
+POST http://localhost:8082/addScenario: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64583
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8082
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "bec9c6e2-e1ba-48ec-82d2-a48c8667abd3",
+    "host": "localhost:8082",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "846"
+  },
+  "Request Body": "{\n  \"scenarioID\": \"ht_v17_4m_1clm_buyhold_scn01\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"BTC_SPOT_01\",         \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"PORTFOLIO_NAV_01\",     \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"HURDLE_RATE_01\",       \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"OUTFLOWS_01\",          \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"TBILL_MAT_01\",         \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"ad_btc01_spot\",        \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"ad_btc01_spot_mirror\", \"riskFactorType\": \"AllocationDriftModel\"},\n    {\"riskFactorID\": \"lb_tr01\",              \"riskFactorType\": \"LiquidityBufferModel\"},\n    {\"riskFactorID\": \"scf_tbill_flows_01\",   \"riskFactorType\": \"ScheduledCashFlowModel\"}\n  ]\n}",
+  "Response Headers": {
+    "content-type": "text/plain;charset=UTF-8",
+    "content-length": "28",
+    "date": "Fri, 06 Mar 2026 20:10:17 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "Scenario added Successfully\n"
+}
+'08 Scenario ht_v17_4m_1clm_buyhold_scn01: 200'
+POST http://localhost:8083/rf2/scenarioSimulation: {
+  "Network": {
+    "addresses": {
+      "local": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 64585
+      },
+      "remote": {
+        "address": "127.0.0.1",
+        "family": "IPv4",
+        "port": 8083
+      }
+    }
+  },
+  "Request Headers": {
+    "content-type": "application/json",
+    "user-agent": "PostmanRuntime/7.51.1",
+    "accept": "*/*",
+    "cache-control": "no-cache",
+    "postman-token": "f118578c-481c-4a8c-a24d-77a0fa381fdf",
+    "host": "localhost:8083",
+    "accept-encoding": "gzip, deflate, br",
+    "connection": "keep-alive",
+    "content-length": "3697"
+  },
+  "Request Body": "{\n  \"contracts\": [\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"BTC-CLM-SpotTrade-20\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"SpotDesk01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\"ad_btc01_spot\"]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"CASH-PAM-4M\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"TreasuryOps01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-28T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"notionalPrincipal\": 4000000.0,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"premiumDiscountAtIED\": -4000000.0,\n      \"feeRate\": 0.0,\n      \"treasuryModels\": [\n        \"ad_btc01_spot_mirror\",\n        \"scf_tbill_flows_01\",\n        \"lb_tr01\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-3mo-400K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-06-01T00:00:00\",\n      \"notionalPrincipal\": 400000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -3680\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-4mo-350K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-07-01T00:00:00\",\n      \"notionalPrincipal\": 350000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -4321\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-5mo-250K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-01T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -3886\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"ht_v17_4m_1clm_buyhold_scn01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-08-31T00:00:00\",\n  \"monitoringTimes\": [\n    \"2026-02-28T00:00:00\",\n    \"2026-03-01T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+  "Response Headers": {
+    "vary": [
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    "content-type": "application/json",
+    "transfer-encoding": "chunked",
+    "date": "Fri, 06 Mar 2026 20:10:19 GMT",
+    "keep-alive": "timeout=60",
+    "connection": "keep-alive"
+  },
+  "Response Body": "The console only shows response bodies smaller than 10 KB inline. To view the complete body, inspect it by clicking Open."
+}
+'v17 $4M 1-CLM BuyHold — Contracts: 5'
+'[BTC-CLM-SpotTrade-20] events=40 PP_nonzero=13 net=$0'
+'  2026-03-01 [IED] $-1,000,000'
+'  2026-04-15 [PP] +$52,326'
+'  2026-04-30 [PP] +$82,164'
+'  2026-05-15 [PP] +$86,879'
+'  2026-05-31 [PP] +$88,481'
+'  2026-06-01 [PP] +$86,738'
+'  2026-06-15 [PP] +$91,037'
+'  2026-06-30 [PP] +$89,527'
+'  2026-07-01 [PP] +$71,061'
+'  2026-07-15 [PP] +$51,814'
+'  2026-07-31 [PP] +$41,002'
+'  2026-08-01 [PP] +$33,512'
+'  2026-08-15 [PP] +$25,004'
+'  2026-08-31 [PP] +$16,808'
+'  2026-08-31 [MD] +$183,649'
+'[CASH-PAM-4M] events=52 PP_nonzero=16 net=$4,000,000'
+'  2026-04-15 [PP] $-52,326'
+'  2026-04-30 [PP] $-82,164'
+'  2026-05-15 [PP] $-86,879'
+'  2026-05-31 [PP] $-88,481'
+'  2026-06-01 [PP] $-86,738'
+'  2026-06-01 [PP] +$400,000'
+'  2026-06-15 [PP] $-91,037'
+'  2026-06-30 [PP] $-89,527'
+'  2026-07-01 [PP] $-71,061'
+'  2026-07-01 [PP] +$350,000'
+'  2026-07-15 [PP] $-51,814'
+'  2026-07-31 [PP] $-41,002'
+'  2026-08-01 [PP] $-33,512'
+'  2026-08-01 [PP] +$250,000'
+'  2026-08-15 [PP] $-25,004'
+'  2026-08-31 [PP] $-16,808'
+'  2026-08-31 [MD] +$3,816,351'
+'[TBILL-3mo-400K] events=21 PP_nonzero=0 net=$3,680'
+'  2026-03-01 [IED] $-396,320'
+'  2026-06-01 [MD] +$400,000'
+'[TBILL-4mo-350K] events=21 PP_nonzero=0 net=$4,321'
+'  2026-03-01 [IED] $-345,679'
+'  2026-07-01 [MD] +$350,000'
+'[TBILL-5mo-250K] events=21 PP_nonzero=0 net=$3,886'
+'  2026-03-01 [IED] $-246,114'
+'  2026-08-01 [MD] +$250,000'
+'✓ CLM: no early signals (Mar clean)'
+'✓ CLM SELL Apr-15 → $52,326 (expect ~$225,000)'
+'✓ CLM SELL May-31 → $88,481 (expect ~$217,500)'
+'TBILL-3mo-400K: IED=-396,320 MD=+$400,000 yield=$3,680'
+'TBILL-4mo-350K: IED=-345,679 MD=+$350,000 yield=$4,321'
+'TBILL-5mo-250K: IED=-246,114 MD=+$250,000 yield=$3,886'
+'Total T-Bill yield: $11,887 (expect $11,887)'

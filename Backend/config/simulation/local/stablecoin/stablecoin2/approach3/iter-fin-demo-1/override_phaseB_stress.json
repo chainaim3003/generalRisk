@@ -1,0 +1,13 @@
+{
+  "overrideActive": true,
+  "description": "PHASE B — STRESS: $100,000 cash withdrawn for emergency regulatory compliance payment. Drops backing below 100% and liquidity below 10%. Demonstrates that a simple reserves-vs-supply check catches backing drop, but ONLY Converge.fi catches the liquidity crisis — because $385K of reserves are locked in T-bills that cannot be redeemed for weeks or months.",
+  "portfolioAdjustments": [
+    {
+      "contractID": "cash-reserve-001",
+      "newNotionalPrincipal": 20000,
+      "reason": "$100K withdrawn — emergency regulatory compliance payment to state authority"
+    }
+  ],
+  "contracts": [],
+  "earlyLiquidations": []
+}

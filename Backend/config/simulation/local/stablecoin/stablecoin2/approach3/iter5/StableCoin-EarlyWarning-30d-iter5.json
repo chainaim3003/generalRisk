@@ -1,0 +1,208 @@
+{
+  "info": {
+    "_postman_id": "sc-ew-30d-iter5",
+    "name": "StableCoin-EarlyWarning-30d-iter5",
+    "description": "APPROACH 3 iter5 — EARLY WARNING MODEL (6.7): 4-signal cascade — HALT at day 11, CLEAR by day 18.\n\nThe iter5 EarlyWarning model is the PRIMARY HALT TRIGGER in the GENIUS/MiCA mint gate.\n  EW_HALT_SIGNALS = 4 (all 4 must fire simultaneously)\n  HALT:    ewSignals >= 4  (all four breach thresholds simultaneously)\n  RESTORE: ewSignals < 4   (any one clears)\n\n4 VALIDATED SIGNALS (from 609 de-peg event research):\n  Signal              | Threshold | Lead Time | F1 Score | iter5 curve\n  Curve pool imbal    | > 15%     | 4.2 hrs   | 0.80     | peaks 42% day 15\n  Order book decline  | > 40%     | 2.1 hrs   | 0.70     | peaks 65% day 15\n  CEX outflows spike  | > 3.0x    | 6.8 hrs   | 0.69     | peaks 5.5x day 15\n  Social sentiment    | < -2.0z   | 8.4 hrs   | 0.63     | troughs -4.5z day 15\n\n30-DAY LIFECYCLE (MINT HALT AT DAY 11, RESTORE AT DAY 18):\n  Days 1-7:   ALL signals below threshold → NORMAL (0 EW signals)\n  Day 8:      curveImbalance crosses 15% → EW=1/4 → WATCH posture\n  Day 9:      orderbookDecline crosses 40% → EW=2/4 → ELEVATED posture\n  Day 10:     sentiment crosses -2.0z → EW=3/4 → HIGH_ALERT posture\n  Day 11:     \u2605 ALL 4 FIRE: cexOutflow crosses 3.0x → EW=4/4\n              CRITICAL cadence, MINT HALTED 🛑\n  Days 11-17: Peak stress — all 4 signals active simultaneously\n  Day 18:     curveImbalance clears first (< 15%) → EW=3/4\n  Day 19:     orderbookDecline clears → EW=2/4 → ELEVATED\n  Day 20:     CEX outflow clears → EW=1/4 → WATCH\n  Day 21:     sentiment clears → EW=0/4 → NORMAL\n              \u2605 MINT RESTORED (EW condition satisfied)\n  Days 22-30: De-escalation, NORMAL cadence restored\n\nKEY CHANGE vs stablecoin-1:\n  EW_HALT_SIGNALS = 4 (all 4 must fire — not triggered by any single signal)\n  Simultaneous firing on day 11 (not gradual)\n  Coordinated clearing sequence days 18-21\n  Defensive posture: NORMAL(0) | WATCH(1) | ELEVATED(2) | HIGH_ALERT(3) | MAX_DEFENSIVE(4)\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add SC_CURVE_IMBALANCE_I5 (EW1: fires day 8, clears day 18)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_CURVE_I5\",\"marketObjectCode\":\"SC_CURVE_IMBALANCE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":0.02},{\"time\":\"2026-03-04T00:00:00\",\"value\":0.04},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.07},{\"time\":\"2026-03-06T00:00:00\",\"value\":0.10},{\"time\":\"2026-03-07T00:00:00\",\"value\":0.13},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.14},{\"time\":\"2026-03-09T00:00:00\",\"value\":0.16},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.20},{\"time\":\"2026-03-11T00:00:00\",\"value\":0.26},{\"time\":\"2026-03-12T00:00:00\",\"value\":0.30},{\"time\":\"2026-03-13T00:00:00\",\"value\":0.35},{\"time\":\"2026-03-14T00:00:00\",\"value\":0.38},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.42},{\"time\":\"2026-03-16T00:00:00\",\"value\":0.40},{\"time\":\"2026-03-17T00:00:00\",\"value\":0.36},{\"time\":\"2026-03-18T00:00:00\",\"value\":0.32},{\"time\":\"2026-03-19T00:00:00\",\"value\":0.26},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.21},{\"time\":\"2026-03-21T00:00:00\",\"value\":0.13},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.10},{\"time\":\"2026-03-23T00:00:00\",\"value\":0.08},{\"time\":\"2026-03-24T00:00:00\",\"value\":0.06},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.05},{\"time\":\"2026-03-26T00:00:00\",\"value\":0.04},{\"time\":\"2026-03-27T00:00:00\",\"value\":0.03},{\"time\":\"2026-03-28T00:00:00\",\"value\":0.02},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.02},{\"time\":\"2026-03-30T00:00:00\",\"value\":0.02}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_CURVE_IMBALANCE_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_CURVE_I5: EW1 curve imbalance');",
+        "    console.log('   Fires day 9 (0.16 > 0.15 threshold) \\u2014 4.2hr lead time per research');",
+        "    console.log('   Peak 42% day 15 \\u2192 clears day 18 (0.13 < 0.15 \\u2192 EW1 OFF)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add SC_ORDERBOOK_DECLINE_I5 (EW2: fires day 9, clears day 19)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_ORDERBOOK_I5\",\"marketObjectCode\":\"SC_ORDERBOOK_DECLINE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":0.05},{\"time\":\"2026-03-04T00:00:00\",\"value\":0.08},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.12},{\"time\":\"2026-03-06T00:00:00\",\"value\":0.18},{\"time\":\"2026-03-07T00:00:00\",\"value\":0.24},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.30},{\"time\":\"2026-03-09T00:00:00\",\"value\":0.36},{\"time\":\"2026-03-10T00:00:00\",\"value\":0.42},{\"time\":\"2026-03-11T00:00:00\",\"value\":0.48},{\"time\":\"2026-03-12T00:00:00\",\"value\":0.54},{\"time\":\"2026-03-13T00:00:00\",\"value\":0.58},{\"time\":\"2026-03-14T00:00:00\",\"value\":0.62},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.65},{\"time\":\"2026-03-16T00:00:00\",\"value\":0.62},{\"time\":\"2026-03-17T00:00:00\",\"value\":0.57},{\"time\":\"2026-03-18T00:00:00\",\"value\":0.50},{\"time\":\"2026-03-19T00:00:00\",\"value\":0.44},{\"time\":\"2026-03-20T00:00:00\",\"value\":0.39},{\"time\":\"2026-03-21T00:00:00\",\"value\":0.32},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.26},{\"time\":\"2026-03-23T00:00:00\",\"value\":0.20},{\"time\":\"2026-03-24T00:00:00\",\"value\":0.15},{\"time\":\"2026-03-25T00:00:00\",\"value\":0.11},{\"time\":\"2026-03-26T00:00:00\",\"value\":0.08},{\"time\":\"2026-03-27T00:00:00\",\"value\":0.07},{\"time\":\"2026-03-28T00:00:00\",\"value\":0.06},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.05},{\"time\":\"2026-03-30T00:00:00\",\"value\":0.05}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_ORDERBOOK_DECLINE_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_ORDERBOOK_I5: EW2 orderbook depth decline');",
+        "    console.log('   Fires day 10 (0.42 > 0.40 threshold) \\u2014 2.1hr lead time per research');",
+        "    console.log('   Peak 65% day 15 \\u2192 clears day 20 (0.39 < 0.40 \\u2192 EW2 OFF)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add SC_CEX_OUTFLOW_I5 (EW3: fires day 11, clears day 20)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_CEX_I5\",\"marketObjectCode\":\"SC_CEX_OUTFLOW_MULT\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":1.0},{\"time\":\"2026-03-04T00:00:00\",\"value\":1.1},{\"time\":\"2026-03-05T00:00:00\",\"value\":1.2},{\"time\":\"2026-03-06T00:00:00\",\"value\":1.4},{\"time\":\"2026-03-07T00:00:00\",\"value\":1.6},{\"time\":\"2026-03-08T00:00:00\",\"value\":1.9},{\"time\":\"2026-03-09T00:00:00\",\"value\":2.2},{\"time\":\"2026-03-10T00:00:00\",\"value\":2.6},{\"time\":\"2026-03-11T00:00:00\",\"value\":3.0},{\"time\":\"2026-03-12T00:00:00\",\"value\":3.5},{\"time\":\"2026-03-13T00:00:00\",\"value\":4.0},{\"time\":\"2026-03-14T00:00:00\",\"value\":4.5},{\"time\":\"2026-03-15T00:00:00\",\"value\":5.5},{\"time\":\"2026-03-16T00:00:00\",\"value\":5.2},{\"time\":\"2026-03-17T00:00:00\",\"value\":4.8},{\"time\":\"2026-03-18T00:00:00\",\"value\":4.3},{\"time\":\"2026-03-19T00:00:00\",\"value\":3.8},{\"time\":\"2026-03-20T00:00:00\",\"value\":3.2},{\"time\":\"2026-03-21T00:00:00\",\"value\":2.8},{\"time\":\"2026-03-22T00:00:00\",\"value\":2.4},{\"time\":\"2026-03-23T00:00:00\",\"value\":2.0},{\"time\":\"2026-03-24T00:00:00\",\"value\":1.7},{\"time\":\"2026-03-25T00:00:00\",\"value\":1.5},{\"time\":\"2026-03-26T00:00:00\",\"value\":1.3},{\"time\":\"2026-03-27T00:00:00\",\"value\":1.2},{\"time\":\"2026-03-28T00:00:00\",\"value\":1.1},{\"time\":\"2026-03-29T00:00:00\",\"value\":1.0},{\"time\":\"2026-03-30T00:00:00\",\"value\":1.0}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_CEX_OUTFLOW_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_CEX_I5: EW3 CEX outflow multiplier');",
+        "    console.log('   Fires day 11 (3.0 >= 3.0 threshold) \\u2014 THE FINAL HALT TRIGGER');",
+        "    console.log('   Peak 5.5x day 15 \\u2192 clears day 21 (2.8 < 3.0 \\u2192 EW3 OFF)');",
+        "    console.log('   EW3 fires last \\u2192 brings EW count to 4/4 \\u2192 MINT HALTED \\ud83d\\uded1 on day 11');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add SC_SENTIMENT_ZSCORE_I5 (EW4: fires day 10, clears day 21)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_SENT_I5\",\"marketObjectCode\":\"SC_SENTIMENT_ZSCORE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":0.5},{\"time\":\"2026-03-04T00:00:00\",\"value\":0.3},{\"time\":\"2026-03-05T00:00:00\",\"value\":0.1},{\"time\":\"2026-03-06T00:00:00\",\"value\":-0.2},{\"time\":\"2026-03-07T00:00:00\",\"value\":-0.5},{\"time\":\"2026-03-08T00:00:00\",\"value\":-0.9},{\"time\":\"2026-03-09T00:00:00\",\"value\":-1.4},{\"time\":\"2026-03-10T00:00:00\",\"value\":-1.7},{\"time\":\"2026-03-11T00:00:00\",\"value\":-2.1},{\"time\":\"2026-03-12T00:00:00\",\"value\":-2.5},{\"time\":\"2026-03-13T00:00:00\",\"value\":-3.0},{\"time\":\"2026-03-14T00:00:00\",\"value\":-3.5},{\"time\":\"2026-03-15T00:00:00\",\"value\":-4.5},{\"time\":\"2026-03-16T00:00:00\",\"value\":-4.2},{\"time\":\"2026-03-17T00:00:00\",\"value\":-3.8},{\"time\":\"2026-03-18T00:00:00\",\"value\":-3.2},{\"time\":\"2026-03-19T00:00:00\",\"value\":-2.6},{\"time\":\"2026-03-20T00:00:00\",\"value\":-2.1},{\"time\":\"2026-03-21T00:00:00\",\"value\":-1.8},{\"time\":\"2026-03-22T00:00:00\",\"value\":-1.4},{\"time\":\"2026-03-23T00:00:00\",\"value\":-1.0},{\"time\":\"2026-03-24T00:00:00\",\"value\":-0.6},{\"time\":\"2026-03-25T00:00:00\",\"value\":-0.3},{\"time\":\"2026-03-26T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-27T00:00:00\",\"value\":0.1},{\"time\":\"2026-03-28T00:00:00\",\"value\":0.2},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.3},{\"time\":\"2026-03-30T00:00:00\",\"value\":0.4}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_SENTIMENT_ZSCORE_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_SENT_I5: EW4 social sentiment Z-score');",
+        "    console.log('   Fires day 11 (-2.1 < -2.0 threshold) \\u2014 8.4hr lead time per research');",
+        "    console.log('   Trough -4.5z day 15 \\u2192 clears day 21 (-1.8 > -2.0 \\u2192 EW4 OFF)');",
+        "    console.log('   Day 26: returns positive (0.0) \\u2192 market confidence fully restored');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add EarlyWarningModel iter5 (ew_sc_i5)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addEarlyWarningModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addEarlyWarningModel"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ew_sc_i5\",\"curveImbalanceMOC\":\"SC_CURVE_IMBALANCE\",\"orderbookDeclineMOC\":\"SC_ORDERBOOK_DECLINE\",\"cexOutflowMOC\":\"SC_CEX_OUTFLOW_MULT\",\"sentimentZscoreMOC\":\"SC_SENTIMENT_ZSCORE\",\"monitoringEventTimes\":[\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('EarlyWarningModel iter5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 ew_sc_i5: EarlyWarningModel iter5 (28-day monitoring)');",
+        "    console.log('   curve>15% + orderbook>40% + CEX>3x + sentiment<-2z = 4/4 HALT');",
+        "    console.log('   Day 11: all 4 signals breach \\u2192 EW=4/4 \\u2192 MINT HALTED \\ud83d\\uded1');",
+        "    console.log('   Days 18-21: signals clear one by one \\u2192 EW=3,2,1,0 \\u2192 MINT RESTORED \\u2705');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add EarlyWarning iter5 Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost:8082"], "path": ["addScenario"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"sc_ew_iter5_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_CURVE_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_ORDERBOOK_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_CEX_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_SENT_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ew_sc_i5\",\"riskFactorType\":\"EarlyWarningModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('EarlyWarning iter5 scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 sc_ew_iter5_scn01: 4 signal indexes + EarlyWarningModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7a. Verify EarlyWarningModel iter5",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://localhost:8082/findEarlyWarningModel/ew_sc_i5", "protocol": "http", "host": ["localhost:8082"], "path": ["findEarlyWarningModel", "ew_sc_i5"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('EarlyWarningModel iter5 verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d=pm.response.json();",
+        "    pm.expect(d.riskFactorId).to.eql('ew_sc_i5');",
+        "    console.log('\\u2705 ew_sc_i5: curveIMOC='+d.curveImbalanceMOC+' orderbookMOC='+d.orderbookDeclineMOC);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7b. Verify Scenario",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://localhost:8082/findScenario/sc_ew_iter5_scn01", "protocol": "http", "host": ["localhost:8082"], "path": ["findScenario", "sc_ew_iter5_scn01"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario verified', function(){",
+        "    var types=pm.response.json().riskFactorDescriptors.map(function(d){return d.riskFactorType;});",
+        "    pm.expect(types).to.include('EarlyWarningModel');",
+        "    console.log('\\u2705 Descriptors: '+JSON.stringify(types));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run EarlyWarning iter5 Simulation — PRIMARY HALT MECHANISM",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost:8083"], "path": ["rf2", "scenarioSimulation"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"PAM\",\"statusDate\":\"2026-03-02T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"StableCoinA-EW-I5\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-03T00:00:00\",\"maturityDate\":\"2026-04-01T00:00:00\",\"notionalPrincipal\":100000,\"nominalInterestRate\":0.0,\"currency\":\"USD\",\"dayCountConvention\":\"A365\",\"stablecoinModels\":[\"ew_sc_i5\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"sc_ew_iter5_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-01T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('EarlyWarning iter5 simulation (PRIMARY HALT MECHANISM)', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('');",
+        "    console.log('\\u2554\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2557');",
+        "    console.log('\\u2551  EARLY WARNING MODEL (6.7) iter5 \\u2014 PRIMARY HALT TRIGGER              \\u2551');",
+        "    console.log('\\u2551  EW_HALT_SIGNALS=4 | All 4 must fire simultaneously                 \\u2551');",
+        "    console.log('\\u2560\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2563');",
+        "    console.log('\\u2551  Day 1-7:   NORMAL (0/4) \\u2705                                          \\u2551');",
+        "    console.log('\\u2551  Day 9:     WATCH (EW1 curve > 15%)                                  \\u2551');",
+        "    console.log('\\u2551  Day 10:    ELEVATED (EW2 orderbook > 40%)                           \\u2551');",
+        "    console.log('\\u2551  Day 10:    HIGH_ALERT (EW4 sentiment < -2.0z)                       \\u2551');",
+        "    console.log('\\u2551  Day 11:  \\u2605 HALTED \\ud83d\\uded1 EW3 CEX > 3.0x \\u2192 EW=4/4 MAX_DEFENSIVE      \\u2551');",
+        "    console.log('\\u2551  Days 11-17: Peak stress: curve 42% OB 65% CEX 5.5x sent -4.5z      \\u2551');",
+        "    console.log('\\u2551  Day 18:    EW1 clears (curve 0.13 < 0.15) \\u2192 EW=3/4               \\u2551');",
+        "    console.log('\\u2551  Day 21:    EW4 clears (sent -1.8 > -2.0) \\u2192 EW=0/4 \\u2192 NORMAL       \\u2551');",
+        "    console.log('\\u2551  Day 22:  \\u2605 MINT RESTORED \\u2705 (EW<4, liq>20%, backing>100%)         \\u2551');",
+        "    console.log('\\u255a\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u255d');",
+        "    console.log('');",
+        "    var mrds = events.filter(function(e){return e.type==='MRD';});",
+        "    if(mrds.length > 0){",
+        "        console.log('\\u2550\\u2550 DEFENSIVE POSTURE EVENTS \\u2550\\u2550');",
+        "        mrds.forEach(function(m){",
+        "            var p=m.payoff;",
+        "            var posture=p===0?'NORMAL(0/4)':p<=0.1?'WATCH(1/4)':p<=0.3?'ELEVATED(2/4)':p<=0.6?'HIGH_ALERT(3/4)':'MAX_DEFENSIVE(4/4) \\ud83d\\uded1';",
+        "            console.log('  '+m.time+' signal='+p.toFixed(2)+' posture='+posture);",
+        "        });",
+        "    }",
+        "});",
+        "pm.test('Events generated', function(){ pm.expect(pm.response.json()[0].events.length).to.be.above(0); });"
+      ]}}]
+    }
+  ]
+}

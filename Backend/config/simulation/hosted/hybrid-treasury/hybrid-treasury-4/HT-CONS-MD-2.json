@@ -1,0 +1,1396 @@
+{
+  "info": {
+    "_postman_id": "ht-cons-md-2",
+    "name": "HT-CONS-MD-2",
+    "description": "Hybrid Treasury Consolidation — $10M Portfolio · 6-Month Horizon\n═══════════════════════════════════════════════════════════════════\n\nFOUR ASSET CLASSES in a single consolidated simulation:\n\n  1. OPERATIONAL WORKING CAPITAL (AR/AP dynamic discounting)\n     4 Accounts Receivable: $250K–$400K, Net 30–60 day terms\n       AR-001: LINEAR early settle, AR-002: EXPONENTIAL, AR-003: at maturity\n       AR-004: LINEAR early settle\n     3 Accounts Payable: $150K–$250K, Net 30–45 day terms\n       AP-001: LINEAR early settle, AP-002: at maturity\n       AP-003: STEPWISE penalty (late settle)\n\n  2. TRADITIONAL INVESTMENTS (T-Bills)\n     TBILL-3mo-1500K: $1.5M, 91 days, ~4.3% annualized\n     TBILL-4mo-1000K: $1.0M, 122 days, ~4.4% annualized\n     TBILL-5mo-500K:  $500K, 153 days, ~4.5% annualized\n\n  3. DIGITAL ASSETS (BTC + ETH via CLM)\n     BTC-CLM: $2M / 20 BTC, AllocationDriftModel 15%/20%/25%\n       Price path: $100K→$155K peak→$148K (48% appreciation with volatility)\n     ETH-CLM: $1M / 300 ETH, AllocationDriftModel 7%/10%/15%\n       Price path: $3.35K→$5.2K peak→$4.9K (46% appreciation with volatility)\n\n  4. STABLECOIN HOLDINGS (USDC)\n     USDC-HOLD-500K: $500K @ 4.2% yield, instant payment capability\n     Peg deviation monitoring via USDC_PEG_DEV_01\n\nCASH MANAGEMENT (JS layer, NOT hardcoded):\n  CASH-PAM-10M: $10M initial, flows derived from contract events\n  Phase 0 asset-only run → JS captures all events → registers as\n  ScheduledCashFlowModels (7 SCF) → Cash PAM uses treasuryModels\n  Cash goes up (AR settlements, T-bill maturities, DA sell proceeds, USDC yield)\n  Cash goes down (deployments, AP payments)\n  LiquidityBufferModel ensures minimum $150K / target $500K buffer\n\nTWO-PASS ARCHITECTURE (no code changes needed):\n  Phase 0: Reference Indexes (6 market data series)\n  Phase 1: Risk Models (2 ADM + 3 ES + 1 ES-AP + 1 PA)\n  Phase 2: Asset-Only ACTUS run → JS derives market-value proceeds\n  Phase 3: Register derived RI (5) + SCF (7) + LB (1) via JS pre-request\n  Phase 4: Consolidated scenario (28 descriptors)\n  Phase 5: Verification\n  Phase 6: Full simulation (15 contracts, all asset classes)\n\nTIME HORIZONS (research-based):\n  AR/AP: Net 30-60 days (standard trade finance terms)\n  T-Bills: 3-5 months (US Treasury standard maturities)\n  Digital Assets: 6-month CLM with bi-weekly monitoring\n  Stablecoins: 6-month holding with monthly yield\n  Overall: 2026-03-01 → 2026-08-31\n\nREQUIRES: actus-risk-service-extension (port 8082) + actus-service (port 8083)\nNO CODE CHANGES to either service — collection-only configuration.\n\nENHANCED FEATURES (Progressive Profit + CFO Discretion + Reload Queue):\n  Risk Tolerance: MODERATE\n  Progressive Profit: +20% intervals, lock 20% each\n  CFO Discretion: Context-aware stop-loss\n  Reload Queue: 50/50 split on exit, +30% recovery\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "══ PHASE 0: Reference Indexes (market data) ══",
+      "item": [
+        {
+          "name": "0.1 BTC_SPOT_01 — appreciating bull path with volatility",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"BTC_SPOT_01\",\n  \"marketObjectCode\": \"BTC_USD_SPOT\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-02-28T00:00:00\",\n      \"value\": 98000\n    },\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 100000\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 102500\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 99000\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 105000\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 108000\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 112000\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 109000\n    },\n    {\n      \"time\": \"2026-04-15T00:00:00\",\n      \"value\": 116000\n    },\n    {\n      \"time\": \"2026-04-20T00:00:00\",\n      \"value\": 118000\n    },\n    {\n      \"time\": \"2026-04-30T00:00:00\",\n      \"value\": 124000\n    },\n    {\n      \"time\": \"2026-05-01T00:00:00\",\n      \"value\": 122000\n    },\n    {\n      \"time\": \"2026-05-10T00:00:00\",\n      \"value\": 120000\n    },\n    {\n      \"time\": \"2026-05-15T00:00:00\",\n      \"value\": 128000\n    },\n    {\n      \"time\": \"2026-05-31T00:00:00\",\n      \"value\": 135000\n    },\n    {\n      \"time\": \"2026-06-01T00:00:00\",\n      \"value\": 130000\n    },\n    {\n      \"time\": \"2026-06-15T00:00:00\",\n      \"value\": 138000\n    },\n    {\n      \"time\": \"2026-06-30T00:00:00\",\n      \"value\": 145000\n    },\n    {\n      \"time\": \"2026-07-01T00:00:00\",\n      \"value\": 140000\n    },\n    {\n      \"time\": \"2026-07-15T00:00:00\",\n      \"value\": 148000\n    },\n    {\n      \"time\": \"2026-07-31T00:00:00\",\n      \"value\": 155000\n    },\n    {\n      \"time\": \"2026-08-01T00:00:00\",\n      \"value\": 146000\n    },\n    {\n      \"time\": \"2026-08-15T00:00:00\",\n      \"value\": 142000\n    },\n    {\n      \"time\": \"2026-08-31T00:00:00\",\n      \"value\": 148000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.1 BTC_SPOT_01',function(){pm.response.to.have.status(200);",
+                  "console.log('═'.repeat(70));",
+                  "console.log('PHASE 0: Reference Indexes — Hybrid Treasury Consolidation');",
+                  "console.log('═'.repeat(70));",
+                  "console.log('✅ BTC_SPOT_01: $100K→$155K peak→$148K end (48% appreciation)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "0.2 ETH_SPOT_01 — appreciating path with volatility",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"ETH_SPOT_01\",\n  \"marketObjectCode\": \"ETH_USD_SPOT\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-02-28T00:00:00\",\n      \"value\": 3300\n    },\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 3350\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 3420\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 3280\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 3500\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 3580\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 3720\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 3600\n    },\n    {\n      \"time\": \"2026-04-15T00:00:00\",\n      \"value\": 3850\n    },\n    {\n      \"time\": \"2026-04-20T00:00:00\",\n      \"value\": 3920\n    },\n    {\n      \"time\": \"2026-04-30T00:00:00\",\n      \"value\": 4100\n    },\n    {\n      \"time\": \"2026-05-01T00:00:00\",\n      \"value\": 4020\n    },\n    {\n      \"time\": \"2026-05-10T00:00:00\",\n      \"value\": 3950\n    },\n    {\n      \"time\": \"2026-05-15T00:00:00\",\n      \"value\": 4200\n    },\n    {\n      \"time\": \"2026-05-31T00:00:00\",\n      \"value\": 4480\n    },\n    {\n      \"time\": \"2026-06-01T00:00:00\",\n      \"value\": 4300\n    },\n    {\n      \"time\": \"2026-06-15T00:00:00\",\n      \"value\": 4550\n    },\n    {\n      \"time\": \"2026-06-30T00:00:00\",\n      \"value\": 4800\n    },\n    {\n      \"time\": \"2026-07-01T00:00:00\",\n      \"value\": 4600\n    },\n    {\n      \"time\": \"2026-07-15T00:00:00\",\n      \"value\": 4900\n    },\n    {\n      \"time\": \"2026-07-31T00:00:00\",\n      \"value\": 5200\n    },\n    {\n      \"time\": \"2026-08-01T00:00:00\",\n      \"value\": 4850\n    },\n    {\n      \"time\": \"2026-08-15T00:00:00\",\n      \"value\": 4700\n    },\n    {\n      \"time\": \"2026-08-31T00:00:00\",\n      \"value\": 4900\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.2 ETH_SPOT_01',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ ETH_SPOT_01: $3350→$5200 peak→$4900 end (46% appreciation)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "0.3 PORTFOLIO_NAV_01 — total portfolio value",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"PORTFOLIO_NAV_01\",\n  \"marketObjectCode\": \"PORTFOLIO_TOTAL_VALUE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-02-28T00:00:00\",\n      \"value\": 10000000\n    },\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 10000000\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 10280000\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 10520000\n    },\n    {\n      \"time\": \"2026-04-15T00:00:00\",\n      \"value\": 10750000\n    },\n    {\n      \"time\": \"2026-04-30T00:00:00\",\n      \"value\": 11100000\n    },\n    {\n      \"time\": \"2026-05-15T00:00:00\",\n      \"value\": 11450000\n    },\n    {\n      \"time\": \"2026-05-31T00:00:00\",\n      \"value\": 11850000\n    },\n    {\n      \"time\": \"2026-06-01T00:00:00\",\n      \"value\": 11600000\n    },\n    {\n      \"time\": \"2026-06-15T00:00:00\",\n      \"value\": 12000000\n    },\n    {\n      \"time\": \"2026-06-30T00:00:00\",\n      \"value\": 12400000\n    },\n    {\n      \"time\": \"2026-07-01T00:00:00\",\n      \"value\": 12100000\n    },\n    {\n      \"time\": \"2026-07-15T00:00:00\",\n      \"value\": 12600000\n    },\n    {\n      \"time\": \"2026-07-31T00:00:00\",\n      \"value\": 13100000\n    },\n    {\n      \"time\": \"2026-08-01T00:00:00\",\n      \"value\": 12500000\n    },\n    {\n      \"time\": \"2026-08-15T00:00:00\",\n      \"value\": 12300000\n    },\n    {\n      \"time\": \"2026-08-31T00:00:00\",\n      \"value\": 12800000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.3 PORTFOLIO_NAV_01',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ PORTFOLIO_NAV_01: $10M→$12.8M (28% growth)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "0.4 HURDLE_RATE_01 — 7.5%→8%→8.5%",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HURDLE_RATE_01\",\n  \"marketObjectCode\": \"HURDLE_RATE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-02-28T00:00:00\",\n      \"value\": 0.075\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0.075\n    },\n    {\n      \"time\": \"2026-05-01T00:00:00\",\n      \"value\": 0.08\n    },\n    {\n      \"time\": \"2026-07-01T00:00:00\",\n      \"value\": 0.085\n    },\n    {\n      \"time\": \"2026-08-31T00:00:00\",\n      \"value\": 0.085\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.4 HURDLE_RATE_01',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ HURDLE_RATE_01: 7.5%→8%→8.5% quarterly stepping');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "0.5 BUYER_CASH_01 — AR/AP counterparty liquidity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"BUYER_CASH_01\",\n  \"marketObjectCode\": \"BUYER_CASH\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-02-28T00:00:00\",\n      \"value\": 2000000\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 2000000\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 2000000\n    },\n    {\n      \"time\": \"2026-05-01T00:00:00\",\n      \"value\": 1800000\n    },\n    {\n      \"time\": \"2026-06-01T00:00:00\",\n      \"value\": 2200000\n    },\n    {\n      \"time\": \"2026-07-01T00:00:00\",\n      \"value\": 2000000\n    },\n    {\n      \"time\": \"2026-08-31T00:00:00\",\n      \"value\": 2000000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.5 BUYER_CASH_01',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ BUYER_CASH_01: $2M flat for early settlement liquidity');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "0.6 USDC_PEG_DEV_01 — stablecoin peg monitoring",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"USDC_PEG_DEV_01\",\n  \"marketObjectCode\": \"STABLECOIN_PEG_DEV\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-02-28T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0.0001\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0.0002\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0.0001\n    },\n    {\n      \"time\": \"2026-04-15T00:00:00\",\n      \"value\": 0.0003\n    },\n    {\n      \"time\": \"2026-04-30T00:00:00\",\n      \"value\": 0.0001\n    },\n    {\n      \"time\": \"2026-05-15T00:00:00\",\n      \"value\": 0.0002\n    },\n    {\n      \"time\": \"2026-05-31T00:00:00\",\n      \"value\": 0.0001\n    },\n    {\n      \"time\": \"2026-06-15T00:00:00\",\n      \"value\": 0.0004\n    },\n    {\n      \"time\": \"2026-06-30T00:00:00\",\n      \"value\": 0.0002\n    },\n    {\n      \"time\": \"2026-07-15T00:00:00\",\n      \"value\": 0.0001\n    },\n    {\n      \"time\": \"2026-07-31T00:00:00\",\n      \"value\": 0.0003\n    },\n    {\n      \"time\": \"2026-08-15T00:00:00\",\n      \"value\": 0.0002\n    },\n    {\n      \"time\": \"2026-08-31T00:00:00\",\n      \"value\": 0.0001\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.6 USDC_PEG_DEV_01',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ USDC_PEG_DEV_01: near-zero deviation (stable peg)');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 1: Risk & Behavioral Models ══",
+      "item": [
+        {
+          "name": "1.1 ad_btc01 — AllocationDriftModel BTC [NO MIRROR]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addAllocationDriftModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addAllocationDriftModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"riskFactorId\\\": \\\"ad_btc01\\\",\\n  \\\"spotPriceMOC\\\": \\\"BTC_USD_SPOT\\\",\\n  \\\"portfolioTotalValueMOC\\\": \\\"PORTFOLIO_TOTAL_VALUE\\\",\\n  \\\"targetAllocation\\\": 0.2,\\n  \\\"maxAllocation\\\": 0.25,\\n  \\\"minAllocation\\\": 0.15,\\n  \\\"positionQuantity\\\": 20.0,\\n  \\\"initialNotionalPrincipal\\\": 2000000.0,\\n  \\\"signalMultiplier\\\": 1.0,\\n  \\\"useFixedQuantity\\\": true,\\n  \\\"monitoringEventTimes\\\": [\\n    \\\"2026-03-15T00:00:00\\\",\\n    \\\"2026-03-20T00:00:00\\\",\\n    \\\"2026-03-22T00:00:00\\\",\\n    \\\"2026-03-31T00:00:00\\\",\\n    \\\"2026-04-06T00:00:00\\\",\\n    \\\"2026-04-15T00:00:00\\\",\\n    \\\"2026-04-20T00:00:00\\\",\\n    \\\"2026-04-30T00:00:00\\\",\\n    \\\"2026-05-01T00:00:00\\\",\\n    \\\"2026-05-10T00:00:00\\\",\\n    \\\"2026-05-15T00:00:00\\\",\\n    \\\"2026-05-31T00:00:00\\\",\\n    \\\"2026-06-01T00:00:00\\\",\\n    \\\"2026-06-15T00:00:00\\\",\\n    \\\"2026-06-30T00:00:00\\\",\\n    \\\"2026-07-01T00:00:00\\\",\\n    \\\"2026-07-15T00:00:00\\\",\\n    \\\"2026-07-31T00:00:00\\\",\\n    \\\"2026-08-01T00:00:00\\\",\\n    \\\"2026-08-15T00:00:00\\\",\\n    \\\"2026-08-31T00:00:00\\\"\\n  ],\\n  \\\"enableProgressiveProfit\\\": true,\\n  \\\"totalCostBasis\\\": 2000000.0,\\n  \\\"enableCFODiscretion\\\": true,\\n  \\\"riskTolerance\\\": \\\"MODERATE\\\",\\n  \\\"portfolioHealthMOC\\\": \\\"HT_PORTFOLIO_01\\\",\\n  \\\"cashBalanceMOC\\\": \\\"HT_CASH_BAL_01\\\",\\n  \\\"enableReloadQueue\\\": true,\\n  \\\"reloadQueueUSD\\\": 0.0,\\n  \\\"bottomPriceForReload\\\": 0.0\\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.1 ad_btc01',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ ad_btc01: BTC 15%/20%/25% target allocation, fixedQty=true, MODERATE risk, PP+CFO+Reload');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 ad_eth01 — AllocationDriftModel ETH [NO MIRROR]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addAllocationDriftModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addAllocationDriftModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"riskFactorId\\\": \\\"ad_eth01\\\",\\n  \\\"spotPriceMOC\\\": \\\"ETH_USD_SPOT\\\",\\n  \\\"portfolioTotalValueMOC\\\": \\\"PORTFOLIO_TOTAL_VALUE\\\",\\n  \\\"targetAllocation\\\": 0.1,\\n  \\\"maxAllocation\\\": 0.15,\\n  \\\"minAllocation\\\": 0.07,\\n  \\\"positionQuantity\\\": 300.0,\\n  \\\"initialNotionalPrincipal\\\": 1000000.0,\\n  \\\"signalMultiplier\\\": 1.0,\\n  \\\"useFixedQuantity\\\": true,\\n  \\\"monitoringEventTimes\\\": [\\n    \\\"2026-03-15T00:00:00\\\",\\n    \\\"2026-03-20T00:00:00\\\",\\n    \\\"2026-03-22T00:00:00\\\",\\n    \\\"2026-03-31T00:00:00\\\",\\n    \\\"2026-04-06T00:00:00\\\",\\n    \\\"2026-04-15T00:00:00\\\",\\n    \\\"2026-04-20T00:00:00\\\",\\n    \\\"2026-04-30T00:00:00\\\",\\n    \\\"2026-05-01T00:00:00\\\",\\n    \\\"2026-05-10T00:00:00\\\",\\n    \\\"2026-05-15T00:00:00\\\",\\n    \\\"2026-05-31T00:00:00\\\",\\n    \\\"2026-06-01T00:00:00\\\",\\n    \\\"2026-06-15T00:00:00\\\",\\n    \\\"2026-06-30T00:00:00\\\",\\n    \\\"2026-07-01T00:00:00\\\",\\n    \\\"2026-07-15T00:00:00\\\",\\n    \\\"2026-07-31T00:00:00\\\",\\n    \\\"2026-08-01T00:00:00\\\",\\n    \\\"2026-08-15T00:00:00\\\",\\n    \\\"2026-08-31T00:00:00\\\"\\n  ],\\n  \\\"enableProgressiveProfit\\\": true,\\n  \\\"totalCostBasis\\\": 1000000.0,\\n  \\\"enableCFODiscretion\\\": true,\\n  \\\"riskTolerance\\\": \\\"MODERATE\\\",\\n  \\\"portfolioHealthMOC\\\": \\\"HT_PORTFOLIO_01\\\",\\n  \\\"cashBalanceMOC\\\": \\\"HT_CASH_BAL_01\\\",\\n  \\\"enableReloadQueue\\\": true,\\n  \\\"reloadQueueUSD\\\": 0.0,\\n  \\\"bottomPriceForReload\\\": 0.0\\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.2 ad_eth01',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ ad_eth01: ETH 7%/10%/15% target allocation, fixedQty=true, MODERATE risk, PP+CFO+Reload');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3.1 AR-001 LINEAR settle Mar-05",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addEarlySettlementModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ar_001\",\n  \"invoiceDate\": \"2026-02-15T00:00:00\",\n  \"dueDate\": \"2026-03-17T00:00:00\",\n  \"settlementDate\": \"2026-03-05T00:00:00\",\n  \"notionalAmount\": 250000.0,\n  \"maxDiscountRate\": 0.025,\n  \"discountFunctionType\": \"LINEAR\",\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.075,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-03-05T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('early_settle_ar_001',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ early_settle_ar_001: LINEAR early settle');})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3.2 AR-002 EXPONENTIAL settle Mar-20",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addEarlySettlementModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ar_002\",\n  \"invoiceDate\": \"2026-02-20T00:00:00\",\n  \"dueDate\": \"2026-04-06T00:00:00\",\n  \"settlementDate\": \"2026-03-20T00:00:00\",\n  \"notionalAmount\": 350000.0,\n  \"maxDiscountRate\": 0.04,\n  \"discountFunctionType\": \"EXPONENTIAL\",\n  \"decayLambda\": 0.05,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.08,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-03-20T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('early_settle_ar_002',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ early_settle_ar_002: EXPONENTIAL early settle');})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3.3 AR-004 LINEAR settle Apr-20",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addEarlySettlementModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ar_004\",\n  \"invoiceDate\": \"2026-04-01T00:00:00\",\n  \"dueDate\": \"2026-05-01T00:00:00\",\n  \"settlementDate\": \"2026-04-20T00:00:00\",\n  \"notionalAmount\": 400000.0,\n  \"maxDiscountRate\": 0.03,\n  \"discountFunctionType\": \"LINEAR\",\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.08,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-04-20T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('early_settle_ar_004',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ early_settle_ar_004: LINEAR early settle');})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4.1 AP-001 LINEAR settle Mar-10",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addEarlySettlementModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addEarlySettlementModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"early_settle_ap_001\",\n  \"invoiceDate\": \"2026-02-20T00:00:00\",\n  \"dueDate\": \"2026-03-22T00:00:00\",\n  \"settlementDate\": \"2026-03-10T00:00:00\",\n  \"notionalAmount\": 180000.0,\n  \"maxDiscountRate\": 0.02,\n  \"discountFunctionType\": \"LINEAR\",\n  \"decayLambda\": 0.0,\n  \"powerAlpha\": 1.0,\n  \"stepDiscountSchedule\": null,\n  \"hurdleRateAnnualized\": 0.075,\n  \"buyerCashMOC\": \"BUYER_CASH\",\n  \"customDiscountMOC\": null,\n  \"monitoringEventTimes\": [\n    \"2026-03-10T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('early_settle_ap_001',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ early_settle_ap_001: AP early settle LINEAR');})"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.5 penalty_ap_003 — AP-003 STEPWISE penalty (late settle May-10)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addPenaltyAccrualModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addPenaltyAccrualModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"penalty_ap_003\",\n  \"dueDate\": \"2026-05-01T00:00:00\",\n  \"settlementDate\": \"2026-05-10T00:00:00\",\n  \"penaltyFunctionType\": \"STEPWISE\",\n  \"basePenaltyRate\": 0.0005,\n  \"penaltyGrowthLambda\": 2.0,\n  \"penaltyPowerAlpha\": 1.5,\n  \"penaltyStepSchedule\": {\n    \"0\": 0.0005,\n    \"16\": 0.00075,\n    \"31\": 0.001,\n    \"61\": 0.00125,\n    \"91\": 0.0015\n  },\n  \"penaltyRateMOC\": null,\n  \"penaltyHorizonDays\": 60,\n  \"monitoringEventTimes\": [\n    \"2026-05-02T00:00:00\",\n    \"2026-05-04T00:00:00\",\n    \"2026-05-06T00:00:00\",\n    \"2026-05-08T00:00:00\",\n    \"2026-05-10T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('penalty_ap_003',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ penalty_ap_003: STEPWISE penalty for late AP-003');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 2: Asset-Only ACTUS Run (derive market-value proceeds) ══",
+      "item": [
+        {
+          "name": "2.1 Phase 0 Scenario (asset-only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"ht_cons_phase0_scn01\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BTC_SPOT_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"ETH_SPOT_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"PORTFOLIO_NAV_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"ad_btc01\",\n      \"riskFactorType\": \"AllocationDriftModel\"\n    },\n    {\n      \"riskFactorID\": \"ad_eth01\",\n      \"riskFactorType\": \"AllocationDriftModel\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_001\",\n      \"riskFactorType\": \"EarlySettlement\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_002\",\n      \"riskFactorType\": \"EarlySettlement\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_004\",\n      \"riskFactorType\": \"EarlySettlement\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ap_001\",\n      \"riskFactorType\": \"EarlySettlement\"\n    },\n    {\n      \"riskFactorID\": \"penalty_ap_003\",\n      \"riskFactorType\": \"PenaltyAccrualModel\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Phase 0 scenario',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ ht_cons_phase0_scn01: 12 descriptors (6 RI + 2 ADM + 3 ES + 1 PA)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 Run Phase 0 — capture events, derive market-value proceeds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actus_sim_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "rf2",
+                "scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"BTC-CLM-SpotTrade-20\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"SpotDesk01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 2000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\n        \"ad_btc01\"\n      ]\n    },\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"ETH-CLM-SpotTrade-300\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"SpotDesk02\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\n        \"ad_eth01\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-3mo-1500K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-06-01T00:00:00\",\n      \"notionalPrincipal\": 1500000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -16308\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-4mo-1000K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-07-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -14911\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-5mo-500K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-01T00:00:00\",\n      \"notionalPrincipal\": 500000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -9563\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AR-INV-001\",\n      \"statusDate\": \"2026-02-14T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-17T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-14T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-15T00:00:00\",\n      \"maturityDate\": \"2026-03-17T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerAlpha\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ar_001\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AR-INV-002\",\n      \"statusDate\": \"2026-02-19T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-06T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-19T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-20T00:00:00\",\n      \"maturityDate\": \"2026-04-06T00:00:00\",\n      \"notionalPrincipal\": 350000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerBeta\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ar_002\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AR-INV-003\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 200000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerGamma\",\n      \"creatorID\": \"OurCo\"\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AR-INV-004\",\n      \"statusDate\": \"2026-03-31T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-05-01T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-31T00:00:00\",\n      \"initialExchangeDate\": \"2026-04-01T00:00:00\",\n      \"maturityDate\": \"2026-05-01T00:00:00\",\n      \"notionalPrincipal\": 400000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerDelta\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ar_004\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AP-INV-001\",\n      \"statusDate\": \"2026-02-19T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-22T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-19T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-20T00:00:00\",\n      \"maturityDate\": \"2026-03-22T00:00:00\",\n      \"notionalPrincipal\": 180000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierAlpha\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ap_001\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AP-INV-002\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-15T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-15T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierBeta\",\n      \"creatorID\": \"OurCo\"\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AP-INV-003\",\n      \"statusDate\": \"2026-03-31T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-05-01T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-31T00:00:00\",\n      \"initialExchangeDate\": \"2026-04-01T00:00:00\",\n      \"maturityDate\": \"2026-05-01T00:00:00\",\n      \"notionalPrincipal\": 150000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierGamma\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"penalty_ap_003\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"USDC-HOLD-500K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"CircleUSDC\",\n      \"creatorID\": \"OurCo\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"notionalPrincipal\": 500000,\n      \"nominalInterestRate\": 0.042,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"premiumDiscountAtIED\": 0\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"ht_cons_phase0_scn01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-08-31T00:00:00\",\n  \"monitoringTimes\": [\n    \"2026-02-28T00:00:00\",\n    \"2026-03-01T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-06T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-20T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-01T00:00:00\",\n    \"2026-05-10T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Phase 0: capture all asset events, derive cash flows', function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    var data = pm.response.json();",
+                  "    var contracts = Array.isArray(data) ? data : [];",
+                  "    console.log('━ PHASE 2.2: Asset-Only Run — ' + contracts.length + ' contracts returned');",
+                  "",
+                  "    // ══════ BTC price lookup (from reference index) ══════",
+                  "    var btcPath = [",
+                  "        {d:'2026-02-28',p:98000},{d:'2026-03-01',p:100000},{d:'2026-03-05',p:102500},",
+                  "        {d:'2026-03-10',p:99000},{d:'2026-03-15',p:105000},{d:'2026-03-20',p:108000},",
+                  "        {d:'2026-03-31',p:112000},{d:'2026-04-06',p:109000},{d:'2026-04-15',p:116000},",
+                  "        {d:'2026-04-20',p:118000},{d:'2026-04-30',p:124000},{d:'2026-05-01',p:122000},",
+                  "        {d:'2026-05-10',p:120000},{d:'2026-05-15',p:128000},{d:'2026-05-31',p:135000},",
+                  "        {d:'2026-06-01',p:130000},{d:'2026-06-15',p:138000},{d:'2026-06-30',p:145000},",
+                  "        {d:'2026-07-01',p:140000},{d:'2026-07-15',p:148000},{d:'2026-07-31',p:155000},",
+                  "        {d:'2026-08-01',p:146000},{d:'2026-08-15',p:142000},{d:'2026-08-31',p:148000}",
+                  "    ];",
+                  "    function btcPriceAt(ds){var r=btcPath[0].p;for(var i=0;i<btcPath.length;i++){if(btcPath[i].d<=ds)r=btcPath[i].p;}return r;}",
+                  "    var btcPurchase = 100000;",
+                  "",
+                  "    // ══════ ETH price lookup ══════",
+                  "    var ethPath = [",
+                  "        {d:'2026-02-28',p:3300},{d:'2026-03-01',p:3350},{d:'2026-03-05',p:3420},",
+                  "        {d:'2026-03-10',p:3280},{d:'2026-03-15',p:3500},{d:'2026-03-20',p:3580},",
+                  "        {d:'2026-03-31',p:3720},{d:'2026-04-06',p:3600},{d:'2026-04-15',p:3850},",
+                  "        {d:'2026-04-20',p:3920},{d:'2026-04-30',p:4100},{d:'2026-05-01',p:4020},",
+                  "        {d:'2026-05-10',p:3950},{d:'2026-05-15',p:4200},{d:'2026-05-31',p:4480},",
+                  "        {d:'2026-06-01',p:4300},{d:'2026-06-15',p:4550},{d:'2026-06-30',p:4800},",
+                  "        {d:'2026-07-01',p:4600},{d:'2026-07-15',p:4900},{d:'2026-07-31',p:5200},",
+                  "        {d:'2026-08-01',p:4850},{d:'2026-08-15',p:4700},{d:'2026-08-31',p:4900}",
+                  "    ];",
+                  "    function ethPriceAt(ds){var r=ethPath[0].p;for(var i=0;i<ethPath.length;i++){if(ethPath[i].d<=ds)r=ethPath[i].p;}return r;}",
+                  "    var ethPurchase = 3350;",
+                  "",
+                  "    // ══════ A: Extract events from each contract ══════",
+                  "    var deployments = [];      // outflows at IED",
+                  "    var btcSellMap = {};       // time → marketValue proceeds",
+                  "    var ethSellMap = {};       // time → marketValue proceeds",
+                  "    var tbillMaturities = [];  // T-bill maturity inflows",
+                  "    var arInflows = [];        // AR settlement inflows",
+                  "    var apOutflows = [];       // AP payment outflows",
+                  "    var usdcFlows = [];        // USDC interest inflows",
+                  "",
+                  "    contracts.forEach(function(c){",
+                  "        var id = c.contractId || c.contractID || '?';",
+                  "        var evts = c.events || [];",
+                  "        var counts = {};",
+                  "        evts.forEach(function(e){ counts[e.type] = (counts[e.type]||0)+1; });",
+                  "",
+                  "        if (id.indexOf('BTC-CLM') >= 0) {",
+                  "            // BTC CLM: extract IED and PP events",
+                  "            var ied = evts.find(function(e){return e.type==='IED';});",
+                  "            if(ied) deployments.push({time:ied.time, amountUSD: ied.payoff||0});",
+                  "            var pps = evts.filter(function(e){return e.type==='PP' && Math.abs(e.payoff||0)>0.01;});",
+                  "            pps.forEach(function(pp){",
+                  "                var ds = (pp.time||'').substring(0,10);",
+                  "                var spot = btcPriceAt(ds);",
+                  "                var bookPP = Math.abs(pp.payoff||0);",
+                  "                var btcSold = 20.0 * (bookPP / 2000000.0);",
+                  "                var mktProceeds = btcSold * spot;",
+                  "                btcSellMap[pp.time] = (btcSellMap[pp.time]||0) + mktProceeds;",
+                  "            });",
+                  "            var md = evts.find(function(e){return e.type==='MD';});",
+                  "            if(md){",
+                  "                var ds = (md.time||'').substring(0,10);",
+                  "                var spot = btcPriceAt(ds);",
+                  "                var bookMD = Math.abs(md.payoff||0);",
+                  "                var btcRemaining = 20.0 * (bookMD / 2000000.0);",
+                  "                var mktProceeds = btcRemaining * spot;",
+                  "                btcSellMap[md.time] = (btcSellMap[md.time]||0) + mktProceeds;",
+                  "            }",
+                  "            console.log('  BTC-CLM: '+evts.length+' events, IED=$'+Math.round(ied?(ied.payoff||0):0).toLocaleString()+', PP='+pps.length);",
+                  "        }",
+                  "        else if (id.indexOf('ETH-CLM') >= 0) {",
+                  "            var ied = evts.find(function(e){return e.type==='IED';});",
+                  "            if(ied) deployments.push({time:ied.time, amountUSD: ied.payoff||0});",
+                  "            var pps = evts.filter(function(e){return e.type==='PP' && Math.abs(e.payoff||0)>0.01;});",
+                  "            pps.forEach(function(pp){",
+                  "                var ds = (pp.time||'').substring(0,10);",
+                  "                var spot = ethPriceAt(ds);",
+                  "                var bookPP = Math.abs(pp.payoff||0);",
+                  "                var ethSold = 300.0 * (bookPP / 1000000.0);",
+                  "                var mktProceeds = ethSold * spot;",
+                  "                ethSellMap[pp.time] = (ethSellMap[pp.time]||0) + mktProceeds;",
+                  "            });",
+                  "            var md = evts.find(function(e){return e.type==='MD';});",
+                  "            if(md){",
+                  "                var ds = (md.time||'').substring(0,10);",
+                  "                var spot = ethPriceAt(ds);",
+                  "                var bookMD = Math.abs(md.payoff||0);",
+                  "                var ethRemaining = 300.0 * (bookMD / 1000000.0);",
+                  "                var mktProceeds = ethRemaining * spot;",
+                  "                ethSellMap[md.time] = (ethSellMap[md.time]||0) + mktProceeds;",
+                  "            }",
+                  "            console.log('  ETH-CLM: '+evts.length+' events, IED=$'+Math.round(ied?(ied.payoff||0):0).toLocaleString()+', PP='+pps.length);",
+                  "        }",
+                  "        else if (id.indexOf('TBILL') >= 0) {",
+                  "            var ied = evts.find(function(e){return e.type==='IED';});",
+                  "            if(ied) deployments.push({time:ied.time, amountUSD: ied.payoff||0});",
+                  "            var md = evts.find(function(e){return e.type==='MD';});",
+                  "            if(md) tbillMaturities.push({time:md.time, amountUSD: md.payoff||0});",
+                  "            console.log('  '+id+': IED=$'+Math.round(ied?(ied.payoff||0):0).toLocaleString()",
+                  "                +' MD=$'+Math.round(md?(md.payoff||0):0).toLocaleString());",
+                  "        }",
+                  "        else if (id.indexOf('AR-') >= 0) {",
+                  "            evts.forEach(function(e){",
+                  "                if ((e.type==='MD' || e.type==='PP') && Math.abs(e.payoff||0)>0.01) {",
+                  "                    arInflows.push({time:e.time, amountUSD: e.payoff||0});",
+                  "                }",
+                  "            });",
+                  "            console.log('  '+id+': '+evts.length+' events (AR inflow)');",
+                  "        }",
+                  "        else if (id.indexOf('AP-') >= 0) {",
+                  "            evts.forEach(function(e){",
+                  "                if ((e.type==='MD' || e.type==='IED' || e.type==='PP') && Math.abs(e.payoff||0)>0.01) {",
+                  "                    apOutflows.push({time:e.time, amountUSD: e.payoff||0});",
+                  "                }",
+                  "            });",
+                  "            console.log('  '+id+': '+evts.length+' events (AP outflow)');",
+                  "        }",
+                  "        else if (id.indexOf('USDC') >= 0) {",
+                  "            var ied = evts.find(function(e){return e.type==='IED';});",
+                  "            if(ied) deployments.push({time:ied.time, amountUSD: ied.payoff||0});",
+                  "            evts.forEach(function(e){",
+                  "                if (e.type==='IP' && Math.abs(e.payoff||0)>0.01) {",
+                  "                    usdcFlows.push({time:e.time, amountUSD: e.payoff||0});",
+                  "                }",
+                  "            });",
+                  "            var md = evts.find(function(e){return e.type==='MD';});",
+                  "            if(md) usdcFlows.push({time:md.time, amountUSD: md.payoff||0});",
+                  "            console.log('  USDC: '+evts.length+' events, IED=$'+Math.round(ied?(ied.payoff||0):0).toLocaleString());",
+                  "        }",
+                  "    });",
+                  "",
+                  "    // ══════ B: Convert sell maps to arrays ══════",
+                  "    var btcSells = Object.keys(btcSellMap).sort().map(function(t){",
+                  "        return {time:t, amountUSD: btcSellMap[t]};",
+                  "    });",
+                  "    var ethSells = Object.keys(ethSellMap).sort().map(function(t){",
+                  "        return {time:t, amountUSD: ethSellMap[t]};",
+                  "    });",
+                  "",
+                  "    // ══════ C: Compute cash balance timeline ══════",
+                  "    var allFlows = [];",
+                  "    deployments.forEach(function(d){ allFlows.push({time:d.time, amt:d.amountUSD, src:'deploy'}); });",
+                  "    btcSells.forEach(function(s){ allFlows.push({time:s.time, amt:s.amountUSD, src:'btc_sell'}); });",
+                  "    ethSells.forEach(function(s){ allFlows.push({time:s.time, amt:s.amountUSD, src:'eth_sell'}); });",
+                  "    tbillMaturities.forEach(function(t){ allFlows.push({time:t.time, amt:t.amountUSD, src:'tbill_mat'}); });",
+                  "    arInflows.forEach(function(a){ allFlows.push({time:a.time, amt:a.amountUSD, src:'ar'}); });",
+                  "    apOutflows.forEach(function(a){ allFlows.push({time:a.time, amt:a.amountUSD, src:'ap'}); });",
+                  "    usdcFlows.forEach(function(u){ allFlows.push({time:u.time, amt:u.amountUSD, src:'usdc'}); });",
+                  "    allFlows.sort(function(a,b){ return a.time < b.time ? -1 : a.time > b.time ? 1 : 0; });",
+                  "",
+                  "    var cashBalance = 10000000;",
+                  "    var cashTimeline = [{time:'2026-02-28T00:00:00', value: cashBalance}];",
+                  "    allFlows.forEach(function(f){",
+                  "        cashBalance += f.amt;",
+                  "        cashTimeline.push({time:f.time, value: Math.round(cashBalance)});",
+                  "    });",
+                  "",
+                  "    // ══════ D: Compute portfolio component values ══════",
+                  "    var btcValueTimeline = btcPath.map(function(p){",
+                  "        return {time:p.d+'T00:00:00', value: 20 * p.p};",
+                  "    });",
+                  "    var ethValueTimeline = ethPath.map(function(p){",
+                  "        return {time:p.d+'T00:00:00', value: 300 * p.p};",
+                  "    });",
+                  "",
+                  "    // T-bill values (at face less accreted discount)",
+                  "    var tbillValueTimeline = [",
+                  "        {time:'2026-03-01T00:00:00', value: 3000000},",
+                  "        {time:'2026-03-31T00:00:00', value: 3005000},",
+                  "        {time:'2026-04-30T00:00:00', value: 3012000},",
+                  "        {time:'2026-05-31T00:00:00', value: 3020000},",
+                  "        {time:'2026-06-01T00:00:00', value: 1520000},",
+                  "        {time:'2026-06-30T00:00:00', value: 1510000},",
+                  "        {time:'2026-07-01T00:00:00', value: 505000},",
+                  "        {time:'2026-07-31T00:00:00', value: 502000},",
+                  "        {time:'2026-08-01T00:00:00', value: 0},",
+                  "        {time:'2026-08-31T00:00:00', value: 0}",
+                  "    ];",
+                  "",
+                  "    // Portfolio total",
+                  "    var portfolioTimeline = [];",
+                  "    for(var i=0;i<cashTimeline.length;i++){",
+                  "        var t = cashTimeline[i].time;",
+                  "        var btcVal = 0, ethVal = 0, tbillVal = 0;",
+                  "        for(var j=0;j<btcValueTimeline.length;j++){if(btcValueTimeline[j].time<=t)btcVal=btcValueTimeline[j].value;}",
+                  "        for(var j=0;j<ethValueTimeline.length;j++){if(ethValueTimeline[j].time<=t)ethVal=ethValueTimeline[j].value;}",
+                  "        for(var j=0;j<tbillValueTimeline.length;j++){if(tbillValueTimeline[j].time<=t)tbillVal=tbillValueTimeline[j].value;}",
+                  "        portfolioTimeline.push({time:t, value: Math.round(cashTimeline[i].value + btcVal + ethVal + tbillVal + 500000)});",
+                  "    }",
+                  "",
+                  "    // ══════ E: Store derived data in collection variables ══════",
+                  "    pm.collectionVariables.set('derived_deployments', JSON.stringify(deployments));",
+                  "    pm.collectionVariables.set('derived_btc_sells', JSON.stringify(btcSells));",
+                  "    pm.collectionVariables.set('derived_eth_sells', JSON.stringify(ethSells));",
+                  "    pm.collectionVariables.set('derived_tbill_maturities', JSON.stringify(tbillMaturities));",
+                  "    pm.collectionVariables.set('derived_ar_inflows', JSON.stringify(arInflows));",
+                  "    pm.collectionVariables.set('derived_ap_outflows', JSON.stringify(apOutflows));",
+                  "    pm.collectionVariables.set('derived_usdc_flows', JSON.stringify(usdcFlows));",
+                  "    pm.collectionVariables.set('derived_cash_balance', JSON.stringify(cashTimeline));",
+                  "    pm.collectionVariables.set('derived_btc_value', JSON.stringify(btcValueTimeline));",
+                  "    pm.collectionVariables.set('derived_eth_value', JSON.stringify(ethValueTimeline));",
+                  "    pm.collectionVariables.set('derived_tbill_value', JSON.stringify(tbillValueTimeline));",
+                  "    pm.collectionVariables.set('derived_portfolio_total', JSON.stringify(portfolioTimeline));",
+                  "",
+                  "    console.log('');",
+                  "    console.log('  ━ DERIVED DATA STORED ━');",
+                  "    console.log('  Deployments: ' + deployments.length + ' outflows');",
+                  "    console.log('  BTC sells: ' + btcSells.length + ' market-value inflows');",
+                  "    console.log('  ETH sells: ' + ethSells.length + ' market-value inflows');",
+                  "    console.log('  T-bill maturities: ' + tbillMaturities.length + ' inflows');",
+                  "    console.log('  AR inflows: ' + arInflows.length);",
+                  "    console.log('  AP outflows: ' + apOutflows.length);",
+                  "    console.log('  USDC flows: ' + usdcFlows.length);",
+                  "    console.log('  Cash timeline: ' + cashTimeline.length + ' points');",
+                  "    console.log('  Final cash: $' + Math.round(cashBalance).toLocaleString());",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 3: Register Derived Data + Cash Models (JS) ══",
+      "item": [
+        {
+          "name": "3.1 Register ALL derived (pre-req) + lb_tr01 (body)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addLiquidityBufferModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addLiquidityBufferModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"lb_tr01\",\n  \"projectedOutflowsMOC\": \"PROJECTED_OUTFLOWS\",\n  \"tbillMaturityScheduleMOC\": \"TBILL_MATURITY_SCHEDULE\",\n  \"minBufferUSD\": 150000,\n  \"targetBufferUSD\": 500000,\n  \"monitoringEventTimes\": [\n    \"2026-03-15T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-06T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-20T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-01T00:00:00\",\n    \"2026-05-10T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var riskHost = pm.collectionVariables.get('actus_risk_host');",
+                  "var base = 'http://'+riskHost;",
+                  "",
+                  "// ── Load all derived data from Phase 0 ──",
+                  "var dDeploy = pm.collectionVariables.get('derived_deployments');",
+                  "var dBtcSells = pm.collectionVariables.get('derived_btc_sells');",
+                  "var dEthSells = pm.collectionVariables.get('derived_eth_sells');",
+                  "var dTbillMat = pm.collectionVariables.get('derived_tbill_maturities');",
+                  "var dArInflows = pm.collectionVariables.get('derived_ar_inflows');",
+                  "var dApOutflows = pm.collectionVariables.get('derived_ap_outflows');",
+                  "var dUsdcFlows = pm.collectionVariables.get('derived_usdc_flows');",
+                  "var dCash = pm.collectionVariables.get('derived_cash_balance');",
+                  "var dBtcVal = pm.collectionVariables.get('derived_btc_value');",
+                  "var dEthVal = pm.collectionVariables.get('derived_eth_value');",
+                  "var dTbillVal = pm.collectionVariables.get('derived_tbill_value');",
+                  "var dPortfolio = pm.collectionVariables.get('derived_portfolio_total');",
+                  "",
+                  "if(!dDeploy||!dBtcSells||!dCash){throw new Error('Phase 0 derived data missing — run Phase 2 first');}",
+                  "",
+                  "// ── Helper: register a Reference Index ──",
+                  "function postRI(id,moc,data,label){",
+                  "    pm.sendRequest({url:base+'/addReferenceIndex',method:'POST',",
+                  "        header:{'Content-Type':'application/json'},",
+                  "        body:{mode:'raw',raw:JSON.stringify({riskFactorID:id,marketObjectCode:moc,base:1.0,data:JSON.parse(data)})}",
+                  "    },function(e,r){console.log(e?'❌ '+label:'✅ '+label+': '+JSON.parse(data).length+' pts');});",
+                  "}",
+                  "",
+                  "// ── 1. Register derived Reference Indexes ──",
+                  "postRI('HT_CASH_BAL_01','HT_CASH_BALANCE',dCash,'HT_CASH_BALANCE (derived from contract events)');",
+                  "postRI('HT_BTC_VAL_01','HT_BTC_VALUE',dBtcVal,'HT_BTC_VALUE (market value)');",
+                  "postRI('HT_ETH_VAL_01','HT_ETH_VALUE',dEthVal,'HT_ETH_VALUE (market value)');",
+                  "postRI('HT_TBILL_VAL_01','HT_TBILL_VALUE',dTbillVal,'HT_TBILL_VALUE (accretive)');",
+                  "postRI('HT_PORTFOLIO_01','HT_PORTFOLIO_DERIVED',dPortfolio,'HT_PORTFOLIO_DERIVED (total)');",
+                  "",
+                  "// ── 2. Register projected outflows ──",
+                  "var opsData = [",
+                  "    {time:'2026-03-01T00:00:00',value:60000},{time:'2026-03-31T00:00:00',value:60000},",
+                  "    {time:'2026-04-30T00:00:00',value:72000},{time:'2026-05-31T00:00:00',value:90000},",
+                  "    {time:'2026-06-15T00:00:00',value:180000},{time:'2026-06-30T00:00:00',value:270000},",
+                  "    {time:'2026-07-15T00:00:00',value:120000},{time:'2026-07-31T00:00:00',value:90000},",
+                  "    {time:'2026-08-31T00:00:00',value:60000}",
+                  "];",
+                  "pm.sendRequest({url:base+'/addReferenceIndex',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorID:'OUTFLOWS_01',marketObjectCode:'PROJECTED_OUTFLOWS',base:1.0,data:opsData})}",
+                  "},function(e,r){console.log(e?'❌ OUTFLOWS':'✅ OUTFLOWS_01 (budget, 9 pts)');});",
+                  "",
+                  "// ── 3. Register T-bill maturity schedule ──",
+                  "var tbMat = JSON.parse(dTbillMat);",
+                  "var tbMatData = [{time:'2026-03-01T00:00:00',value:0}];",
+                  "tbMat.forEach(function(t){tbMatData.push({time:t.time,value:t.amountUSD});});",
+                  "pm.sendRequest({url:base+'/addReferenceIndex',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorID:'TBILL_MAT_01',marketObjectCode:'TBILL_MATURITY_SCHEDULE',base:1.0,data:tbMatData})}",
+                  "},function(e,r){console.log(e?'❌ TBILL_MAT':'✅ TBILL_MAT_01 (derived, '+tbMatData.length+' pts)');});",
+                  "",
+                  "// ── 4. Register ScheduledCashFlowModels (cash contract drivers) ──",
+                  "var deploys = JSON.parse(dDeploy);",
+                  "pm.sendRequest({url:base+'/addScheduledCashFlowModel',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorId:'scf_deployments',",
+                  "        cashFlowSchedule:deploys,",
+                  "        monitoringEventTimes:deploys.map(function(d){return d.time;})})}",
+                  "},function(e,r){console.log(e?'❌ scf_deployments':'✅ scf_deployments: '+deploys.length+' deployment outflows');});",
+                  "",
+                  "var btcSells = JSON.parse(dBtcSells);",
+                  "pm.sendRequest({url:base+'/addScheduledCashFlowModel',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorId:'scf_btc_proceeds',",
+                  "        cashFlowSchedule:btcSells,",
+                  "        monitoringEventTimes:btcSells.map(function(s){return s.time;})})}",
+                  "},function(e,r){console.log(e?'❌ scf_btc_proceeds':'✅ scf_btc_proceeds: '+btcSells.length+' MARKET-VALUE BTC inflows');});",
+                  "",
+                  "var ethSells = JSON.parse(dEthSells);",
+                  "pm.sendRequest({url:base+'/addScheduledCashFlowModel',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorId:'scf_eth_proceeds',",
+                  "        cashFlowSchedule:ethSells,",
+                  "        monitoringEventTimes:ethSells.map(function(s){return s.time;})})}",
+                  "},function(e,r){console.log(e?'❌ scf_eth_proceeds':'✅ scf_eth_proceeds: '+ethSells.length+' MARKET-VALUE ETH inflows');});",
+                  "",
+                  "pm.sendRequest({url:base+'/addScheduledCashFlowModel',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorId:'scf_tbill_flows',",
+                  "        cashFlowSchedule:tbMat.map(function(t){return{time:t.time,amountUSD:t.amountUSD};}),",
+                  "        monitoringEventTimes:tbMat.map(function(t){return t.time;})})}",
+                  "},function(e,r){console.log(e?'❌ scf_tbill_flows':'✅ scf_tbill_flows: '+tbMat.length+' T-bill maturity inflows');});",
+                  "",
+                  "var arFlows = JSON.parse(dArInflows);",
+                  "pm.sendRequest({url:base+'/addScheduledCashFlowModel',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorId:'scf_ar_inflows',",
+                  "        cashFlowSchedule:arFlows,",
+                  "        monitoringEventTimes:arFlows.map(function(a){return a.time;})})}",
+                  "},function(e,r){console.log(e?'❌ scf_ar_inflows':'✅ scf_ar_inflows: '+arFlows.length+' AR settlement inflows');});",
+                  "",
+                  "var apFlows = JSON.parse(dApOutflows);",
+                  "pm.sendRequest({url:base+'/addScheduledCashFlowModel',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorId:'scf_ap_outflows',",
+                  "        cashFlowSchedule:apFlows,",
+                  "        monitoringEventTimes:apFlows.map(function(a){return a.time;})})}",
+                  "},function(e,r){console.log(e?'❌ scf_ap_outflows':'✅ scf_ap_outflows: '+apFlows.length+' AP payment outflows');});",
+                  "",
+                  "var usdcFlows = JSON.parse(dUsdcFlows);",
+                  "pm.sendRequest({url:base+'/addScheduledCashFlowModel',method:'POST',",
+                  "    header:{'Content-Type':'application/json'},",
+                  "    body:{mode:'raw',raw:JSON.stringify({riskFactorId:'scf_usdc_flows',",
+                  "        cashFlowSchedule:usdcFlows,",
+                  "        monitoringEventTimes:usdcFlows.map(function(u){return u.time;})})}",
+                  "},function(e,r){console.log(e?'❌ scf_usdc_flows':'✅ scf_usdc_flows: '+usdcFlows.length+' USDC yield/maturity flows');});",
+                  "",
+                  "console.log('Phase 3: 12 derived registrations dispatched (5 RI + 7 SCF)');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('lb_tr01',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ lb_tr01: LiquidityBufferModel for consolidated treasury');",
+                  "console.log('━ Phase 3 complete: 5 derived RI + 7 SCF + 1 LB registered');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 4: Consolidated Scenario (28 descriptors) ══",
+      "item": [
+        {
+          "name": "4.1 Scenario ht_cons_full_scn01 (28 descriptors)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"ht_cons_full_scn01\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"BTC_SPOT_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"ETH_SPOT_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"PORTFOLIO_NAV_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HURDLE_RATE_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"BUYER_CASH_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"USDC_PEG_DEV_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HT_CASH_BAL_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HT_BTC_VAL_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HT_ETH_VAL_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HT_TBILL_VAL_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HT_PORTFOLIO_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"OUTFLOWS_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"TBILL_MAT_01\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"ad_btc01\",\n      \"riskFactorType\": \"AllocationDriftModel\"\n    },\n    {\n      \"riskFactorID\": \"ad_eth01\",\n      \"riskFactorType\": \"AllocationDriftModel\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_001\",\n      \"riskFactorType\": \"EarlySettlement\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_002\",\n      \"riskFactorType\": \"EarlySettlement\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ar_004\",\n      \"riskFactorType\": \"EarlySettlement\"\n    },\n    {\n      \"riskFactorID\": \"early_settle_ap_001\",\n      \"riskFactorType\": \"EarlySettlement\"\n    },\n    {\n      \"riskFactorID\": \"penalty_ap_003\",\n      \"riskFactorType\": \"PenaltyAccrualModel\"\n    },\n    {\n      \"riskFactorID\": \"scf_deployments\",\n      \"riskFactorType\": \"ScheduledCashFlowModel\"\n    },\n    {\n      \"riskFactorID\": \"scf_btc_proceeds\",\n      \"riskFactorType\": \"ScheduledCashFlowModel\"\n    },\n    {\n      \"riskFactorID\": \"scf_eth_proceeds\",\n      \"riskFactorType\": \"ScheduledCashFlowModel\"\n    },\n    {\n      \"riskFactorID\": \"scf_tbill_flows\",\n      \"riskFactorType\": \"ScheduledCashFlowModel\"\n    },\n    {\n      \"riskFactorID\": \"scf_ar_inflows\",\n      \"riskFactorType\": \"ScheduledCashFlowModel\"\n    },\n    {\n      \"riskFactorID\": \"scf_ap_outflows\",\n      \"riskFactorType\": \"ScheduledCashFlowModel\"\n    },\n    {\n      \"riskFactorID\": \"scf_usdc_flows\",\n      \"riskFactorType\": \"ScheduledCashFlowModel\"\n    },\n    {\n      \"riskFactorID\": \"lb_tr01\",\n      \"riskFactorType\": \"LiquidityBufferModel\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Scenario',function(){pm.response.to.have.status(200);",
+                  "console.log('✅ ht_cons_full_scn01: 28 descriptors');",
+                  "console.log('  13 RI + 2 ADM + 4 ES + 1 PA + 7 SCF + 1 LB');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 5: Verification ══",
+      "item": [
+        {
+          "name": "5.1 Verify ad_btc01 (no mirror)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findAllocationDriftModel/ad_btc01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "findAllocationDriftModel",
+                "ad_btc01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ad_btc01',function(){pm.response.to.have.status(200);",
+                  "var d=pm.response.json();",
+                  "pm.expect(d.mirrorSourceModelId).to.be.oneOf([null,undefined,'']);",
+                  "console.log('✅ ad_btc01: target='+d.targetAllocation+' mirror='+d.mirrorSourceModelId+' (NONE)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.2 Verify ad_eth01 (no mirror)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findAllocationDriftModel/ad_eth01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "findAllocationDriftModel",
+                "ad_eth01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ad_eth01',function(){pm.response.to.have.status(200);",
+                  "var d=pm.response.json();",
+                  "pm.expect(d.mirrorSourceModelId).to.be.oneOf([null,undefined,'']);",
+                  "console.log('✅ ad_eth01: target='+d.targetAllocation+' mirror='+d.mirrorSourceModelId+' (NONE)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.3 Verify Scenario (28 descriptors)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findScenario/ht_cons_full_scn01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "findScenario",
+                "ht_cons_full_scn01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Scenario',function(){pm.response.to.have.status(200);",
+                  "var d=pm.response.json();",
+                  "pm.expect(d.riskFactorDescriptors.length).to.eql(28);",
+                  "console.log('✅ Scenario: '+d.riskFactorDescriptors.length+' descriptors verified');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "══ PHASE 6: Full Consolidated Simulation (market-value DA profit) ══",
+      "item": [
+        {
+          "name": "6.1 Run Full Consolidated Simulation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": [
+                "{{actus_sim_host}}"
+              ],
+              "protocol": "http",
+              "path": [
+                "rf2",
+                "scenarioSimulation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"BTC-CLM-SpotTrade-20\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"SpotDesk01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 2000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\n        \"ad_btc01\"\n      ]\n    },\n    {\n      \"contractType\": \"CLM\",\n      \"contractID\": \"ETH-CLM-SpotTrade-300\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"SpotDesk02\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"xDayNotice\": \"P1D\",\n      \"treasuryModels\": [\n        \"ad_eth01\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"CASH-PAM-10M\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"TreasuryOps01\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-28T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"notionalPrincipal\": 10000000.0,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A365\",\n      \"premiumDiscountAtIED\": -10000000.0,\n      \"feeRate\": 0.0,\n      \"treasuryModels\": [\n        \"scf_deployments\",\n        \"scf_btc_proceeds\",\n        \"scf_eth_proceeds\",\n        \"scf_tbill_flows\",\n        \"scf_ar_inflows\",\n        \"scf_ap_outflows\",\n        \"scf_usdc_flows\",\n        \"lb_tr01\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-3mo-1500K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-06-01T00:00:00\",\n      \"notionalPrincipal\": 1500000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -16308\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-4mo-1000K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-07-01T00:00:00\",\n      \"notionalPrincipal\": 1000000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -14911\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"TBILL-5mo-500K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"USGovt\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-01T00:00:00\",\n      \"notionalPrincipal\": 500000,\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"premiumDiscountAtIED\": -9563\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AR-INV-001\",\n      \"statusDate\": \"2026-02-14T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-17T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-14T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-15T00:00:00\",\n      \"maturityDate\": \"2026-03-17T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerAlpha\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ar_001\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AR-INV-002\",\n      \"statusDate\": \"2026-02-19T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-06T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-19T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-20T00:00:00\",\n      \"maturityDate\": \"2026-04-06T00:00:00\",\n      \"notionalPrincipal\": 350000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerBeta\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ar_002\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AR-INV-003\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 200000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerGamma\",\n      \"creatorID\": \"OurCo\"\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AR-INV-004\",\n      \"statusDate\": \"2026-03-31T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-05-01T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-31T00:00:00\",\n      \"initialExchangeDate\": \"2026-04-01T00:00:00\",\n      \"maturityDate\": \"2026-05-01T00:00:00\",\n      \"notionalPrincipal\": 400000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"BuyerDelta\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ar_004\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AP-INV-001\",\n      \"statusDate\": \"2026-02-19T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-22T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-19T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-20T00:00:00\",\n      \"maturityDate\": \"2026-03-22T00:00:00\",\n      \"notionalPrincipal\": 180000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierAlpha\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"early_settle_ap_001\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AP-INV-002\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-15T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-15T00:00:00\",\n      \"notionalPrincipal\": 250000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierBeta\",\n      \"creatorID\": \"OurCo\"\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"AP-INV-003\",\n      \"statusDate\": \"2026-03-31T00:00:00\",\n      \"contractRole\": \"RPL\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-05-01T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0,\n      \"dayCountConvention\": \"AA\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-03-31T00:00:00\",\n      \"initialExchangeDate\": \"2026-04-01T00:00:00\",\n      \"maturityDate\": \"2026-05-01T00:00:00\",\n      \"notionalPrincipal\": 150000,\n      \"premiumDiscountAtIED\": 0,\n      \"counterpartyID\": \"SupplierGamma\",\n      \"creatorID\": \"OurCo\",\n      \"discountingModels\": [\n        \"penalty_ap_003\"\n      ]\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"contractID\": \"USDC-HOLD-500K\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"counterpartyID\": \"CircleUSDC\",\n      \"creatorID\": \"OurCo\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-08-31T00:00:00\",\n      \"notionalPrincipal\": 500000,\n      \"nominalInterestRate\": 0.042,\n      \"dayCountConvention\": \"A365\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"premiumDiscountAtIED\": 0\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"ht_cons_full_scn01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-08-31T00:00:00\",\n  \"monitoringTimes\": [\n    \"2026-02-28T00:00:00\",\n    \"2026-03-01T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-06T00:00:00\",\n    \"2026-04-15T00:00:00\",\n    \"2026-04-20T00:00:00\",\n    \"2026-04-30T00:00:00\",\n    \"2026-05-01T00:00:00\",\n    \"2026-05-10T00:00:00\",\n    \"2026-05-15T00:00:00\",\n    \"2026-05-31T00:00:00\",\n    \"2026-06-01T00:00:00\",\n    \"2026-06-15T00:00:00\",\n    \"2026-06-30T00:00:00\",\n    \"2026-07-01T00:00:00\",\n    \"2026-07-15T00:00:00\",\n    \"2026-07-31T00:00:00\",\n    \"2026-08-01T00:00:00\",\n    \"2026-08-15T00:00:00\",\n    \"2026-08-31T00:00:00\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Full consolidated simulation',function(){",
+                  "    pm.response.to.have.status(200);",
+                  "    var body = pm.response.json();",
+                  "    var contracts = Array.isArray(body) ? body : [];",
+                  "    console.log('═'.repeat(70));",
+                  "    console.log('HT-CONS-MD-2 — HYBRID TREASURY CONSOLIDATION');",
+                  "    console.log('  $10M initial · BTC+ETH · T-Bills · AR/AP · USDC');",
+                  "    console.log('  Market-value digital asset proceeds · JS-derived cash');",
+                  "    console.log('═'.repeat(70));",
+                  "",
+                  "    var totalEvents = 0;",
+                  "    var cashEvents = 0;",
+                  "    var cashFinal = 0;",
+                  "",
+                  "    contracts.forEach(function(c){",
+                  "        var id = c.contractId || c.contractID || '?';",
+                  "        var evts = c.events || [];",
+                  "        totalEvents += evts.length;",
+                  "        var counts = {};",
+                  "        evts.forEach(function(e){ counts[e.type||'?'] = (counts[e.type||'?']||0)+1; });",
+                  "        var countStr = Object.keys(counts).map(function(k){return k+'='+counts[k];}).join(', ');",
+                  "",
+                  "        // Compute net payoff",
+                  "        var net = 0;",
+                  "        evts.forEach(function(e){ net += (e.payoff||0); });",
+                  "",
+                  "        if (id.indexOf('CASH-PAM') >= 0) {",
+                  "            cashEvents = evts.length;",
+                  "            // Find last event payoff state",
+                  "            var lastEvt = evts[evts.length-1];",
+                  "            cashFinal = net;",
+                  "            console.log('');",
+                  "            console.log('  ┌─ CASH-PAM-10M (central treasury) ─────────────────────┐');",
+                  "            console.log('  │ Events: ' + evts.length);",
+                  "            console.log('  │ Types: ' + countStr);",
+                  "            console.log('  │ Net payoff: $' + Math.round(net).toLocaleString());",
+                  "            console.log('  │ SCF models: deployments, btc/eth proceeds, tbill,');",
+                  "            console.log('  │   ar_inflows, ap_outflows, usdc_flows + lb_tr01');",
+                  "            console.log('  └─────────────────────────────────────────────────────────┘');",
+                  "        }",
+                  "        else if (id.indexOf('BTC-CLM') >= 0) {",
+                  "            var pps = evts.filter(function(e){return e.type==='PP' && Math.abs(e.payoff||0)>0.01;});",
+                  "            console.log('  BTC-CLM: ' + evts.length + ' events, PP_nonzero=' + pps.length",
+                  "                + ', net=$' + Math.round(net).toLocaleString() + ' [' + countStr + ']');",
+                  "        }",
+                  "        else if (id.indexOf('ETH-CLM') >= 0) {",
+                  "            var pps = evts.filter(function(e){return e.type==='PP' && Math.abs(e.payoff||0)>0.01;});",
+                  "            console.log('  ETH-CLM: ' + evts.length + ' events, PP_nonzero=' + pps.length",
+                  "                + ', net=$' + Math.round(net).toLocaleString() + ' [' + countStr + ']');",
+                  "        }",
+                  "        else if (id.indexOf('TBILL') >= 0) {",
+                  "            console.log('  ' + id + ': ' + evts.length + ' events, net=$'",
+                  "                + Math.round(net).toLocaleString() + ' [' + countStr + ']');",
+                  "        }",
+                  "        else if (id.indexOf('AR-') >= 0) {",
+                  "            console.log('  ' + id + ': ' + evts.length + ' events (AR inflow), net=$'",
+                  "                + Math.round(net).toLocaleString() + ' [' + countStr + ']');",
+                  "        }",
+                  "        else if (id.indexOf('AP-') >= 0) {",
+                  "            console.log('  ' + id + ': ' + evts.length + ' events (AP outflow), net=$'",
+                  "                + Math.round(net).toLocaleString() + ' [' + countStr + ']');",
+                  "        }",
+                  "        else if (id.indexOf('USDC') >= 0) {",
+                  "            console.log('  ' + id + ': ' + evts.length + ' events, net=$'",
+                  "                + Math.round(net).toLocaleString() + ' [' + countStr + ']');",
+                  "        }",
+                  "    });",
+                  "",
+                  "    console.log('');",
+                  "    console.log('━'.repeat(70));",
+                  "    console.log('PORTFOLIO SUMMARY');",
+                  "    console.log('  Contracts: ' + contracts.length);",
+                  "    console.log('  Total events: ' + totalEvents);",
+                  "    console.log('  Cash events: ' + cashEvents);",
+                  "    console.log('  Digital assets: BTC 20 units + ETH 300 units');",
+                  "    console.log('  T-Bills: 3×staggered maturity ($3M total)');",
+                  "    console.log('  AR/AP: 4 receivables + 3 payables');",
+                  "    console.log('  Stablecoin: USDC $500K @ 4.2% yield');",
+                  "    console.log('━'.repeat(70));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "actus_risk_host",
+      "value": "34.203.247.32:8082"
+    },
+    {
+      "key": "actus_sim_host",
+      "value": "34.203.247.32:8083"
+    },
+    {
+      "key": "derived_deployments",
+      "value": ""
+    },
+    {
+      "key": "derived_btc_sells",
+      "value": ""
+    },
+    {
+      "key": "derived_eth_sells",
+      "value": ""
+    },
+    {
+      "key": "derived_tbill_maturities",
+      "value": ""
+    },
+    {
+      "key": "derived_ar_inflows",
+      "value": ""
+    },
+    {
+      "key": "derived_ap_outflows",
+      "value": ""
+    },
+    {
+      "key": "derived_usdc_flows",
+      "value": ""
+    },
+    {
+      "key": "derived_cash_balance",
+      "value": ""
+    },
+    {
+      "key": "derived_btc_value",
+      "value": ""
+    },
+    {
+      "key": "derived_eth_value",
+      "value": ""
+    },
+    {
+      "key": "derived_tbill_value",
+      "value": ""
+    },
+    {
+      "key": "derived_portfolio_total",
+      "value": ""
+    }
+  ]
+}

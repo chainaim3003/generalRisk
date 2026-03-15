@@ -1,0 +1,574 @@
+{
+  "info": {
+    "_postman_id": "ht-mc-rf-v2-6mo-001",
+    "name": "HybridTreasury-MultiContract-RiskFactors-V2-6mo",
+    "description": "ACTUS Hybrid Treasury: MULTI-CONTRACT PORTFOLIO with ENRICHED RISK FACTORS\n\n== V2 IMPROVEMENT ==\nReference indexes now model MARKET RISK FACTORS (observables),\nnot pre-computed schedules.\n\nMARKET RISK FACTORS (8 new + 3 legacy kept):\n  1. BTC_USD_SPOT      — BTC spot price (existing, correct)\n  2. UST_3M_YIELD      — 3-month US Treasury yield (Fed rate path)\n  3. USDC_USD_PEG       — USDC/USD peg rate (stablecoin depegging risk)\n  4. USDT_USD_PEG       — USDT/USD peg rate (alt stablecoin comparison)\n  5. BTC_REALIZED_VOL   — 30-day BTC realized volatility\n  6. DEFI_USDC_LEND_RATE— On-chain USDC lending APY (Aave/Compound)\n  7. ETH_STAKING_YIELD  — ETH staking APY (DeFi yield benchmark)\n  8. BTC_MVRV_RATIO     — Market Value / Realized Value (on-chain valuation)\n  9. PORTFOLIO_TOTAL_VALUE (legacy, kept for backward compatibility)\n 10. PROJECTED_OUTFLOWS    (legacy, kept for backward compatibility)\n 11. TBILL_MATURITY_SCHEDULE (legacy, kept for backward compatibility)\n\nBEHAVIORAL RISK FACTORS (5 models: 2 existing + 3 new):\n  1. ad_btc01  — AllocationDriftModel     (BTC allocation vs 20% target)\n  2. lb_tr01   — LiquidityBufferModel     (fiat buffer vs $3M minimum)\n  3. ps_usdc01 — PegStressModel           (USDC depeg risk monitoring)\n  4. ya_tr01   — YieldArbitrageModel      (TradFi vs DeFi yield spread)\n  5. fv_btc01  — FairValueComplianceModel (BTC fair value / MVRV overheating)\n\nCONTRACTS (7 ACTUS contracts):\n  1. STK  BTC-Position-40      40 BTC ($2M @ $50K)\n  2. PAM  TBILL-3mo-500K-Mar   $500K zero-coupon, matures Mar 31\n  3. PAM  TBILL-5mo-500K-May   $500K zero-coupon, matures May 31\n  4. PAM  TBILL-4mo-250K-Jun   $250K zero-coupon, matures Jun 30\n  5. PAM  TBILL-5mo-500K-Jul   $500K zero-coupon, matures Jul 31\n  6. PAM  USDC-Reserve-3M      $3M USDC reserve (stablecoin position)\n  7. PAM  FiatCash-5M          $5M fiat operating cash\n\nSCENARIO (6 months, Mar-Aug 2026):\n  BTC: $50K → $90K peak (Jun) → $65K (Aug)\n  Fed: easing cycle, 3M yield 4.25% → 3.75%\n  USDC peg: stable, minor stress 0.9985 during June turmoil\n  BTC vol: 45% → 85% spike → 55% cooldown\n  DeFi yields: rise 8% → 15% during crypto bull → 10% cooldown\n  MVRV: 2.1 (fair) → 3.8 (overheated) → 2.5 (correction)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "═══ MARKET RISK FACTORS ═══",
+      "item": [
+        {
+          "name": "1. BTC_USD_SPOT — BTC spot price trajectory",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"BTC_SPOT_01\",\"marketObjectCode\":\"BTC_USD_SPOT\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":50000},{\"time\":\"2026-03-15T00:00:00\",\"value\":52000},{\"time\":\"2026-03-31T00:00:00\",\"value\":55000},{\"time\":\"2026-04-15T00:00:00\",\"value\":58000},{\"time\":\"2026-04-30T00:00:00\",\"value\":62000},{\"time\":\"2026-05-15T00:00:00\",\"value\":68000},{\"time\":\"2026-05-31T00:00:00\",\"value\":75000},{\"time\":\"2026-06-15T00:00:00\",\"value\":85000},{\"time\":\"2026-06-30T00:00:00\",\"value\":90000},{\"time\":\"2026-07-15T00:00:00\",\"value\":84000},{\"time\":\"2026-07-31T00:00:00\",\"value\":78000},{\"time\":\"2026-08-15T00:00:00\",\"value\":72000},{\"time\":\"2026-08-31T00:00:00\",\"value\":65000}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('BTC_USD_SPOT market risk factor added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ BTC_SPOT_01: BTC/USD spot price — 13 data points');",
+            "    console.log('   Trajectory: $50K → $90K peak (Jun) → $65K (Aug)');",
+            "    console.log('   TYPE: Market Risk Factor (observable price)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "2. UST_3M_YIELD — 3-month US Treasury yield",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"UST3M_01\",\"marketObjectCode\":\"UST_3M_YIELD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0425},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.0422},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.0418},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.0415},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.0410},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.0405},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.0400},{\"time\":\"2026-06-15T00:00:00\",\"value\":0.0395},{\"time\":\"2026-06-30T00:00:00\",\"value\":0.0390},{\"time\":\"2026-07-15T00:00:00\",\"value\":0.0385},{\"time\":\"2026-07-31T00:00:00\",\"value\":0.0380},{\"time\":\"2026-08-15T00:00:00\",\"value\":0.0378},{\"time\":\"2026-08-31T00:00:00\",\"value\":0.0375}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('UST_3M_YIELD market risk factor added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ UST3M_01: 3-Month US Treasury Yield');",
+            "    console.log('   Trajectory: 4.25% → 3.75% (Fed easing cycle)');",
+            "    console.log('   TYPE: Market Risk Factor (interest rate)');",
+            "    console.log('   USED BY: YieldArbitrageModel (tbillYieldMOC)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "3. USDC_USD_PEG — USDC peg deviation risk",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"USDC_PEG_01\",\"marketObjectCode\":\"USDC_USD_PEG\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":1.0000},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.9999},{\"time\":\"2026-03-31T00:00:00\",\"value\":1.0000},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.9998},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.9999},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.9997},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.9995},{\"time\":\"2026-06-15T00:00:00\",\"value\":0.9988},{\"time\":\"2026-06-30T00:00:00\",\"value\":0.9985},{\"time\":\"2026-07-15T00:00:00\",\"value\":0.9990},{\"time\":\"2026-07-31T00:00:00\",\"value\":0.9995},{\"time\":\"2026-08-15T00:00:00\",\"value\":0.9997},{\"time\":\"2026-08-31T00:00:00\",\"value\":0.9998}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('USDC_USD_PEG market risk factor added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ USDC_PEG_01: USDC/USD peg rate');",
+            "    console.log('   Trajectory: 1.0000 → 0.9985 stress (Jun) → 0.9998 recovery');",
+            "    console.log('   TYPE: Market Risk Factor (FX / stablecoin price)');",
+            "    console.log('   USED BY: PegStressModel (primaryPegDeviationMOC)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "4. USDT_USD_PEG — USDT peg deviation (alt stablecoin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"USDT_PEG_01\",\"marketObjectCode\":\"USDT_USD_PEG\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.9998},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.9997},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.9998},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.9996},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.9997},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.9994},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.9990},{\"time\":\"2026-06-15T00:00:00\",\"value\":0.9980},{\"time\":\"2026-06-30T00:00:00\",\"value\":0.9975},{\"time\":\"2026-07-15T00:00:00\",\"value\":0.9985},{\"time\":\"2026-07-31T00:00:00\",\"value\":0.9990},{\"time\":\"2026-08-15T00:00:00\",\"value\":0.9994},{\"time\":\"2026-08-31T00:00:00\",\"value\":0.9995}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('USDT_USD_PEG market risk factor added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ USDT_PEG_01: USDT/USD peg rate (alternative stablecoin)');",
+            "    console.log('   Trajectory: 0.9998 → 0.9975 stress (Jun) → 0.9995');",
+            "    console.log('   TYPE: Market Risk Factor (stablecoin cross-reference)');",
+            "    console.log('   USED BY: PegStressModel (altPegDeviationMOC)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "5. BTC_REALIZED_VOL — BTC 30-day realized volatility",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"BTC_VOL_01\",\"marketObjectCode\":\"BTC_REALIZED_VOL\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.45},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.47},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.50},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.53},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.58},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.65},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.72},{\"time\":\"2026-06-15T00:00:00\",\"value\":0.82},{\"time\":\"2026-06-30T00:00:00\",\"value\":0.85},{\"time\":\"2026-07-15T00:00:00\",\"value\":0.75},{\"time\":\"2026-07-31T00:00:00\",\"value\":0.65},{\"time\":\"2026-08-15T00:00:00\",\"value\":0.58},{\"time\":\"2026-08-31T00:00:00\",\"value\":0.55}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('BTC_REALIZED_VOL market risk factor added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ BTC_VOL_01: BTC 30-day Realized Volatility (annualized)');",
+            "    console.log('   Trajectory: 45% → 85% spike (Jun) → 55% cooldown');",
+            "    console.log('   TYPE: Market Risk Factor (volatility measure)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "6. DEFI_USDC_LEND_RATE — On-chain USDC lending APY",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"DEFI_LEND_01\",\"marketObjectCode\":\"DEFI_USDC_LEND_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.080},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.085},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.090},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.095},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.105},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.120},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.135},{\"time\":\"2026-06-15T00:00:00\",\"value\":0.148},{\"time\":\"2026-06-30T00:00:00\",\"value\":0.150},{\"time\":\"2026-07-15T00:00:00\",\"value\":0.130},{\"time\":\"2026-07-31T00:00:00\",\"value\":0.115},{\"time\":\"2026-08-15T00:00:00\",\"value\":0.105},{\"time\":\"2026-08-31T00:00:00\",\"value\":0.100}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('DEFI_USDC_LEND_RATE market risk factor added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ DEFI_LEND_01: On-chain USDC lending APY (Aave/Compound)');",
+            "    console.log('   Trajectory: 8% → 15% during BTC bull → 10% cooldown');",
+            "    console.log('   TYPE: Market Risk Factor (DeFi yield observable)');",
+            "    console.log('   USED BY: YieldArbitrageModel (lendingYieldMOC)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "7. ETH_STAKING_YIELD — ETH staking APY",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"ETH_STAKE_01\",\"marketObjectCode\":\"ETH_STAKING_YIELD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.036},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.037},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.037},{\"time\":\"2026-04-15T00:00:00\",\"value\":0.038},{\"time\":\"2026-04-30T00:00:00\",\"value\":0.039},{\"time\":\"2026-05-15T00:00:00\",\"value\":0.040},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.041},{\"time\":\"2026-06-15T00:00:00\",\"value\":0.042},{\"time\":\"2026-06-30T00:00:00\",\"value\":0.042},{\"time\":\"2026-07-15T00:00:00\",\"value\":0.040},{\"time\":\"2026-07-31T00:00:00\",\"value\":0.039},{\"time\":\"2026-08-15T00:00:00\",\"value\":0.038},{\"time\":\"2026-08-31T00:00:00\",\"value\":0.038}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('ETH_STAKING_YIELD market risk factor added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ ETH_STAKE_01: ETH Staking APY (beacon chain)');",
+            "    console.log('   Trajectory: 3.6% → 4.2% peak → 3.8% cooldown');",
+            "    console.log('   TYPE: Market Risk Factor (staking yield)');",
+            "    console.log('   USED BY: YieldArbitrageModel (stakingYieldMOC)');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "8. BTC_MVRV_RATIO — Market Value to Realized Value",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"BTC_MVRV_01\",\"marketObjectCode\":\"BTC_MVRV_RATIO\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":2.10},{\"time\":\"2026-03-15T00:00:00\",\"value\":2.20},{\"time\":\"2026-03-31T00:00:00\",\"value\":2.35},{\"time\":\"2026-04-15T00:00:00\",\"value\":2.50},{\"time\":\"2026-04-30T00:00:00\",\"value\":2.70},{\"time\":\"2026-05-15T00:00:00\",\"value\":3.00},{\"time\":\"2026-05-31T00:00:00\",\"value\":3.30},{\"time\":\"2026-06-15T00:00:00\",\"value\":3.65},{\"time\":\"2026-06-30T00:00:00\",\"value\":3.80},{\"time\":\"2026-07-15T00:00:00\",\"value\":3.40},{\"time\":\"2026-07-31T00:00:00\",\"value\":3.05},{\"time\":\"2026-08-15T00:00:00\",\"value\":2.75},{\"time\":\"2026-08-31T00:00:00\",\"value\":2.50}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('BTC_MVRV_RATIO market risk factor added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ BTC_MVRV_01: BTC Market Value / Realized Value ratio');",
+            "    console.log('   Trajectory: 2.1 (fair) → 3.8 (overheated) → 2.5 (correction)');",
+            "    console.log('   TYPE: Market Risk Factor (on-chain valuation metric)');",
+            "    console.log('   >3.5 historically signals market overheating');",
+            "    console.log('   USED BY: FairValueComplianceModel (msciExclusionProbMOC proxy)');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ LEGACY INDEXES (kept, not deleted) ═══",
+      "item": [
+        {
+          "name": "9. PORTFOLIO_TOTAL_VALUE (legacy — portfolio NAV tracker)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"PORTFOLIO_NAV_01\",\"marketObjectCode\":\"PORTFOLIO_TOTAL_VALUE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":10000000},{\"time\":\"2026-03-15T00:00:00\",\"value\":10080000},{\"time\":\"2026-03-31T00:00:00\",\"value\":10200000},{\"time\":\"2026-04-15T00:00:00\",\"value\":10320000},{\"time\":\"2026-04-30T00:00:00\",\"value\":10480000},{\"time\":\"2026-05-15T00:00:00\",\"value\":10720000},{\"time\":\"2026-05-31T00:00:00\",\"value\":11000000},{\"time\":\"2026-06-15T00:00:00\",\"value\":11400000},{\"time\":\"2026-06-30T00:00:00\",\"value\":11600000},{\"time\":\"2026-07-15T00:00:00\",\"value\":11360000},{\"time\":\"2026-07-31T00:00:00\",\"value\":11120000},{\"time\":\"2026-08-15T00:00:00\",\"value\":10880000},{\"time\":\"2026-08-31T00:00:00\",\"value\":10600000}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('PORTFOLIO_TOTAL_VALUE legacy index added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('⚠️  PORTFOLIO_NAV_01: Legacy index (portfolio NAV)');",
+            "    console.log('   Kept for AllocationDriftModel backward compatibility');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "10. PROJECTED_OUTFLOWS (legacy — AP schedule)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"OUTFLOWS_01\",\"marketObjectCode\":\"PROJECTED_OUTFLOWS\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":200000},{\"time\":\"2026-03-31T00:00:00\",\"value\":200000},{\"time\":\"2026-04-30T00:00:00\",\"value\":250000},{\"time\":\"2026-05-31T00:00:00\",\"value\":300000},{\"time\":\"2026-06-15T00:00:00\",\"value\":650000},{\"time\":\"2026-06-30T00:00:00\",\"value\":800000},{\"time\":\"2026-07-15T00:00:00\",\"value\":650000},{\"time\":\"2026-07-31T00:00:00\",\"value\":500000},{\"time\":\"2026-08-31T00:00:00\",\"value\":250000}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('PROJECTED_OUTFLOWS legacy index added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('⚠️  OUTFLOWS_01: Legacy index (AP outflow schedule)');",
+            "    console.log('   Kept for LiquidityBufferModel backward compatibility');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "11. TBILL_MATURITY_SCHEDULE (legacy — maturity schedule)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addReferenceIndex",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorID\":\"TBILL_MAT_01\",\"marketObjectCode\":\"TBILL_MATURITY_SCHEDULE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0},{\"time\":\"2026-03-31T00:00:00\",\"value\":500000},{\"time\":\"2026-04-30T00:00:00\",\"value\":0},{\"time\":\"2026-05-31T00:00:00\",\"value\":500000},{\"time\":\"2026-06-30T00:00:00\",\"value\":250000},{\"time\":\"2026-07-31T00:00:00\",\"value\":500000},{\"time\":\"2026-08-31T00:00:00\",\"value\":0}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('TBILL_MATURITY_SCHEDULE legacy index added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('⚠️  TBILL_MAT_01: Legacy index (T-bill maturity schedule)');",
+            "    console.log('   Kept for LiquidityBufferModel backward compatibility');",
+            "    console.log('   Also modeled as real PAM contracts (T-Bill #1-#4)');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ BEHAVIORAL RISK FACTORS ═══",
+      "item": [
+        {
+          "name": "12. AllocationDriftModel (ad_btc01) — BTC allocation band monitoring",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addAllocationDriftModel",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addAllocationDriftModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"ad_btc01\",\"spotPriceMOC\":\"BTC_USD_SPOT\",\"portfolioTotalValueMOC\":\"PORTFOLIO_TOTAL_VALUE\",\"targetAllocation\":0.20,\"maxAllocation\":0.25,\"minAllocation\":0.15,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('AllocationDriftModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ ad_btc01: AllocationDriftModel');",
+            "    console.log('   target=20%, band=[15%, 25%], monthly checks');",
+            "    console.log('   CONSUMES: BTC_USD_SPOT, PORTFOLIO_TOTAL_VALUE');",
+            "    console.log('   SIGNAL: +drift=overweight/sell, -drift=underweight/buy');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "13. LiquidityBufferModel (lb_tr01) — Fiat cash buffer monitoring",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addLiquidityBufferModel",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addLiquidityBufferModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"lb_tr01\",\"projectedOutflowsMOC\":\"PROJECTED_OUTFLOWS\",\"tbillMaturityScheduleMOC\":\"TBILL_MATURITY_SCHEDULE\",\"minBufferUSD\":3000000,\"targetBufferUSD\":3500000,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('LiquidityBufferModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ lb_tr01: LiquidityBufferModel');",
+            "    console.log('   minBuffer=$3M, targetBuffer=$3.5M, monthly checks');",
+            "    console.log('   CONSUMES: PROJECTED_OUTFLOWS, TBILL_MATURITY_SCHEDULE');",
+            "    console.log('   SIGNAL: shortfall fraction → T-bill liquidation needed');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "14. PegStressModel (ps_usdc01) — USDC depeg risk monitoring",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addPegStressModel",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addPegStressModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"ps_usdc01\",\"primaryPegDeviationMOC\":\"USDC_USD_PEG\",\"altPegDeviationMOC\":\"USDT_USD_PEG\",\"pegDeviationThreshold\":0.002,\"criticalDeviation\":0.01,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('PegStressModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ ps_usdc01: PegStressModel (NEW)');",
+            "    console.log('   pegDeviationThreshold=0.2%, criticalDeviation=1.0%');",
+            "    console.log('   CONSUMES: USDC_USD_PEG (primary), USDT_USD_PEG (alt)');",
+            "    console.log('   SIGNAL: depeg severity → stablecoin exit urgency');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "15. YieldArbitrageModel (ya_tr01) — TradFi vs DeFi yield spread",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addYieldArbitrageModel",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addYieldArbitrageModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"ya_tr01\",\"tbillYieldMOC\":\"UST_3M_YIELD\",\"stakingYieldMOC\":\"ETH_STAKING_YIELD\",\"lendingYieldMOC\":\"DEFI_USDC_LEND_RATE\",\"minSpreadBps\":50,\"riskAdjustmentFactor\":0.70,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('YieldArbitrageModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ ya_tr01: YieldArbitrageModel (NEW)');",
+            "    console.log('   minSpreadBps=50, riskAdjustmentFactor=0.70');",
+            "    console.log('   CONSUMES: UST_3M_YIELD, ETH_STAKING_YIELD, DEFI_USDC_LEND_RATE');",
+            "    console.log('   SIGNAL: +spread = DeFi yield advantage → rotate reserves');",
+            "    console.log('   In Jun: DeFi lending 15% vs T-bill 3.9% = 1110bps spread!');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "16. FairValueComplianceModel (fv_btc01) — BTC overheating signal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addFairValueComplianceModel",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addFairValueComplianceModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"riskFactorId\":\"fv_btc01\",\"assetFairValueMOC\":\"BTC_USD_SPOT\",\"msciExclusionProbMOC\":\"BTC_MVRV_RATIO\",\"msciThreshold\":3.50,\"materialityThreshold\":0.15,\"monitoringEventTimes\":[\"2026-03-31T00:00:00\",\"2026-04-30T00:00:00\",\"2026-05-31T00:00:00\",\"2026-06-30T00:00:00\",\"2026-07-31T00:00:00\",\"2026-08-31T00:00:00\"]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('FairValueComplianceModel added', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ fv_btc01: FairValueComplianceModel (NEW)');",
+            "    console.log('   msciThreshold=3.50 (MVRV level), materialityThreshold=15%');",
+            "    console.log('   CONSUMES: BTC_USD_SPOT, BTC_MVRV_RATIO');",
+            "    console.log('   SIGNAL: MVRV > 3.5 = market overheated → de-risk warning');",
+            "    console.log('   Jun peak: MVRV=3.80 triggers fair value compliance alert');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ SCENARIO DEFINITION ═══",
+      "item": [
+        {
+          "name": "17. Create Enriched V2 Scenario (11 market RFs + 5 behavioral models)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8082/addScenario",
+              "protocol": "http",
+              "host": ["localhost:8082"],
+              "path": ["addScenario"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scenarioID\":\"ht_mc_v2_6mo_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BTC_SPOT_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"UST3M_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"USDC_PEG_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"USDT_PEG_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"BTC_VOL_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"DEFI_LEND_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ETH_STAKE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"BTC_MVRV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"PORTFOLIO_NAV_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"OUTFLOWS_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"TBILL_MAT_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ad_btc01\",\"riskFactorType\":\"AllocationDriftModel\"},{\"riskFactorID\":\"lb_tr01\",\"riskFactorType\":\"LiquidityBufferModel\"},{\"riskFactorID\":\"ps_usdc01\",\"riskFactorType\":\"PegStressModel\"},{\"riskFactorID\":\"ya_tr01\",\"riskFactorType\":\"YieldArbitrageModel\"},{\"riskFactorID\":\"fv_btc01\",\"riskFactorType\":\"FairValueComplianceModel\"}]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('V2 scenario created', function(){",
+            "    pm.response.to.have.status(200);",
+            "    pm.expect(pm.response.text()).to.include('Successfully');",
+            "    console.log('═'.repeat(80));",
+            "    console.log('SCENARIO ht_mc_v2_6mo_scn01 — RISK FACTOR SUMMARY');",
+            "    console.log('═'.repeat(80));",
+            "    console.log('');",
+            "    console.log('MARKET RISK FACTORS (11 ReferenceIndex):');",
+            "    console.log('  Price:     BTC_USD_SPOT         $50K→$90K→$65K');",
+            "    console.log('  Rate:      UST_3M_YIELD         4.25%→3.75% (Fed easing)');",
+            "    console.log('  Peg:       USDC_USD_PEG         1.000→0.9985→0.9998');",
+            "    console.log('  Peg:       USDT_USD_PEG         0.9998→0.9975→0.9995');",
+            "    console.log('  Vol:       BTC_REALIZED_VOL     45%→85%→55%');",
+            "    console.log('  Yield:     DEFI_USDC_LEND_RATE  8%→15%→10%');",
+            "    console.log('  Yield:     ETH_STAKING_YIELD    3.6%→4.2%→3.8%');",
+            "    console.log('  Valuation: BTC_MVRV_RATIO       2.1→3.8→2.5');",
+            "    console.log('  Legacy:    PORTFOLIO_TOTAL_VALUE $10M→$11.6M→$10.6M');",
+            "    console.log('  Legacy:    PROJECTED_OUTFLOWS    $200K→$800K→$250K');",
+            "    console.log('  Legacy:    TBILL_MATURITY_SCHEDULE (T-bill maturities)');",
+            "    console.log('');",
+            "    console.log('BEHAVIORAL RISK FACTORS (5 models):');",
+            "    console.log('  ad_btc01:  AllocationDriftModel       (BTC band drift)');",
+            "    console.log('  lb_tr01:   LiquidityBufferModel       (cash buffer)');",
+            "    console.log('  ps_usdc01: PegStressModel             (USDC depeg risk)');",
+            "    console.log('  ya_tr01:   YieldArbitrageModel        (TradFi vs DeFi)');",
+            "    console.log('  fv_btc01:  FairValueComplianceModel   (MVRV overheating)');",
+            "    console.log('═'.repeat(80));",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PORTFOLIO SIMULATION ═══",
+      "item": [
+        {
+          "name": "18. Run V2 Multi-Contract Portfolio Simulation (7 contracts)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://localhost:8083/rf2/scenarioSimulation",
+              "protocol": "http",
+              "host": ["localhost:8083"],
+              "path": ["rf2", "scenarioSimulation"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"STK\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"BTC-Position-40\",\"cycleAnchorDateOfDividend\":\"2026-03-31T00:00:00\",\"cycleOfDividend\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-08-31T00:00:00\",\"notionalPrincipal\":40,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"ad_btc01\",\"ps_usdc01\",\"fv_btc01\"]},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-3mo-500K-Mar\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-01-01T00:00:00\",\"initialExchangeDate\":\"2026-01-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-5mo-500K-May\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-01-01T00:00:00\",\"initialExchangeDate\":\"2026-01-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-4mo-250K-Jun\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-01T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-06-30T00:00:00\",\"notionalPrincipal\":250000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBILL-5mo-500K-Jul\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-03-01T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-07-31T00:00:00\",\"notionalPrincipal\":500000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"USDC-Reserve-3M\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-08-31T00:00:00\",\"notionalPrincipal\":3000000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"ya_tr01\",\"ps_usdc01\"]},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"FiatCash-5M\",\"dayCountConvention\":\"30E360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-08-31T00:00:00\",\"notionalPrincipal\":5000000,\"nominalInterestRate\":0.0,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"lb_tr01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"ht_mc_v2_6mo_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-08-31T00:00:00\",\"monitoringTimes\":[]}"
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('V2 Multi-contract portfolio simulation', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var data = pm.response.json();",
+            "    pm.expect(data.length).to.eql(7);",
+            "    console.log('═'.repeat(80));",
+            "    console.log('HYBRID TREASURY V2: MULTI-CONTRACT PORTFOLIO WITH ENRICHED RISK FACTORS');",
+            "    console.log('═'.repeat(80));",
+            "    console.log('');",
+            "    console.log('PORTFOLIO (7 ACTUS contracts):');",
+            "    console.log('  1. STK  BTC-Position-40     40 BTC   [ad_btc01, ps_usdc01, fv_btc01]');",
+            "    console.log('  2. PAM  TBILL-3mo-500K-Mar  $500K    zero-coupon matures Mar 31');",
+            "    console.log('  3. PAM  TBILL-5mo-500K-May  $500K    zero-coupon matures May 31');",
+            "    console.log('  4. PAM  TBILL-4mo-250K-Jun  $250K    zero-coupon matures Jun 30');",
+            "    console.log('  5. PAM  TBILL-5mo-500K-Jul  $500K    zero-coupon matures Jul 31');",
+            "    console.log('  6. PAM  USDC-Reserve-3M     $3M      [ya_tr01, ps_usdc01]');",
+            "    console.log('  7. PAM  FiatCash-5M         $5M      [lb_tr01]');",
+            "    console.log('');",
+            "    console.log('RISK FACTORS CONSUMED:');",
+            "    console.log('  Market:     8 new observables + 3 legacy indexes = 11 total');",
+            "    console.log('  Behavioral: 5 models driving contract events');",
+            "    console.log('');",
+            "    console.log('═'.repeat(80));",
+            "    data.forEach(function(contractResult, idx){",
+            "        var events = contractResult.events || [];",
+            "        var counts = {};",
+            "        events.forEach(function(e){counts[e.type]=(counts[e.type]||0)+1;});",
+            "        console.log('');",
+            "        console.log('── CONTRACT ' + (idx+1) + ': ' + contractResult.contractId + ' ──');",
+            "        console.log('   Status: ' + contractResult.status);",
+            "        console.log('   Total events: ' + events.length);",
+            "        var typeStr = Object.keys(counts).map(function(k){return k+':'+counts[k];}).join(', ');",
+            "        console.log('   Event types: ' + typeStr);",
+            "        console.log('');",
+            "        events.forEach(function(e){",
+            "            var payoff = typeof e.payoff === 'number' ? e.payoff.toFixed(2) : '0.00';",
+            "            var nom = typeof e.nominalValue === 'number' ? e.nominalValue.toFixed(2) : '0.00';",
+            "            console.log('   '+e.time.substring(0,10)+' '+e.type+'  payoff='+payoff+'  notional='+nom);",
+            "        });",
+            "    });",
+            "    console.log('');",
+            "    console.log('═'.repeat(80));",
+            "    console.log('KEY RISK FACTOR INTERACTIONS:');",
+            "    console.log('');",
+            "    console.log('  BTC POSITION (STK):');",
+            "    console.log('    ad_btc01: BTC at $90K (Jun) → allocation ~31% >> 25% max → SELL signal');",
+            "    console.log('    fv_btc01: MVRV=3.80 (Jun) >> 3.50 threshold → OVERHEATED warning');",
+            "    console.log('    ps_usdc01: If USDC depegs, BTC position affected by liquidity crisis');",
+            "    console.log('');",
+            "    console.log('  USDC RESERVE (PAM):');",
+            "    console.log('    ya_tr01: DeFi yield 15% vs T-bill 3.9% → massive arbitrage signal');",
+            "    console.log('    ps_usdc01: USDC peg at 0.9985 (Jun) → 15bp deviation = warning');",
+            "    console.log('');",
+            "    console.log('  FIAT CASH (PAM):');",
+            "    console.log('    lb_tr01: Jun AP burst $800K → cash buffer stressed');",
+            "    console.log('    T-bill maturities provide cash inflow to offset');",
+            "    console.log('═'.repeat(80));",
+            "});",
+            "pm.test('All 7 contracts succeeded', function(){",
+            "    var data = pm.response.json();",
+            "    data.forEach(function(r){ pm.expect(r.status).to.eql('Success'); });",
+            "});"
+          ]}}]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "info": {
+    "_postman_id": "sc3-06a",
+    "name": "06a-SWPPV-WorkingCapitalStress-Baseline",
+    "description": "SWPPV WorkingCapitalStress BASELINE: Normal $1M WC, $700K hedge.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Run 06a-SWPPV-WorkingCapitalStress-Baseline",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://34.203.247.32:8083/eventsBatch",
+          "protocol": "http",
+          "host": [
+            "34.203.247.32:8083"
+          ],
+          "path": [
+            "eventsBatch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"SWPPV\",\"contractID\":\"SWPPV-WC-BL-01\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RFL\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2029-03-01T00:00:00\",\"notionalPrincipal\":700000,\"cycleAnchorDateOfInterestPayment\":\"2026-06-01T00:00:00\",\"cycleOfInterestPayment\":\"P3ML1\",\"nominalInterestRate\":0.042,\"nominalInterestRate2\":0.0425,\"dayCountConvention\":\"30E360\",\"cycleAnchorDateOfRateReset\":\"2026-03-01T00:00:00\",\"cycleOfRateReset\":\"P3ML1\",\"rateSpread\":0.0,\"marketObjectCodeOfRateReset\":\"USD_SOFR\",\"fixingPeriod\":\"P0D\",\"deliverySettlement\":\"S\"}],\"riskFactors\":[{\"marketObjectCode\":\"USD_SOFR\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0425},{\"time\":\"2026-06-01T00:00:00\",\"value\":0.042},{\"time\":\"2026-09-01T00:00:00\",\"value\":0.04},{\"time\":\"2026-12-01T00:00:00\",\"value\":0.038},{\"time\":\"2027-03-01T00:00:00\",\"value\":0.037},{\"time\":\"2027-06-01T00:00:00\",\"value\":0.036},{\"time\":\"2027-09-01T00:00:00\",\"value\":0.035},{\"time\":\"2027-12-01T00:00:00\",\"value\":0.035},{\"time\":\"2028-03-01T00:00:00\",\"value\":0.035},{\"time\":\"2028-06-01T00:00:00\",\"value\":0.035},{\"time\":\"2028-09-01T00:00:00\",\"value\":0.035},{\"time\":\"2028-12-01T00:00:00\",\"value\":0.035},{\"time\":\"2029-03-01T00:00:00\",\"value\":0.035}]}]}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Simulation success', function(){",
+              "    pm.response.to.have.status(200);",
+              "    var data = pm.response.json();",
+              "    console.log('='.repeat(64));",
+              "    console.log('SWPPV WorkingCapitalStress BASELINE: Normal $1M WC, $700K hedge');",
+              "    console.log('='.repeat(64));",
+              "    var r = data[0];",
+              "    if(r.status !== 'Success'){ console.log('FAILED: ' + (r.statusMessage||'unknown')); return; }",
+              "    var events = r.events;",
+              "    console.log('Status: ' + r.status + ' | Events: ' + events.length);",
+              "    var counts = {};",
+              "    events.forEach(function(e){ counts[e.type] = (counts[e.type]||0)+1; });",
+              "    Object.keys(counts).sort().forEach(function(k){ console.log('  ' + k + ': ' + counts[k]); });",
+              "    var totalIP = 0;",
+              "    console.log('');",
+              "    console.log('INTEREST PAYMENTS:');",
+              "    events.filter(function(e){return e.type==='IP';}).forEach(function(e){",
+              "        totalIP += e.payoff;",
+              "        console.log('  ' + e.time.substring(0,10) + '  payoff=' + e.payoff.toFixed(2) + '  rate=' + (e.nominalRate||0).toFixed(6));",
+              "    });",
+              "    console.log('TOTAL IP: ' + totalIP.toFixed(2));",
+              "    console.log('');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

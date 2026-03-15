@@ -1,0 +1,339 @@
+{
+  "info": {
+    "_postman_id": "sc4-hol-3rd-source-daily-002",
+    "name": "Stables-HT-HOL-ONLY-3RD-SOURCE-time-daily-2",
+    "description": "HOLDER Portfolio: Track USD ↔ USDC conversions based on PUBLISHED risk metrics\n════════════════════════════════════════════════════════════════════════════════\n\nSIMPLIFIED APPROACH:\n  - Portfolio tracking ONLY: Your USD and USDC balances\n  - Risk metrics are EXTERNAL INDICES (read from 3rd party sources)\n  - NO complex behavioral models or calculations\n  - Simple decision: Good metrics → buy USDC | Bad metrics → sell to USD\n\nRISK METRICS (as Reference Indices):\n  1. Backing Ratio (BR): Published reserve coverage (0.0=100%+ backed, 1.0=underbacked)\n  2. Liquidity Score (LQ): Published liquidity adequacy (0.0=adequate, 1.0=crisis)\n  3. Peg Stability (PEG): Price deviation from $1.00 (0.0=stable, 0.05=5% off-peg)\n  4. Market Risk (MR): Composite market stress (0.0=calm, 1.0=panic)\n\nPORTFOLIO:\n  - Start: $150,000 USD, $0 USDC\n  - Target: $75,000 USDC when metrics are good\n  - Crisis: Convert all USDC → USD when metrics deteriorate\n  - Recovery: Rebuild USDC position when metrics improve\n\nSCENARIO (45 days):\n  Days 1-3:   Good metrics → Deploy to $75K USDC\n  Days 4-17:  Good metrics → Hold $75K USDC\n  Day 18:     Metrics spike → Redeem all USDC to USD\n  Days 19-25: Bad metrics → Stay in USD\n  Days 26-28: Metrics recover → Rebuild to $75K USDC\n  Days 29-45: Good metrics → Hold $75K USDC",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "actus_risk_host",
+      "value": "localhost:8082"
+    },
+    {
+      "key": "cfg_initial_usd",
+      "value": "150000"
+    },
+    {
+      "key": "cfg_target_usdc",
+      "value": "75000"
+    },
+    {
+      "key": "cfg_deploy_pct",
+      "value": "30"
+    },
+    {
+      "key": "rt_epoch",
+      "value": "0"
+    },
+    {
+      "key": "rt_usd",
+      "value": "150000"
+    },
+    {
+      "key": "rt_usdc",
+      "value": "0"
+    },
+    {
+      "key": "rt_history",
+      "value": "[]"
+    }
+  ],
+  "item": [
+    {
+      "name": "═ PHASE 1: Risk Metrics as Reference Indices ═",
+      "item": [
+        {
+          "name": "1.1 Backing Ratio (BR)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOLDER_BR_INDEX\",\n  \"marketObjectCode\": \"USDC_BACKING_RATIO\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 0.15},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 0.25},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 0.35},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 0.38},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 0.30},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 0.20},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 0.12},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 0.02},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-01T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-02T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-03T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-04T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-05T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-06T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-07T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-08T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-09T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-10T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-11T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-12T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-13T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-14T00:00:00\", \"value\": 0.0}\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('BR Index',function(){pm.response.to.have.status(200);console.log('✅ HOLDER_BR_INDEX: Backing Ratio (45d)');});"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 Liquidity Score (LQ)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOLDER_LQ_INDEX\",\n  \"marketObjectCode\": \"USDC_LIQUIDITY_SCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 0.45},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 0.65},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 0.85},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 0.90},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 0.70},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 0.50},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 0.30},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 0.15},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 0.08},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 0.02},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-01T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-02T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-03T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-04T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-05T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-06T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-07T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-08T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-09T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-10T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-11T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-12T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-13T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-14T00:00:00\", \"value\": 0.0}\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('LQ Index',function(){pm.response.to.have.status(200);console.log('✅ HOLDER_LQ_INDEX: Liquidity Score (45d)');});"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 Peg Stability (PEG)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOLDER_PEG_INDEX\",\n  \"marketObjectCode\": \"USDC_PEG_DEVIATION\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 0.020},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 0.035},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 0.048},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 0.052},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 0.040},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 0.025},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 0.015},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 0.008},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 0.003},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 0.001},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-01T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-02T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-03T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-04T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-05T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-06T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-07T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-08T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-09T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-10T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-11T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-12T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-13T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-14T00:00:00\", \"value\": 0.0}\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('PEG Index',function(){pm.response.to.have.status(200);console.log('✅ HOLDER_PEG_INDEX: Peg Deviation (45d)');});"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 Market Risk (MR)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOLDER_MR_INDEX\",\n  \"marketObjectCode\": \"USDC_MARKET_RISK\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 0.25},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 0.45},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 0.70},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 0.80},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 0.60},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 0.40},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 0.22},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 0.10},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 0.05},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 0.02},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-01T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-02T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-03T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-04T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-05T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-06T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-07T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-08T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-09T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-10T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-11T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-12T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-13T00:00:00\", \"value\": 0.0},\n    {\"time\": \"2026-04-14T00:00:00\", \"value\": 0.0}\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('MR Index',function(){pm.response.to.have.status(200);console.log('✅ HOLDER_MR_INDEX: Market Risk (45d)');});"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "═ PHASE 2: Portfolio Tracking ═",
+      "item": [
+        {
+          "name": "2.1 Daily Portfolio Manager",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/",
+              "host": ["{{actus_risk_host}}"],
+              "path": [""]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var epoch = parseInt(pm.collectionVariables.get('rt_epoch') || '0');",
+                  "var usd = parseFloat(pm.collectionVariables.get('rt_usd'));",
+                  "var usdc = parseFloat(pm.collectionVariables.get('rt_usdc'));",
+                  "var history = JSON.parse(pm.collectionVariables.get('rt_history') || '[]');",
+                  "var NDAYS = 45;",
+                  "",
+                  "var CFG = {",
+                  "    initialUsd: parseFloat(pm.collectionVariables.get('cfg_initial_usd')),",
+                  "    targetUsdc: parseFloat(pm.collectionVariables.get('cfg_target_usdc')),",
+                  "    deployPct: parseFloat(pm.collectionVariables.get('cfg_deploy_pct')) / 100",
+                  "};",
+                  "",
+                  "// Risk metric indices (published by 3rd parties)",
+                  "var BR = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.15,0.25,0.35,0.38,0.30,0.20,0.12,0.05,0.02,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];",
+                  "var LQ = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.45,0.65,0.85,0.90,0.70,0.50,0.30,0.15,0.08,0.02,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];",
+                  "var PEG = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.020,0.035,0.048,0.052,0.040,0.025,0.015,0.008,0.003,0.001,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];",
+                  "var MR = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.25,0.45,0.70,0.80,0.60,0.40,0.22,0.10,0.05,0.02,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];",
+                  "",
+                  "var dayNum = epoch + 1;",
+                  "var br = BR[epoch], lq = LQ[epoch], peg = PEG[epoch], mr = MR[epoch];",
+                  "",
+                  "if (epoch === 0) {",
+                  "    console.log('═'.repeat(70));",
+                  "    console.log('HOLDER PORTFOLIO: USD ↔ USDC based on Published Risk Metrics');",
+                  "    console.log('  Starting: $' + CFG.initialUsd.toLocaleString() + ' USD, $0 USDC');",
+                  "    console.log('  Target: $' + CFG.targetUsdc.toLocaleString() + ' USDC');",
+                  "    console.log('  Decision: Read risk indices → Buy/Sell USDC');",
+                  "    console.log('═'.repeat(70));",
+                  "}",
+                  "",
+                  "// Simple decision logic based on published risk metrics",
+                  "var action = 'HOLD';",
+                  "var amount = 0;",
+                  "",
+                  "// GOOD metrics = all near zero",
+                  "var isGood = (br < 0.05 && lq < 0.10 && peg < 0.01 && mr < 0.10);",
+                  "// BAD metrics = any significant elevation",
+                  "var isBad = (br > 0.10 || lq > 0.30 || peg > 0.02 || mr > 0.20);",
+                  "",
+                  "if (isGood && usdc < CFG.targetUsdc && usd > 1000) {",
+                  "    // Deploy to USDC",
+                  "    var gap = CFG.targetUsdc - usdc;",
+                  "    amount = Math.min(Math.round(usd * CFG.deployPct), Math.round(gap));",
+                  "    if (amount >= 1000) {",
+                  "        usd -= amount;",
+                  "        usdc += amount;",
+                  "        action = 'BUY_USDC';",
+                  "    } else {",
+                  "        amount = 0;",
+                  "    }",
+                  "} else if (isBad && usdc > 0) {",
+                  "    // Exit to USD",
+                  "    amount = usdc;",
+                  "    usd += usdc;",
+                  "    usdc = 0;",
+                  "    action = 'SELL_USDC';",
+                  "}",
+                  "",
+                  "var total = Math.round(usd + usdc);",
+                  "var status = isGood ? '✅ GOOD' : (isBad ? '⚠️ RISKY' : '━ HOLD');",
+                  "",
+                  "var snap = {",
+                  "    day: dayNum,",
+                  "    usd: Math.round(usd),",
+                  "    usdc: Math.round(usdc),",
+                  "    total: total,",
+                  "    action: action,",
+                  "    amount: Math.round(amount),",
+                  "    br: br,",
+                  "    lq: lq,",
+                  "    peg: peg,",
+                  "    mr: mr,",
+                  "    status: status",
+                  "};",
+                  "history.push(snap);",
+                  "",
+                  "pm.collectionVariables.set('rt_usd', String(Math.round(usd)));",
+                  "pm.collectionVariables.set('rt_usdc', String(Math.round(usdc)));",
+                  "pm.collectionVariables.set('rt_epoch', String(epoch + 1));",
+                  "pm.collectionVariables.set('rt_history', JSON.stringify(history));",
+                  "",
+                  "var act = action !== 'HOLD' ? ' ' + action + '($' + Math.round(amount) + ')' : '';",
+                  "console.log('Day ' + String(dayNum).padStart(2) + ': USD=$' + Math.round(usd).toLocaleString().padStart(7) +",
+                  "    ' USDC=$' + Math.round(usdc).toLocaleString().padStart(7) + ' Total=$' + total.toLocaleString().padStart(7) +",
+                  "    act.padEnd(20) + status + '  [BR=' + br.toFixed(2) + ' LQ=' + lq.toFixed(2) +",
+                  "    ' PEG=' + peg.toFixed(3) + ' MR=' + mr.toFixed(2) + ']');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var epoch = parseInt(pm.collectionVariables.get('rt_epoch') || '0');",
+                  "var NDAYS = 45;",
+                  "pm.test('Day ' + epoch + '/' + NDAYS, function() { pm.expect(epoch).to.be.at.most(NDAYS); });",
+                  "if (epoch < NDAYS) { pm.execution.setNextRequest('2.1 Daily Portfolio Manager'); }",
+                  "else { console.log('━'.repeat(70)); pm.execution.setNextRequest('3.1 Final Summary'); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "═ PHASE 3: Final Summary ═",
+      "item": [
+        {
+          "name": "3.1 Final Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/",
+              "host": ["{{actus_risk_host}}"],
+              "path": [""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var history = JSON.parse(pm.collectionVariables.get('rt_history') || '[]');",
+                  "var INIT = parseFloat(pm.collectionVariables.get('cfg_initial_usd'));",
+                  "",
+                  "console.log('═'.repeat(70));",
+                  "console.log('FINAL SUMMARY: Holder Portfolio (45 days)');",
+                  "console.log('═'.repeat(70));",
+                  "console.log('Day  USD         USDC        Total       Action               Risk Metrics');",
+                  "console.log('─'.repeat(90));",
+                  "",
+                  "var buys = 0, sells = 0;",
+                  "history.forEach(function(s) {",
+                  "    var u = ('$' + s.usd.toLocaleString()).padEnd(12);",
+                  "    var c = ('$' + s.usdc.toLocaleString()).padEnd(12);",
+                  "    var t = ('$' + s.total.toLocaleString()).padEnd(12);",
+                  "    var act = '';",
+                  "    if (s.action === 'BUY_USDC') { act = 'BUY($' + s.amount.toLocaleString() + ')'; buys++; }",
+                  "    else if (s.action === 'SELL_USDC') { act = 'SELL($' + s.amount.toLocaleString() + ')'; sells++; }",
+                  "    act = act.padEnd(21);",
+                  "    var metrics = 'BR=' + s.br.toFixed(2) + ' LQ=' + s.lq.toFixed(2) + ' PEG=' + s.peg.toFixed(3) + ' MR=' + s.mr.toFixed(2);",
+                  "    console.log(String(s.day).padStart(3) + '  ' + u + c + t + act + metrics);",
+                  "});",
+                  "",
+                  "var last = history[history.length - 1] || {};",
+                  "console.log('─'.repeat(90));",
+                  "console.log('FINAL: USD=$' + last.usd.toLocaleString() + ' USDC=$' + last.usdc.toLocaleString() + ' Total=$' + last.total.toLocaleString());",
+                  "console.log('  Portfolio: ' + ((last.total / INIT) * 100).toFixed(1) + '% | Buys: ' + buys + ' | Sells: ' + sells);",
+                  "console.log('  Result: ' + (last.total >= INIT ? '✅ Capital Preserved' : '⚠️ Loss'));",
+                  "console.log('═'.repeat(70));",
+                  "",
+                  "pm.test('Tracking complete', function() { pm.expect(history.length).to.equal(45); });",
+                  "pm.test('Capital preserved', function() { pm.expect(last.total).to.be.within(INIT * 0.95, INIT * 1.05); });",
+                  "",
+                  "// Reset for next run",
+                  "pm.collectionVariables.set('rt_epoch', '0');",
+                  "pm.collectionVariables.set('rt_usd', pm.collectionVariables.get('cfg_initial_usd'));",
+                  "pm.collectionVariables.set('rt_usdc', '0');",
+                  "pm.collectionVariables.set('rt_history', '[]');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

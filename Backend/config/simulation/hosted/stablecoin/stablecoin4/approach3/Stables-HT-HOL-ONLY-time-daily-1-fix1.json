@@ -1,0 +1,1067 @@
+{
+  "info": {
+    "_postman_id": "sc4-hol-only-daily-001-fix1",
+    "name": "Stables-HT-HOL-ONLY-time-daily-1-fix1",
+    "description": "HOL-ONLY stablecoin4: BEHAVIORAL PROBES + ROLLING MATURITY (Option B)\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nREQUIRES: Java Option B fix (maturityDate filter in contractStart)\n  ContractModel.parse() + 4 stablecoin model classes\n\nTWO-TIER DECISION ARCHITECTURE:\n  Tier 1: /behaviorStateAt probes (4 calls per epoch)\n    - RedemptionPressure: 609-event calibrated redemption curve\n    - EarlyWarning: 4 validated signals (F1=0.63-0.80)\n    - BackingRatio: reserve coverage + liquidity gap\n    - MaturityLadder: 4-tier defensive posture\n    Replaces crude JS threshold checks with calibrated model outputs.\n\n  Tier 2: ACTUS scenarioSimulation (1 call when action needed)\n    - Rolling maturityDate = currentDay + LOOK_AHEAD\n    - Java maturityDate filter clips callouts to [IED, maturity]\n    - PP=0 confirms near-term safety; PP>0 quantifies redemption\n\nCONFIGURABLE:\n  cfg_look_ahead:      Days ahead for ACTUS maturity (default: 3)\n  cfg_epoch_mode:      'daily' or 'adaptive' (default: daily)\n  cfg_initial_cash:    Starting cash (default: $150,000)\n  cfg_target_usdc:     Target USDC (default: $75,000)\n  cfg_deposit_pct:     % of available cash per deposit (default: 30%)\n  cfg_min_cash_reserve: Floor (default: $30,000)\n\nEXPECTED FULL CYCLE (45 days):\n  Days 1-3:   SAFE probes \u2192 DEPOSIT + ACTUS confirms \u2192 USDC=$75K\n  Days 4-17:  SAFE probes \u2192 HOLD at target\n  Day 15-18:  ACTUS +3d window starts seeing stress \u2192 PP fires\n  Days 18-27: RISKY probes \u2192 REDEEM via ACTUS PP\n  Days 28-32: HOLD probes (transitional)\n  Days 33-35: SAFE probes \u2192 re-DEPOSIT\n  Days 36-45: SAFE \u2192 HOLD at target (second cycle)\n\n\nFIX1 (2026-03-10): Added Phase 4.5 \u2014 POST /scenarioSimulationStart\n  to activate scenario on risksrv3 before epoch runner.\n  Without this, /behaviorStateAt returns 500 (currentBehaviorModel=null)\n  because only /scenarioSimulationStart populates it.\n  ISS/ISS-HOL collections not affected (they use rf2/scenarioSimulation\n  on 8083 which internally activates the scenario).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "actus_risk_host",
+      "value": "34.203.247.32:8082"
+    },
+    {
+      "key": "actus_sim_host",
+      "value": "34.203.247.32:8083"
+    },
+    {
+      "key": "cfg_initial_cash",
+      "value": "150000"
+    },
+    {
+      "key": "cfg_target_usdc",
+      "value": "75000"
+    },
+    {
+      "key": "cfg_min_cash_reserve",
+      "value": "30000"
+    },
+    {
+      "key": "cfg_stablecoin",
+      "value": "USDC"
+    },
+    {
+      "key": "cfg_deposit_pct",
+      "value": "30"
+    },
+    {
+      "key": "cfg_look_ahead",
+      "value": "3"
+    },
+    {
+      "key": "cfg_epoch_mode",
+      "value": "daily"
+    },
+    {
+      "key": "rt_epoch",
+      "value": "0"
+    },
+    {
+      "key": "rt_cash",
+      "value": "150000"
+    },
+    {
+      "key": "rt_usdc",
+      "value": "0"
+    },
+    {
+      "key": "rt_history",
+      "value": "[]"
+    }
+  ],
+  "item": [
+    {
+      "name": "\u2550 PHASE 1: Reference Indexes (8 x 45d) \u2550",
+      "item": [
+        {
+          "name": "1.1 ISS_PUB_RESERVES",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ONLY_ISS_RESERVES\",\n  \"marketObjectCode\": \"ISS_PUB_RESERVES\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 103200\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 103200\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 102900\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 103200\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 99000\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 97000\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 95500\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 95300\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 95800\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 96500\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 97500\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 99000\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 100500\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 101000\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 101500\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 102000\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 102500\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 103200\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 103200\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 103200\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 103200\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 103000\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 103100\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 103000\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ISS_PUB_RESERVES',function(){pm.response.to.have.status(200);console.log('\\u2705 HOL_ONLY_ISS_RESERVES: Issuer reserves (45d)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 ISS_PUB_CASH",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ONLY_ISS_CASH\",\n  \"marketObjectCode\": \"ISS_PUB_CASH\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 10000\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 5000\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 5000\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 5000\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 5000\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 8000\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 15000\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 22000\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 28000\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 30000\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 55000\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 55000\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ISS_PUB_CASH',function(){pm.response.to.have.status(200);console.log('\\u2705 HOL_ONLY_ISS_CASH: Issuer cash (45d)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 PEG_DEV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ONLY_PEG_DEV\",\n  \"marketObjectCode\": \"STABLECOIN_PEG_DEV\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 0.035\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 0.042\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 0.042\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 0.035\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 0.025\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 0.015\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 0.008\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 0.003\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 0.001\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 0\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('STABLECOIN_PEG_DEV',function(){pm.response.to.have.status(200);console.log('\\u2705 HOL_ONLY_PEG_DEV: Peg deviation (45d)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 PEG_RISK",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ONLY_PEG_RISK\",\n  \"marketObjectCode\": \"PEG_RISK_SCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 1\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 22\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 36\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 48\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 46\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 38\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 28\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 18\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 10\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 5\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 2\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 0\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 0\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('PEG_RISK_SCORE',function(){pm.response.to.have.status(200);console.log('\\u2705 HOL_ONLY_PEG_RISK: Peg risk (45d)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.5 CURVE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ONLY_CURVE\",\n  \"marketObjectCode\": \"SC_CURVE_IMBALANCE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 0.18\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 0.28\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 0.35\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 0.35\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 0.28\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 0.2\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 0.14\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 0.08\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 0.04\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 0.02\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 0.02\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_CURVE_IMBALANCE',function(){pm.response.to.have.status(200);console.log('\\u2705 HOL_ONLY_CURVE: Curve (45d)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.6 ORDERBOOK",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ONLY_ORDERBOOK\",\n  \"marketObjectCode\": \"SC_ORDERBOOK_DECLINE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 0.3\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 0.45\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 0.55\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 0.55\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 0.48\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 0.35\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 0.22\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 0.14\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 0.08\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 0.05\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 0.05\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_ORDERBOOK_DECLINE',function(){pm.response.to.have.status(200);console.log('\\u2705 HOL_ONLY_ORDERBOOK: Orderbook (45d)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.7 CEX",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ONLY_CEX\",\n  \"marketObjectCode\": \"SC_CEX_OUTFLOW_MULT\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": 2.2\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": 2.8\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": 3.8\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": 3.5\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": 2.5\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": 1.8\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": 1.3\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 1.1\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 1.0\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 1.0\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_CEX_OUTFLOW_MULT',function(){pm.response.to.have.status(200);console.log('\\u2705 HOL_ONLY_CEX: CEX (45d)');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.8 SENTIMENT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addReferenceIndex"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"HOL_ONLY_SENT\",\n  \"marketObjectCode\": \"SC_SENTIMENT_ZSCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\n      \"time\": \"2026-03-01T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-02T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-03T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-04T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-05T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-06T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-07T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-08T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-09T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-10T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-11T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-12T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-13T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-14T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-15T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-16T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-17T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-18T00:00:00\",\n      \"value\": -1.2\n    },\n    {\n      \"time\": \"2026-03-19T00:00:00\",\n      \"value\": -1.8\n    },\n    {\n      \"time\": \"2026-03-20T00:00:00\",\n      \"value\": -2.5\n    },\n    {\n      \"time\": \"2026-03-21T00:00:00\",\n      \"value\": -2.3\n    },\n    {\n      \"time\": \"2026-03-22T00:00:00\",\n      \"value\": -1.5\n    },\n    {\n      \"time\": \"2026-03-23T00:00:00\",\n      \"value\": -0.8\n    },\n    {\n      \"time\": \"2026-03-24T00:00:00\",\n      \"value\": -0.3\n    },\n    {\n      \"time\": \"2026-03-25T00:00:00\",\n      \"value\": 0.0\n    },\n    {\n      \"time\": \"2026-03-26T00:00:00\",\n      \"value\": 0.2\n    },\n    {\n      \"time\": \"2026-03-27T00:00:00\",\n      \"value\": 0.4\n    },\n    {\n      \"time\": \"2026-03-28T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-29T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-30T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-03-31T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-01T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-02T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-03T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-04T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-05T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-06T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-07T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-08T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-09T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-10T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-11T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-12T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-13T00:00:00\",\n      \"value\": 0.5\n    },\n    {\n      \"time\": \"2026-04-14T00:00:00\",\n      \"value\": 0.5\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SC_SENTIMENT_ZSCORE',function(){pm.response.to.have.status(200);console.log('\\u2705 HOL_ONLY_SENT: Sentiment (45d)');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550 PHASE 2: Models (4) \u2550",
+      "item": [
+        {
+          "name": "2.1 RP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addRedemptionPressureModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addRedemptionPressureModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"rp_hol_only_01\",\n  \"pegDeviationMOC\": \"STABLECOIN_PEG_DEV\",\n  \"cashReserveMOC\": \"ISS_PUB_CASH\",\n  \"pegDeviationThreshold\": 0.005,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\",\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-01T00:00:00\",\n    \"2026-04-02T00:00:00\",\n    \"2026-04-03T00:00:00\",\n    \"2026-04-04T00:00:00\",\n    \"2026-04-05T00:00:00\",\n    \"2026-04-06T00:00:00\",\n    \"2026-04-07T00:00:00\",\n    \"2026-04-08T00:00:00\",\n    \"2026-04-09T00:00:00\",\n    \"2026-04-10T00:00:00\",\n    \"2026-04-11T00:00:00\",\n    \"2026-04-12T00:00:00\",\n    \"2026-04-13T00:00:00\",\n    \"2026-04-14T00:00:00\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('rp_hol_only_01',function(){pm.response.to.have.status(200);console.log('\\u2705 rp_hol_only_01');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 EW",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addEarlyWarningModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addEarlyWarningModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"ew_hol_only_01\",\n  \"curveImbalanceMOC\": \"SC_CURVE_IMBALANCE\",\n  \"orderbookDeclineMOC\": \"SC_ORDERBOOK_DECLINE\",\n  \"cexOutflowMOC\": \"SC_CEX_OUTFLOW_MULT\",\n  \"sentimentZscoreMOC\": \"SC_SENTIMENT_ZSCORE\",\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\",\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-01T00:00:00\",\n    \"2026-04-02T00:00:00\",\n    \"2026-04-03T00:00:00\",\n    \"2026-04-04T00:00:00\",\n    \"2026-04-05T00:00:00\",\n    \"2026-04-06T00:00:00\",\n    \"2026-04-07T00:00:00\",\n    \"2026-04-08T00:00:00\",\n    \"2026-04-09T00:00:00\",\n    \"2026-04-10T00:00:00\",\n    \"2026-04-11T00:00:00\",\n    \"2026-04-12T00:00:00\",\n    \"2026-04-13T00:00:00\",\n    \"2026-04-14T00:00:00\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ew_hol_only_01',function(){pm.response.to.have.status(200);console.log('\\u2705 ew_hol_only_01');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 BR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addBackingRatioModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addBackingRatioModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"br_hol_only_01\",\n  \"totalReservesMOC\": \"ISS_PUB_RESERVES\",\n  \"cashReserveMOC\": \"ISS_PUB_CASH\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.25,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\",\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-01T00:00:00\",\n    \"2026-04-02T00:00:00\",\n    \"2026-04-03T00:00:00\",\n    \"2026-04-04T00:00:00\",\n    \"2026-04-05T00:00:00\",\n    \"2026-04-06T00:00:00\",\n    \"2026-04-07T00:00:00\",\n    \"2026-04-08T00:00:00\",\n    \"2026-04-09T00:00:00\",\n    \"2026-04-10T00:00:00\",\n    \"2026-04-11T00:00:00\",\n    \"2026-04-12T00:00:00\",\n    \"2026-04-13T00:00:00\",\n    \"2026-04-14T00:00:00\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('br_hol_only_01',function(){pm.response.to.have.status(200);console.log('\\u2705 br_hol_only_01');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.4 ML",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addMaturityLadderModel",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addMaturityLadderModel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"ml_hol_only_01\",\n  \"pegRiskScoreMOC\": \"PEG_RISK_SCORE\",\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\",\n    \"2026-03-02T00:00:00\",\n    \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\",\n    \"2026-03-05T00:00:00\",\n    \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\",\n    \"2026-03-08T00:00:00\",\n    \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\",\n    \"2026-03-11T00:00:00\",\n    \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\",\n    \"2026-03-14T00:00:00\",\n    \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\",\n    \"2026-03-17T00:00:00\",\n    \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\",\n    \"2026-03-20T00:00:00\",\n    \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\",\n    \"2026-03-23T00:00:00\",\n    \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\",\n    \"2026-03-26T00:00:00\",\n    \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\",\n    \"2026-03-29T00:00:00\",\n    \"2026-03-30T00:00:00\",\n    \"2026-03-31T00:00:00\",\n    \"2026-04-01T00:00:00\",\n    \"2026-04-02T00:00:00\",\n    \"2026-04-03T00:00:00\",\n    \"2026-04-04T00:00:00\",\n    \"2026-04-05T00:00:00\",\n    \"2026-04-06T00:00:00\",\n    \"2026-04-07T00:00:00\",\n    \"2026-04-08T00:00:00\",\n    \"2026-04-09T00:00:00\",\n    \"2026-04-10T00:00:00\",\n    \"2026-04-11T00:00:00\",\n    \"2026-04-12T00:00:00\",\n    \"2026-04-13T00:00:00\",\n    \"2026-04-14T00:00:00\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ml_hol_only_01',function(){pm.response.to.have.status(200);console.log('\\u2705 ml_hol_only_01');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550 PHASE 3: Scenario \u2550",
+      "item": [
+        {
+          "name": "3.1 Scenario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "addScenario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"sc_hol_only_daily_01\",\n  \"riskFactorDescriptors\": [\n    {\n      \"riskFactorID\": \"HOL_ONLY_ISS_RESERVES\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_ONLY_ISS_CASH\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_ONLY_PEG_DEV\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_ONLY_PEG_RISK\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_ONLY_CURVE\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_ONLY_ORDERBOOK\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_ONLY_CEX\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"HOL_ONLY_SENT\",\n      \"riskFactorType\": \"ReferenceIndex\"\n    },\n    {\n      \"riskFactorID\": \"rp_hol_only_01\",\n      \"riskFactorType\": \"RedemptionPressureModel\"\n    },\n    {\n      \"riskFactorID\": \"ew_hol_only_01\",\n      \"riskFactorType\": \"EarlyWarningModel\"\n    },\n    {\n      \"riskFactorID\": \"br_hol_only_01\",\n      \"riskFactorType\": \"BackingRatioModel\"\n    },\n    {\n      \"riskFactorID\": \"ml_hol_only_01\",\n      \"riskFactorType\": \"MaturityLadderModel\"\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('',function(){pm.response.to.have.status(200);console.log('\\u2705 sc_hol_only_daily_01');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550 PHASE 4: Verification \u2550",
+      "item": [
+        {
+          "name": "4.1 RP",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findRedemptionPressureModel/rp_hol_only_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findRedemptionPressureModel",
+                "rp_hol_only_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('rp_hol_only_01',function(){pm.response.to.have.status(200);console.log('\\u2705 rp_hol_only_01 verified');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 EW",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findEarlyWarningModel/ew_hol_only_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findEarlyWarningModel",
+                "ew_hol_only_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ew_hol_only_01',function(){pm.response.to.have.status(200);console.log('\\u2705 ew_hol_only_01 verified');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.3 BR",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findBackingRatioModel/br_hol_only_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findBackingRatioModel",
+                "br_hol_only_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('br_hol_only_01',function(){pm.response.to.have.status(200);console.log('\\u2705 br_hol_only_01 verified');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.4 ML",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findMaturityLadderModel/ml_hol_only_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findMaturityLadderModel",
+                "ml_hol_only_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('ml_hol_only_01',function(){pm.response.to.have.status(200);console.log('\\u2705 ml_hol_only_01 verified');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.5 Scenario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/findScenario/sc_hol_only_daily_01",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "findScenario",
+                "sc_hol_only_daily_01"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('sc_hol_only_daily_01',function(){pm.response.to.have.status(200);console.log('\\u2705 sc_hol_only_daily_01 verified');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550 PHASE 4.5: Activate Scenario (fix1) \u2550",
+      "item": [
+        {
+          "name": "4.5.1 Activate Scenario on risksrv3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/scenarioSimulationStart",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                "scenarioSimulationStart"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"sc_hol_only_daily_01\",\n  \"scenarioType\": \"scenario\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Scenario activated on risksrv3', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "    console.log('\\u2705 sc_hol_only_daily_01 ACTIVATED on risksrv3 (fix1)');",
+                  "    console.log('  currentBehaviorModel + currentMarketModel now populated');",
+                  "    console.log('  /behaviorStateAt probes will work for Tier 1 decisions');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550 PHASE 5: Epoch Runner (probes + ACTUS) \u2550",
+      "item": [
+        {
+          "name": "5.1 Epoch Runner",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var epoch = parseInt(pm.collectionVariables.get('rt_epoch') || '0');",
+                  "var cash = parseFloat(pm.collectionVariables.get('rt_cash'));",
+                  "var usdc = parseFloat(pm.collectionVariables.get('rt_usdc'));",
+                  "var history = JSON.parse(pm.collectionVariables.get('rt_history') || '[]');",
+                  "var NDAYS = 45;",
+                  "var LOOK_AHEAD = parseInt(pm.collectionVariables.get('cfg_look_ahead') || '3');",
+                  "var epochMode = pm.collectionVariables.get('cfg_epoch_mode') || 'daily';",
+                  "",
+                  "var CFG = {",
+                  "    initialCash:    parseFloat(pm.collectionVariables.get('cfg_initial_cash')),",
+                  "    targetUsdc:     parseFloat(pm.collectionVariables.get('cfg_target_usdc')),",
+                  "    stablecoin:     pm.collectionVariables.get('cfg_stablecoin') || 'USDC',",
+                  "    depositPct:     parseFloat(pm.collectionVariables.get('cfg_deposit_pct')) / 100,",
+                  "    minCashReserve: parseFloat(pm.collectionVariables.get('cfg_min_cash_reserve'))",
+                  "};",
+                  "",
+                  "var IX = {\"pegDev\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02, 0.035, 0.042, 0.042, 0.035, 0.025, 0.015, 0.008, 0.003, 0.001, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], \"pegRisk\": [2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 22, 36, 48, 46, 38, 28, 18, 10, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], \"reserves\": [103000, 103200, 103100, 103000, 103000, 103100, 103200, 103000, 102900, 103000, 103100, 103000, 103100, 103200, 103000, 103100, 103000, 99000, 97000, 95500, 95300, 95800, 96500, 97500, 99000, 100500, 101000, 101500, 102000, 102500, 103000, 103100, 103200, 103000, 103100, 103200, 103000, 103100, 103200, 103000, 103100, 103200, 103000, 103100, 103000], \"issCash\": [30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 30000, 10000, 5000, 5000, 5000, 5000, 8000, 15000, 22000, 28000, 30000, 30000, 30000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000, 55000], \"curve\": [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.18, 0.28, 0.35, 0.35, 0.28, 0.2, 0.14, 0.08, 0.04, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02], \"orderbook\": [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.3, 0.45, 0.55, 0.55, 0.48, 0.35, 0.22, 0.14, 0.08, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05], \"cex\": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.2, 2.8, 3.8, 3.5, 2.5, 1.8, 1.3, 1.1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], \"sentiment\": [0.5, 0.5, 0.4, 0.4, 0.5, 0.5, 0.4, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5, 0.4, -1.2, -1.8, -2.5, -2.3, -1.5, -0.8, -0.3, 0.0, 0.2, 0.4, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]};",
+                  "",
+                  "var dayIdx = epoch;",
+                  "var dayNum = dayIdx + 1;",
+                  "var pad = function(n) { return n < 10 ? '0' + n : '' + n; };",
+                  "var toDate = function(dn) {",
+                  "    if (dn <= 31) return '2026-03-' + pad(dn) + 'T00:00:00';",
+                  "    return '2026-04-' + pad(dn - 31) + 'T00:00:00';",
+                  "};",
+                  "var dayDate = toDate(dayNum);",
+                  "var prevDate = dayNum > 1 ? toDate(dayNum - 1) : '2026-02-28T00:00:00';",
+                  "var matDayNum = Math.min(dayNum + LOOK_AHEAD, NDAYS);",
+                  "var matDate = toDate(matDayNum);",
+                  "var riskHost = pm.collectionVariables.get('actus_risk_host') || 'localhost:8082';",
+                  "var simHost = pm.collectionVariables.get('actus_sim_host') || 'localhost:8083';",
+                  "",
+                  "if (epoch === 0) {",
+                  "    console.log('\\u2550'.repeat(70));",
+                  "    console.log('HOL-ONLY stablecoin4: BEHAVIORAL PROBES + ROLLING MATURITY');",
+                  "    console.log('  Option B Java fix: maturityDate filter in contractStart()');",
+                  "    console.log('  Tier 1: /behaviorStateAt probes (calibrated model signals)');",
+                  "    console.log('  Tier 2: ACTUS scenarioSimulation (contract-scoped PP)');",
+                  "    console.log('  LOOK_AHEAD=' + LOOK_AHEAD + ' days | epochMode=' + epochMode);",
+                  "    console.log('\\u2550'.repeat(70));",
+                  "}",
+                  "",
+                  "var m = {",
+                  "    pegDev: IX.pegDev[dayIdx], pegRisk: IX.pegRisk[dayIdx],",
+                  "    reserves: IX.reserves[dayIdx], issCash: IX.issCash[dayIdx],",
+                  "    curve: IX.curve[dayIdx], orderbook: IX.orderbook[dayIdx],",
+                  "    cex: IX.cex[dayIdx], sentiment: IX.sentiment[dayIdx]",
+                  "};",
+                  "var liq = m.issCash / m.reserves;",
+                  "",
+                  "// \u2500\u2500\u2500 TIER 1: BEHAVIORAL MODEL PROBES \u2500\u2500\u2500",
+                  "// Call /behaviorStateAt for each model to get calibrated risk assessment",
+                  "// These replace the crude JS threshold checks from fix4/fix5/fix6",
+                  "",
+                  "var holderAction = 'HOLD';",
+                  "var holderAmt = 0;",
+                  "var probeNP = usdc > 0 ? -usdc : -1000;  // negative = liability convention",
+                  "",
+                  "function probeModels(callback) {",
+                  "    var probes = {rp:null, ew:null, br:null, ml:null};",
+                  "    var done = 0;",
+                  "    var total = 4;",
+                  "    var stateBody = JSON.stringify({",
+                  "        riskFactorId: 'rp_hol_only_01',",
+                  "        time: dayDate,",
+                  "        states: { notionalPrincipal: probeNP, nominalInterestRate: 0.0, statusDate: dayDate,",
+                  "                   nominalAccrued: 0.0, interestCalculationBase: 0.0,",
+                  "                   currentInterestCalculationBase: 0.0, contractPerformance: 0 }",
+                  "    });",
+                  "",
+                  "    function checkDone() {",
+                  "        done++;",
+                  "        if (done >= total) callback(probes);",
+                  "    }",
+                  "",
+                  "    pm.sendRequest({",
+                  "        url: 'http://' + riskHost + '/behaviorStateAt', method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({",
+                  "            riskFactorId: 'rp_hol_only_01', time: dayDate,",
+                  "            states: { notionalPrincipal: probeNP, nominalInterestRate: 0, statusDate: dayDate,",
+                  "                       nominalAccrued: 0, interestCalculationBase: 0, currentInterestCalculationBase: 0, contractPerformance: 0 }",
+                  "        }) }",
+                  "    }, function(err, res) { try { probes.rp = parseFloat(res.text()); } catch(e) { probes.rp = -1; } checkDone(); });",
+                  "",
+                  "    pm.sendRequest({",
+                  "        url: 'http://' + riskHost + '/behaviorStateAt', method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({",
+                  "            riskFactorId: 'ew_hol_only_01', time: dayDate,",
+                  "            states: { notionalPrincipal: probeNP, nominalInterestRate: 0, statusDate: dayDate,",
+                  "                       nominalAccrued: 0, interestCalculationBase: 0, currentInterestCalculationBase: 0, contractPerformance: 0 }",
+                  "        }) }",
+                  "    }, function(err, res) { try { probes.ew = parseFloat(res.text()); } catch(e) { probes.ew = -1; } checkDone(); });",
+                  "",
+                  "    pm.sendRequest({",
+                  "        url: 'http://' + riskHost + '/behaviorStateAt', method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({",
+                  "            riskFactorId: 'br_hol_only_01', time: dayDate,",
+                  "            states: { notionalPrincipal: probeNP, nominalInterestRate: 0, statusDate: dayDate,",
+                  "                       nominalAccrued: 0, interestCalculationBase: 0, currentInterestCalculationBase: 0, contractPerformance: 0 }",
+                  "        }) }",
+                  "    }, function(err, res) { try { probes.br = parseFloat(res.text()); } catch(e) { probes.br = -1; } checkDone(); });",
+                  "",
+                  "    pm.sendRequest({",
+                  "        url: 'http://' + riskHost + '/behaviorStateAt', method: 'POST',",
+                  "        header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({",
+                  "            riskFactorId: 'ml_hol_only_01', time: dayDate,",
+                  "            states: { notionalPrincipal: probeNP, nominalInterestRate: 0, statusDate: dayDate,",
+                  "                       nominalAccrued: 0, interestCalculationBase: 0, currentInterestCalculationBase: 0, contractPerformance: 0 }",
+                  "        }) }",
+                  "    }, function(err, res) { try { probes.ml = parseFloat(res.text()); } catch(e) { probes.ml = -1; } checkDone(); });",
+                  "}",
+                  "",
+                  "function classifyFromProbes(probes) {",
+                  "    // SAFE: all models return 0.0 (no risk signals)",
+                  "    var isSafe = (probes.rp === 0.0 && probes.ew === 0.0 && probes.br === 0.0 && probes.ml === 0.0);",
+                  "    // RISKY: any model fires meaningful signal",
+                  "    var isRisky = (probes.rp > 0 || probes.ew >= 0.3 || probes.br > 0 || probes.ml >= 0.25);",
+                  "    // HOLD: between safe and risky (transitional)",
+                  "    return { isSafe: isSafe, isRisky: isRisky };",
+                  "}",
+                  "",
+                  "function finalize(ppPayoff, probes) {",
+                  "    if (ppPayoff > 0) { cash += ppPayoff; usdc = Math.max(0, usdc - ppPayoff); }",
+                  "    var total = Math.round(cash + usdc);",
+                  "    var risk = classifyFromProbes(probes);",
+                  "    var snap = {",
+                  "        day: dayNum, cash: Math.round(cash), usdc: Math.round(usdc), total: total,",
+                  "        pp: Math.round(ppPayoff), action: holderAction, amt: Math.round(holderAmt),",
+                  "        rp: probes.rp, ew: probes.ew, br: probes.br, ml: probes.ml,",
+                  "        liq: Math.round(liq * 1000) / 10, risky: risk.isRisky, safe: risk.isSafe",
+                  "    };",
+                  "    history.push(snap);",
+                  "",
+                  "    // Adaptive stepping: compute next epoch",
+                  "    var nextEpoch = epoch + 1;",
+                  "    if (epochMode === 'adaptive' && risk.isSafe && ppPayoff === 0 && usdc >= CFG.targetUsdc) {",
+                  "        nextEpoch = Math.min(epoch + LOOK_AHEAD, NDAYS);",
+                  "    }",
+                  "",
+                  "    pm.collectionVariables.set('rt_cash', String(Math.round(cash)));",
+                  "    pm.collectionVariables.set('rt_usdc', String(Math.round(usdc)));",
+                  "    pm.collectionVariables.set('rt_epoch', String(nextEpoch));",
+                  "    pm.collectionVariables.set('rt_history', JSON.stringify(history));",
+                  "",
+                  "    var tag = risk.isRisky ? ' \\u26A0\\uFE0FRISKY' : (risk.isSafe ? ' \\u2705SAFE' : ' \\u2796HOLD');",
+                  "    var act = holderAction !== 'HOLD' ? ' ' + holderAction + '($' + Math.round(holderAmt) + ')' : '';",
+                  "    var ppStr = ppPayoff > 0 ? ' PP=$' + Math.round(ppPayoff) : '';",
+                  "    var skip = nextEpoch > epoch + 1 ? ' [skip\\u2192Day' + (nextEpoch+1) + ']' : '';",
+                  "    console.log('Day ' + pad(dayNum) + ': Cash=$' + Math.round(cash) +",
+                  "        ' ' + CFG.stablecoin + '=$' + Math.round(usdc) + ' Total=$' + total +",
+                  "        ppStr + act + tag + '  [rp=' + (probes.rp!=null?probes.rp.toFixed(3):'?') +",
+                  "        ' ew=' + (probes.ew!=null?probes.ew.toFixed(1):'?') +",
+                  "        ' br=' + (probes.br!=null?probes.br.toFixed(3):'?') +",
+                  "        ' ml=' + (probes.ml!=null?probes.ml.toFixed(2):'?') +",
+                  "        ' mat=+' + (matDayNum - dayNum) + 'd]' + skip);",
+                  "}",
+                  "",
+                  "function runActus(notional, probes, cb) {",
+                  "    pm.sendRequest({",
+                  "        url: 'http://' + simHost + '/rf2/scenarioSimulation',",
+                  "        method: 'POST', header: { 'Content-Type': 'application/json' },",
+                  "        body: { mode: 'raw', raw: JSON.stringify({",
+                  "            contracts: [{ calendar:'NC', businessDayConvention:'SCF', contractType:'PAM',",
+                  "                contractID:'HOL-USDC-Position-001', statusDate: prevDate,",
+                  "                contractRole:'RPA', contractDealDate: prevDate,",
+                  "                initialExchangeDate: dayDate, maturityDate: matDate,",
+                  "                notionalPrincipal: notional, nominalInterestRate: 0,",
+                  "                dayCountConvention:'30E360', currency:'USD', premiumDiscountAtIED: 0,",
+                  "                cycleAnchorDateOfInterestPayment: matDate, cycleOfInterestPayment:'P1ML0',",
+                  "                stablecoinModels:['rp_hol_only_01','ew_hol_only_01','br_hol_only_01','ml_hol_only_01']",
+                  "            }],",
+                  "            scenarioDescriptor:{ scenarioID:'sc_hol_only_daily_01', scenarioType:'scenario' },",
+                  "            simulateTo: dayDate, monitoringTimes: []",
+                  "        })}",
+                  "    }, function(err, res) {",
+                  "        var ppTotal = 0;",
+                  "        if (!err && res) {",
+                  "            try {",
+                  "                var data = res.json();",
+                  "                if (data && data.length > 0 && data[0].events) {",
+                  "                    data[0].events.forEach(function(e) {",
+                  "                        if (e.type === 'PP' && (e.payoff || 0) > 0) ppTotal += e.payoff;",
+                  "                    });",
+                  "                }",
+                  "            } catch(ex) {}",
+                  "        }",
+                  "        cb(ppTotal);",
+                  "    });",
+                  "}",
+                  "",
+                  "// \u2500\u2500\u2500 MAIN: Probe first, then decide \u2500\u2500\u2500",
+                  "probeModels(function(probes) {",
+                  "    var risk = classifyFromProbes(probes);",
+                  "",
+                  "    if (risk.isSafe && usdc < CFG.targetUsdc && cash > CFG.minCashReserve) {",
+                  "        var available = cash - CFG.minCashReserve;",
+                  "        var gap = CFG.targetUsdc - usdc;",
+                  "        holderAmt = Math.min(Math.round(available * CFG.depositPct), Math.round(gap));",
+                  "        if (holderAmt >= 500) {",
+                  "            cash -= holderAmt; usdc += holderAmt; holderAction = 'DEPOSIT';",
+                  "            runActus(usdc, probes, function(pp) { finalize(pp, probes); });",
+                  "        } else { holderAmt = 0; finalize(0, probes); }",
+                  "    } else if (risk.isRisky && usdc > 0) {",
+                  "        holderAction = 'REDEEM';",
+                  "        runActus(usdc, probes, function(pp) { holderAmt = pp; finalize(pp, probes); });",
+                  "    } else {",
+                  "        finalize(0, probes);",
+                  "    }",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var epoch = parseInt(pm.collectionVariables.get('rt_epoch') || '0');",
+                  "var NDAYS = 45;",
+                  "pm.test('Epoch ' + epoch + '/' + NDAYS, function() { pm.expect(epoch).to.be.at.most(NDAYS); });",
+                  "if (epoch < NDAYS) { pm.execution.setNextRequest('5.1 Epoch Runner'); }",
+                  "else { console.log('\\u2501'.repeat(70)); pm.execution.setNextRequest('6.1 Final Summary'); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\u2550 PHASE 6: Final Summary \u2550",
+      "item": [
+        {
+          "name": "6.1 Final Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/",
+              "host": [
+                "{{actus_risk_host}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var history = JSON.parse(pm.collectionVariables.get('rt_history') || '[]');",
+                  "var SC = pm.collectionVariables.get('cfg_stablecoin') || 'USDC';",
+                  "var INIT = parseFloat(pm.collectionVariables.get('cfg_initial_cash'));",
+                  "var NDAYS = 45;",
+                  "",
+                  "console.log('\\u2550'.repeat(70));",
+                  "console.log('FINAL: stablecoin4 HOL-ONLY (' + history.length + ' epochs, behavioral probes)');",
+                  "console.log('\\u2550'.repeat(70));",
+                  "console.log('Day  Cash        ' + SC + '        Total       Action           Risk       Probes[rp/ew/br/ml]');",
+                  "console.log('\\u2500'.repeat(90));",
+                  "",
+                  "var deposits=0, redeems=0, firstDep=0, firstRed=0, secondDep=0;",
+                  "history.forEach(function(s) {",
+                  "    var c=('$'+s.cash).padEnd(12), u=('$'+s.usdc).padEnd(12), t=('$'+s.total).padEnd(12);",
+                  "    var act = '';",
+                  "    if (s.action==='DEPOSIT') act = 'DEP($'+s.amt+')';",
+                  "    else if (s.action==='REDEEM' && s.pp>0) act = 'RDM($'+s.pp+')';",
+                  "    act = act.padEnd(17);",
+                  "    var risk = s.risky ? '\\u26A0\\uFE0F RISKY' : (s.safe ? '\\u2705 SAFE' : '\\u2796 HOLD');",
+                  "    risk = risk.padEnd(11);",
+                  "    var pr = (s.rp!=null?s.rp.toFixed(2):'?')+'/'+(s.ew!=null?s.ew.toFixed(1):'?')+'/'+(s.br!=null?s.br.toFixed(2):'?')+'/'+(s.ml!=null?s.ml.toFixed(1):'?');",
+                  "    console.log(String(s.day).padStart(3) + '  ' + c + u + t + act + risk + ' ' + pr);",
+                  "    if (s.action==='DEPOSIT') { deposits++; if(!firstDep) firstDep=s.day; if(s.day>27) secondDep=s.day; }",
+                  "    if (s.pp>0) { redeems++; if(!firstRed) firstRed=s.day; }",
+                  "});",
+                  "",
+                  "var last = history[history.length-1] || {};",
+                  "console.log('\\u2500'.repeat(90));",
+                  "console.log('FINAL: Cash=$' + last.cash + ' ' + SC + '=$' + last.usdc + ' Total=$' + last.total);",
+                  "console.log('  Portfolio: ' + ((last.total/INIT)*100).toFixed(1) + '% | Deposits: ' + deposits + ' | Redeems: ' + redeems);",
+                  "console.log('  First DEP: Day ' + firstDep + ' | First RDM: Day ' + firstRed + ' | Re-DEP: Day ' + secondDep);",
+                  "console.log('\\u2550'.repeat(70));",
+                  "",
+                  "pm.test('Epochs tracked', function() { pm.expect(history.length).to.be.above(0); });",
+                  "pm.test('Total preserved', function() { pm.expect(last.total).to.be.within(INIT*0.85, INIT*1.05); });",
+                  "pm.test('Deposits occurred', function() { pm.expect(deposits).to.be.above(0); });",
+                  "",
+                  "pm.collectionVariables.set('rt_epoch','0');",
+                  "pm.collectionVariables.set('rt_cash',pm.collectionVariables.get('cfg_initial_cash'));",
+                  "pm.collectionVariables.set('rt_usdc','0');",
+                  "pm.collectionVariables.set('rt_history','[]');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

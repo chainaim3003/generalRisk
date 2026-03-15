@@ -1,0 +1,133 @@
+{
+  "info": {
+    "_postman_id": "swaps-what-if-cfo-v1-final",
+    "name": "SWAPS-WHAT-IF-1",
+    "description": "CFO decision support - case-sensitive contractID fix",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "A. Floating Loan No Hedge",
+      "item": [
+        {
+          "name": "A1-Floating-Current-Risk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://127.0.0.1:8083/eventsBatch",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\": [{\"contractType\": \"PAM\", \"contractID\": \"LOAN-FLOAT-A\", \"contractRole\": \"RPA\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"maturityDate\": \"2029-03-01T00:00:00\", \"notionalPrincipal\": \"1000000\", \"currency\": \"USD\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0725\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"CURRENT_RISK_ADJ_SOFR\", \"rateSpread\": \"0.025\", \"rateMultiplier\": \"1.0\"}], \"riskFactors\": [{\"marketObjectCode\": \"CURRENT_RISK_ADJ_SOFR\", \"base\": 1.0, \"data\": [{\"time\": \"2026-03-01T00:00:00\", \"value\": 0.0475}, {\"time\": \"2026-06-01T00:00:00\", \"value\": 0.0525}, {\"time\": \"2026-09-01T00:00:00\", \"value\": 0.0575}, {\"time\": \"2026-12-01T00:00:00\", \"value\": 0.06}, {\"time\": \"2027-03-01T00:00:00\", \"value\": 0.06}, {\"time\": \"2027-06-01T00:00:00\", \"value\": 0.0575}, {\"time\": \"2027-09-01T00:00:00\", \"value\": 0.055}, {\"time\": \"2027-12-01T00:00:00\", \"value\": 0.0525}, {\"time\": \"2028-03-01T00:00:00\", \"value\": 0.05}, {\"time\": \"2028-06-01T00:00:00\", \"value\": 0.0485}, {\"time\": \"2028-09-01T00:00:00\", \"value\": 0.0475}, {\"time\": \"2028-12-01T00:00:00\", \"value\": 0.0475}, {\"time\": \"2029-03-01T00:00:00\", \"value\": 0.0475}]}]}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('A1-Success', function(){ pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "var total = 0;",
+                  "data[0].events.filter(e => e.type === 'IP').forEach(e => { total += Math.abs(e.payoff); });",
+                  "console.log('A1 Total Interest: $' + total.toFixed(0));",
+                  "pm.environment.set('A1_total', total);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B. Immediate Fixed Swap Mar2026",
+      "item": [
+        {
+          "name": "B1-Fixed-Swap-5.2pct",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://127.0.0.1:8083/eventsBatch",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\": [{\"contractType\": \"PAM\", \"contractID\": \"LOAN-FLOAT-B\", \"contractRole\": \"RPA\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"maturityDate\": \"2029-03-01T00:00:00\", \"notionalPrincipal\": \"1000000\", \"currency\": \"USD\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0725\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"CURRENT_RISK_ADJ_SOFR\", \"rateSpread\": \"0.025\", \"rateMultiplier\": \"1.0\"}, {\"contractType\": \"SWAPS\", \"contractID\": \"SWAP-FIXED-B\", \"contractRole\": \"PFL\", \"currency\": \"USD\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"deliverySettlement\": \"D\", \"contractStructure\": [{\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-B-FIXED\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-02-28T00:00:00\", \"notionalPrincipal\": \"1000000\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.052\", \"maturityDate\": \"2029-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"FIL\"}, {\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-B-FLOAT\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-02-28T00:00:00\", \"notionalPrincipal\": \"1000000\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0475\", \"maturityDate\": \"2029-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"CURRENT_RISK_ADJ_SOFR\", \"rateMultiplier\": \"1.0\", \"rateSpread\": \"0.0\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"SEL\"}]}], \"riskFactors\": [{\"marketObjectCode\": \"CURRENT_RISK_ADJ_SOFR\", \"base\": 1.0, \"data\": [{\"time\": \"2026-03-01T00:00:00\", \"value\": 0.0475}, {\"time\": \"2026-06-01T00:00:00\", \"value\": 0.0525}, {\"time\": \"2026-09-01T00:00:00\", \"value\": 0.0575}, {\"time\": \"2026-12-01T00:00:00\", \"value\": 0.06}, {\"time\": \"2027-03-01T00:00:00\", \"value\": 0.06}, {\"time\": \"2027-06-01T00:00:00\", \"value\": 0.0575}, {\"time\": \"2027-09-01T00:00:00\", \"value\": 0.055}, {\"time\": \"2027-12-01T00:00:00\", \"value\": 0.0525}, {\"time\": \"2028-03-01T00:00:00\", \"value\": 0.05}, {\"time\": \"2028-06-01T00:00:00\", \"value\": 0.0485}, {\"time\": \"2028-09-01T00:00:00\", \"value\": 0.0475}, {\"time\": \"2028-12-01T00:00:00\", \"value\": 0.0475}, {\"time\": \"2029-03-01T00:00:00\", \"value\": 0.0475}]}]}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('B1-Success', function(){ pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "var loanTotal = 0, swapTotal = 0;",
+                  "data.forEach(function(c){",
+                  "    if(c.contractID === 'LOAN-FLOAT-B'){",
+                  "        c.events.filter(e => e.type === 'IP').forEach(e => { loanTotal += Math.abs(e.payoff); });",
+                  "    } else if(c.contractID === 'SWAP-FIXED-B'){",
+                  "        c.events.filter(e => e.type === 'IP').forEach(e => { swapTotal += e.payoff; });",
+                  "    }",
+                  "});",
+                  "var total = loanTotal + swapTotal;",
+                  "console.log('B1 Loan: $' + loanTotal.toFixed(0) + ', Swap: $' + swapTotal.toFixed(0) + ', Total: $' + total.toFixed(0));",
+                  "pm.environment.set('B1_total', total);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "C. Summary Report",
+      "item": [
+        {
+          "name": "C1-Generate-Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://127.0.0.1:8083/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "console.log('\\n' + '='.repeat(80));",
+                  "console.log('CFO DECISION SUPPORT SUMMARY');",
+                  "console.log('India Textile Exporter - GTAP \u03c3=3.8, Tariff 50%\u219218%');",
+                  "console.log('='.repeat(80));",
+                  "var A1 = pm.environment.get('A1_total') || 0;",
+                  "var B1 = pm.environment.get('B1_total') || 0;",
+                  "console.log('\\nRISK-ADJUSTED SOFR: Base 4.25% + Tariff 1.0% + Country 0.5% + WC 0.25% = 6.0% peak');",
+                  "console.log('\\nA1 Floating (No Hedge): $' + A1.toFixed(0));",
+                  "console.log('   - Full SOFR exposure 4.75%-6.0% + 2.5% spread');",
+                  "console.log('   - Risk: HIGH volatility');",
+                  "console.log('\\nB1 Fixed Swap 5.2%: $' + B1.toFixed(0));",
+                  "console.log('   - Locked rate 7.7% (5.2% swap + 2.5% spread)');",
+                  "console.log('   - Risk: LOW - budget certainty');",
+                  "if(A1 > 0 && B1 > 0){",
+                  "    var diff = A1 - B1;",
+                  "    console.log('\\n' + '='.repeat(80));",
+                  "    console.log('SWAP IMPACT: ' + (diff > 0 ? 'SAVES' : 'COSTS') + ' $' + Math.abs(diff).toFixed(0) + ' over 3 years');",
+                  "    console.log('RECOMMENDATION: ' + (diff > 0 ? 'Execute swap - protects against rate spikes' : 'Monitor - rates may fall'));",
+                  "}",
+                  "console.log('='.repeat(80) + '\\n');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

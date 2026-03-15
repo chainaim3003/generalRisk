@@ -8,7 +8,7 @@ import type { StableCoinRiskData, RiskMetrics, VerificationSummary } from '../ty
  * Validate StableCoin risk data integrity
  */
 export function validateStableCoinData(data: StableCoinRiskData): void {
-  console.log('\n🔍 Validating data integrity...');
+  console.error('\n🔍 Validating data integrity...');
 
   // Validate periodsCount
   if (data.periodsCount <= 0) {
@@ -54,7 +54,7 @@ export function validateStableCoinData(data: StableCoinRiskData): void {
     throw new Error('Maturity profiles must have exactly 4 elements (cash, treasury, corporate, other)');
   }
 
-  console.log('✅ Data validation passed');
+  console.error('✅ Data validation passed');
 }
 
 /**
@@ -136,53 +136,53 @@ export function generateSummary(
  * Display verification summary in formatted output
  */
 export function displaySummary(summary: VerificationSummary): void {
-  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('📊 VERIFICATION SUMMARY');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.error('📊 VERIFICATION SUMMARY');
+  console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-  console.log(`Portfolio ID: ${summary.portfolioId}`);
-  console.log(`Periods Analyzed: ${summary.periodsAnalyzed}\n`);
+  console.error(`Portfolio ID: ${summary.portfolioId}`);
+  console.error(`Periods Analyzed: ${summary.periodsAnalyzed}\n`);
 
   // Backing Ratio
   const backingIcon = summary.backing.status === 'PASS' ? '✅' : '❌';
-  console.log(`${backingIcon} Backing Ratio:`);
-  console.log(`   Average: ${summary.backing.average.toFixed(2)}%`);
-  console.log(`   Threshold: ${summary.backing.threshold}%`);
-  console.log(`   Status: ${summary.backing.status}\n`);
+  console.error(`${backingIcon} Backing Ratio:`);
+  console.error(`   Average: ${summary.backing.average.toFixed(2)}%`);
+  console.error(`   Threshold: ${summary.backing.threshold}%`);
+  console.error(`   Status: ${summary.backing.status}\n`);
 
   // Liquidity Ratio
   const liquidityIcon = summary.liquidity.status === 'PASS' ? '✅' : '❌';
-  console.log(`${liquidityIcon} Liquidity Ratio:`);
-  console.log(`   Average: ${summary.liquidity.average.toFixed(2)}%`);
-  console.log(`   Threshold: ${summary.liquidity.threshold}%`);
-  console.log(`   Status: ${summary.liquidity.status}\n`);
+  console.error(`${liquidityIcon} Liquidity Ratio:`);
+  console.error(`   Average: ${summary.liquidity.average.toFixed(2)}%`);
+  console.error(`   Threshold: ${summary.liquidity.threshold}%`);
+  console.error(`   Status: ${summary.liquidity.status}\n`);
 
   // Concentration Risk
   const concentrationIcon = summary.concentration.status === 'PASS' ? '✅' : '❌';
-  console.log(`${concentrationIcon} Concentration Risk:`);
-  console.log(`   Maximum: ${summary.concentration.maximum.toFixed(2)}%`);
-  console.log(`   Limit: ${summary.concentration.limit}%`);
-  console.log(`   Status: ${summary.concentration.status}\n`);
+  console.error(`${concentrationIcon} Concentration Risk:`);
+  console.error(`   Maximum: ${summary.concentration.maximum.toFixed(2)}%`);
+  console.error(`   Limit: ${summary.concentration.limit}%`);
+  console.error(`   Status: ${summary.concentration.status}\n`);
 
   // Asset Quality
   const qualityIcon = summary.quality.status === 'PASS' ? '✅' : '❌';
-  console.log(`${qualityIcon} Asset Quality:`);
-  console.log(`   Score: ${summary.quality.score.toFixed(2)}`);
-  console.log(`   Threshold: ${summary.quality.threshold}`);
-  console.log(`   Status: ${summary.quality.status}\n`);
+  console.error(`${qualityIcon} Asset Quality:`);
+  console.error(`   Score: ${summary.quality.score.toFixed(2)}`);
+  console.error(`   Threshold: ${summary.quality.threshold}`);
+  console.error(`   Status: ${summary.quality.status}\n`);
 
   // Overall Status
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   const overallIcon = summary.overallStatus === 'COMPLIANT' ? '🎉' : '⚠️';
-  console.log(`${overallIcon} OVERALL STATUS: ${summary.overallStatus}`);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  console.error(`${overallIcon} OVERALL STATUS: ${summary.overallStatus}`);
+  console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
   // Failure Reasons
   if (summary.failureReasons.length > 0) {
-    console.log('❌ Failure Reasons:');
+    console.error('❌ Failure Reasons:');
     summary.failureReasons.forEach(reason => {
-      console.log(`   • ${reason}`);
+      console.error(`   • ${reason}`);
     });
-    console.log('');
+    console.error('');
   }
 }

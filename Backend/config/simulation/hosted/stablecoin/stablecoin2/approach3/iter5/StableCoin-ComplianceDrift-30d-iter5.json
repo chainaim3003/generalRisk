@@ -1,0 +1,201 @@
+{
+  "info": {
+    "_postman_id": "sc-cp-30d-iter5",
+    "name": "StableCoin-ComplianceDrift-30d-iter5",
+    "description": "APPROACH 3 iter5 — COMPLIANCE DRIFT MODEL (6.6): GENIUS/MiCA regulatory monitoring.\n\nMonitors 4 compliance metrics aligned to iter5 portfolio and thresholds:\n  Metric            | Weight | Threshold       | Regulatory Source\n  Backing ratio     | 40%    | >= 1.0 (100%)   | STABLE Act / GENIUS Act / MiCA EMT\n  WAM (days)        | 30%    | <= 93 days      | GENIUS Act\n  HQLA quality      | 20%    | >= 70 (not 100) | GENIUS Act (iter5 = L1+L2A+L2B portfolio)\n  Attestation age   | 10%    | <= 30 days      | All frameworks\n\nPortfolio WAM calculation (iter5, day 1):\n  tbill-4wk-001:  $10k * 18d remaining = 180,000\n  tbill-13wk-001: $32k * 49d remaining = 1,568,000\n  tbill-26wk-001: $26k * 104d remaining = 2,704,000\n  commpaper:       $6k * 43d remaining = 258,000\n  defi-yield-001:  $4k * 90d remaining = 360,000\n  WEIGHTED SUM = 5,070,000 / $78k non-cash = 65.0 days WAM (well under 93d)\n\n30-DAY LIFECYCLE:\n  Days 1-10:   Fully compliant — backing 101%, WAM 65d, quality 96, attest fresh\n  Day 11:      Halt — backing still 101% but EW fires (this is NOT a compliance breach)\n               WAM creeps up as short-tenor assets mature without replacement\n  Days 11-18:  HALT PERIOD — WAM drifts: 65d -> 82d (4wk tbill maturing improves it)\n               Attestation age creeps toward 30d limit\n  Day 18:      tbill-4wk matures, cash increases, WAM resets lower\n               Attestation issued (forced by regulatory surveillance)\n  Days 19-30:  Recovery — all metrics green, de-escalation\n\nKEY CHANGE vs stablecoin-1:\n  hqlaMinScore=70 (not 100) — iter5 has L2A/L2B instruments\n  backingThreshold=1.00 (unchanged)\n  wamMaxDays=93 (GENIUS Act — unchanged)\n  HQLA score reflects weighted quality including defi (60) and commpaper (85)\n  Compliance composite: backing (40%) dominates — stays green throughout\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add SC_BACKING_RATIO_I5 (iter5 — stays above 100% throughout)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addReferenceIndex", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_BACKING_I5\",\"marketObjectCode\":\"SC_BACKING_RATIO\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-04T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-05T00:00:00\",\"value\":1.010},{\"time\":\"2026-03-06T00:00:00\",\"value\":1.010},{\"time\":\"2026-03-07T00:00:00\",\"value\":1.010},{\"time\":\"2026-03-08T00:00:00\",\"value\":1.010},{\"time\":\"2026-03-09T00:00:00\",\"value\":1.010},{\"time\":\"2026-03-10T00:00:00\",\"value\":1.010},{\"time\":\"2026-03-11T00:00:00\",\"value\":1.010},{\"time\":\"2026-03-12T00:00:00\",\"value\":1.010},{\"time\":\"2026-03-13T00:00:00\",\"value\":1.009},{\"time\":\"2026-03-14T00:00:00\",\"value\":1.009},{\"time\":\"2026-03-15T00:00:00\",\"value\":1.009},{\"time\":\"2026-03-16T00:00:00\",\"value\":1.009},{\"time\":\"2026-03-17T00:00:00\",\"value\":1.008},{\"time\":\"2026-03-18T00:00:00\",\"value\":1.008},{\"time\":\"2026-03-19T00:00:00\",\"value\":1.008},{\"time\":\"2026-03-20T00:00:00\",\"value\":1.008},{\"time\":\"2026-03-21T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-22T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-23T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-24T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-25T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-26T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-27T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-28T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-29T00:00:00\",\"value\":1.011},{\"time\":\"2026-03-30T00:00:00\",\"value\":1.011}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_BACKING_RATIO_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_BACKING_I5: 1.011 (101.1%) consistent throughout');",
+        "    console.log('   Slight dip to 1.008 during peak stress (rate shock 8bps)');",
+        "    console.log('   NEVER below 100% \\u2014 backing is NOT the halt trigger in iter5');",
+        "    console.log('   Day 18 (tbill matures): jumps back to 1.011 (cash reinvested)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add SC_WAM_DAYS_I5 (iter5 starting WAM ~65d, stays under 93d)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addReferenceIndex", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_WAM_I5\",\"marketObjectCode\":\"SC_WAM_DAYS\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":65},{\"time\":\"2026-03-04T00:00:00\",\"value\":66},{\"time\":\"2026-03-05T00:00:00\",\"value\":67},{\"time\":\"2026-03-06T00:00:00\",\"value\":68},{\"time\":\"2026-03-07T00:00:00\",\"value\":69},{\"time\":\"2026-03-08T00:00:00\",\"value\":70},{\"time\":\"2026-03-09T00:00:00\",\"value\":71},{\"time\":\"2026-03-10T00:00:00\",\"value\":72},{\"time\":\"2026-03-11T00:00:00\",\"value\":73},{\"time\":\"2026-03-12T00:00:00\",\"value\":74},{\"time\":\"2026-03-13T00:00:00\",\"value\":75},{\"time\":\"2026-03-14T00:00:00\",\"value\":76},{\"time\":\"2026-03-15T00:00:00\",\"value\":77},{\"time\":\"2026-03-16T00:00:00\",\"value\":78},{\"time\":\"2026-03-17T00:00:00\",\"value\":79},{\"time\":\"2026-03-18T00:00:00\",\"value\":80},{\"time\":\"2026-03-19T00:00:00\",\"value\":81},{\"time\":\"2026-03-20T00:00:00\",\"value\":82},{\"time\":\"2026-03-21T00:00:00\",\"value\":68},{\"time\":\"2026-03-22T00:00:00\",\"value\":67},{\"time\":\"2026-03-23T00:00:00\",\"value\":66},{\"time\":\"2026-03-24T00:00:00\",\"value\":65},{\"time\":\"2026-03-25T00:00:00\",\"value\":64},{\"time\":\"2026-03-26T00:00:00\",\"value\":63},{\"time\":\"2026-03-27T00:00:00\",\"value\":62},{\"time\":\"2026-03-28T00:00:00\",\"value\":61},{\"time\":\"2026-03-29T00:00:00\",\"value\":60},{\"time\":\"2026-03-30T00:00:00\",\"value\":59}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_WAM_DAYS_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_WAM_I5: 65d start \\u2192 82d peak (day 18) \\u2192 59d recovery');",
+        "    console.log('   WAM rises during HALT as 4wk tbill approaches maturity (no reinvestment)');",
+        "    console.log('   Day 18: tbill matures, cash held \\u2192 WAM drops to 68d (below 93d GENIUS limit)');",
+        "    console.log('   NEVER breaches 93d limit in iter5 \\u2014 well-managed ladder');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add SC_HQLA_SCORE_I5 (iter5 — floor 70, L1+L2A+L2B weighted)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addReferenceIndex", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_HQLA_I5\",\"marketObjectCode\":\"SC_HQLA_SCORE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":96},{\"time\":\"2026-03-04T00:00:00\",\"value\":96},{\"time\":\"2026-03-05T00:00:00\",\"value\":96},{\"time\":\"2026-03-06T00:00:00\",\"value\":96},{\"time\":\"2026-03-07T00:00:00\",\"value\":95},{\"time\":\"2026-03-08T00:00:00\",\"value\":95},{\"time\":\"2026-03-09T00:00:00\",\"value\":95},{\"time\":\"2026-03-10T00:00:00\",\"value\":94},{\"time\":\"2026-03-11T00:00:00\",\"value\":94},{\"time\":\"2026-03-12T00:00:00\",\"value\":93},{\"time\":\"2026-03-13T00:00:00\",\"value\":93},{\"time\":\"2026-03-14T00:00:00\",\"value\":92},{\"time\":\"2026-03-15T00:00:00\",\"value\":92},{\"time\":\"2026-03-16T00:00:00\",\"value\":92},{\"time\":\"2026-03-17T00:00:00\",\"value\":92},{\"time\":\"2026-03-18T00:00:00\",\"value\":91},{\"time\":\"2026-03-19T00:00:00\",\"value\":92},{\"time\":\"2026-03-20T00:00:00\",\"value\":93},{\"time\":\"2026-03-21T00:00:00\",\"value\":95},{\"time\":\"2026-03-22T00:00:00\",\"value\":95},{\"time\":\"2026-03-23T00:00:00\",\"value\":96},{\"time\":\"2026-03-24T00:00:00\",\"value\":96},{\"time\":\"2026-03-25T00:00:00\",\"value\":96},{\"time\":\"2026-03-26T00:00:00\",\"value\":96},{\"time\":\"2026-03-27T00:00:00\",\"value\":97},{\"time\":\"2026-03-28T00:00:00\",\"value\":97},{\"time\":\"2026-03-29T00:00:00\",\"value\":97},{\"time\":\"2026-03-30T00:00:00\",\"value\":97}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_HQLA_SCORE_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_HQLA_I5: 96 start \\u2192 91 trough (day 18) \\u2192 97 recovery');",
+        "    console.log('   iter5 baseline 96.5 = (89k*100 + 6k*85 + 4k*60) / 101k');",
+        "    console.log('   Slight degradation during crisis as commpaper quality falls');",
+        "    console.log('   Stays well above GENIUS/MiCA threshold of 70');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add SC_ATTESTATION_AGE_I5 (resets on day 18 during restore)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addReferenceIndex", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addReferenceIndex"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"SC_ATTEST_I5\",\"marketObjectCode\":\"SC_ATTESTATION_AGE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-03T00:00:00\",\"value\":3},{\"time\":\"2026-03-04T00:00:00\",\"value\":4},{\"time\":\"2026-03-05T00:00:00\",\"value\":5},{\"time\":\"2026-03-06T00:00:00\",\"value\":6},{\"time\":\"2026-03-07T00:00:00\",\"value\":7},{\"time\":\"2026-03-08T00:00:00\",\"value\":8},{\"time\":\"2026-03-09T00:00:00\",\"value\":9},{\"time\":\"2026-03-10T00:00:00\",\"value\":10},{\"time\":\"2026-03-11T00:00:00\",\"value\":11},{\"time\":\"2026-03-12T00:00:00\",\"value\":13},{\"time\":\"2026-03-13T00:00:00\",\"value\":15},{\"time\":\"2026-03-14T00:00:00\",\"value\":18},{\"time\":\"2026-03-15T00:00:00\",\"value\":21},{\"time\":\"2026-03-16T00:00:00\",\"value\":23},{\"time\":\"2026-03-17T00:00:00\",\"value\":25},{\"time\":\"2026-03-18T00:00:00\",\"value\":28},{\"time\":\"2026-03-19T00:00:00\",\"value\":29},{\"time\":\"2026-03-20T00:00:00\",\"value\":30},{\"time\":\"2026-03-21T00:00:00\",\"value\":1},{\"time\":\"2026-03-22T00:00:00\",\"value\":2},{\"time\":\"2026-03-23T00:00:00\",\"value\":3},{\"time\":\"2026-03-24T00:00:00\",\"value\":4},{\"time\":\"2026-03-25T00:00:00\",\"value\":5},{\"time\":\"2026-03-26T00:00:00\",\"value\":6},{\"time\":\"2026-03-27T00:00:00\",\"value\":7},{\"time\":\"2026-03-28T00:00:00\",\"value\":8},{\"time\":\"2026-03-29T00:00:00\",\"value\":9},{\"time\":\"2026-03-30T00:00:00\",\"value\":10}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('SC_ATTESTATION_AGE_I5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 SC_ATTEST_I5: 3d start \\u2192 30d (day 18, exactly at limit) \\u2192 reset to 1d');",
+        "    console.log('   Regulatory trigger: attestation issued at day 18 (tbill maturity event)');",
+        "    console.log('   Attestation age exactly 30d on restore day \\u2014 just within compliance');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add ComplianceDriftModel iter5 (cp_sc_i5 — hqlaMinScore=70)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addComplianceDriftModel", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addComplianceDriftModel"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"cp_sc_i5\",\"backingRatioMOC\":\"SC_BACKING_RATIO\",\"wamDaysMOC\":\"SC_WAM_DAYS\",\"hqlaScoreMOC\":\"SC_HQLA_SCORE\",\"attestationAgeMOC\":\"SC_ATTESTATION_AGE\",\"backingThreshold\":1.0,\"wamMaxDays\":93.0,\"hqlaMinScore\":70.0,\"attestationMaxDays\":30.0,\"monitoringEventTimes\":[\"2026-03-03T00:00:00\",\"2026-03-04T00:00:00\",\"2026-03-05T00:00:00\",\"2026-03-06T00:00:00\",\"2026-03-07T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-09T00:00:00\",\"2026-03-10T00:00:00\",\"2026-03-11T00:00:00\",\"2026-03-12T00:00:00\",\"2026-03-13T00:00:00\",\"2026-03-14T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-16T00:00:00\",\"2026-03-17T00:00:00\",\"2026-03-18T00:00:00\",\"2026-03-19T00:00:00\",\"2026-03-20T00:00:00\",\"2026-03-21T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-23T00:00:00\",\"2026-03-24T00:00:00\",\"2026-03-25T00:00:00\",\"2026-03-26T00:00:00\",\"2026-03-27T00:00:00\",\"2026-03-28T00:00:00\",\"2026-03-29T00:00:00\",\"2026-03-30T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ComplianceDriftModel iter5 added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('\\u2705 cp_sc_i5: ComplianceDriftModel iter5 (28-day monitoring)');",
+        "    console.log('   hqlaMinScore=70.0 (GENIUS/MiCA with L2A/L2B \\u2014 upgraded from 100)');",
+        "    console.log('   backingThreshold=1.0  wamMaxDays=93.0  attestationMaxDays=30.0');",
+        "    console.log('   Weights: backing=40%, WAM=30%, HQLA=20%, attestation=10%');",
+        "    console.log('   Result: ZERO compliance breaches throughout (all metrics green)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add ComplianceDrift iter5 Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8082/addScenario", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["addScenario"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"sc_compliance_iter5_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"SC_BACKING_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_WAM_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_HQLA_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"SC_ATTEST_I5\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"cp_sc_i5\",\"riskFactorType\":\"ComplianceDriftModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ComplianceDrift iter5 scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('\\u2705 sc_compliance_iter5_scn01: 4 indexes + ComplianceDriftModel');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7a. Verify ComplianceDriftModel iter5",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://34.203.247.32:8082/findComplianceDriftModel/cp_sc_i5", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["findComplianceDriftModel", "cp_sc_i5"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ComplianceDriftModel iter5 verified', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var d=pm.response.json();",
+        "    pm.expect(d.hqlaMinScore).to.eql(70.0);",
+        "    console.log('\\u2705 cp_sc_i5: hqlaMin='+d.hqlaMinScore+' backing='+d.backingThreshold+' wam='+d.wamMaxDays+' attest='+d.attestationMaxDays);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7b. Verify Scenario",
+      "request": {"method": "GET", "header": [], "url": {"raw": "http://34.203.247.32:8082/findScenario/sc_compliance_iter5_scn01", "protocol": "http", "host": ["34.203.247.32:8082"], "path": ["findScenario", "sc_compliance_iter5_scn01"]}},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Scenario verified', function(){",
+        "    var types=pm.response.json().riskFactorDescriptors.map(function(d){return d.riskFactorType;});",
+        "    pm.expect(types).to.include('ComplianceDriftModel');",
+        "    console.log('\\u2705 Descriptors: '+JSON.stringify(types));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run ComplianceDrift iter5 Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://34.203.247.32:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["34.203.247.32:8083"], "path": ["rf2", "scenarioSimulation"]},
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"contractType\":\"PAM\",\"statusDate\":\"2026-03-02T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"StableCoinA-CP-I5\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-03T00:00:00\",\"maturityDate\":\"2026-04-01T00:00:00\",\"notionalPrincipal\":100000,\"nominalInterestRate\":0.0,\"currency\":\"USD\",\"dayCountConvention\":\"A365\",\"stablecoinModels\":[\"cp_sc_i5\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"sc_compliance_iter5_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-04-01T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ComplianceDrift iter5 simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    pm.expect(data[0].status).to.eql('Success');",
+        "    var events = data[0].events;",
+        "    console.log('');",
+        "    console.log('\\u2554\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2557');",
+        "    console.log('\\u2551  COMPLIANCE DRIFT MODEL (6.6) iter5 \\u2014 GENIUS/MiCA MONITORING          \\u2551');",
+        "    console.log('\\u2551  Thresholds: backing\\u2265100% WAM\\u226493d HQLA\\u226570 attest\\u226430d               \\u2551');",
+        "    console.log('\\u2560\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2563');",
+        "    console.log('\\u2551  EXPECTED: compositeBreachScore=0.0 all 28 days (no breaches)        \\u2551');",
+        "    console.log('\\u2551  backing 1.008-1.011 (100%+) \\u2705  WAM 65-82d (<93d) \\u2705             \\u2551');",
+        "    console.log('\\u2551  HQLA 91-97 (>70) \\u2705  attestAge peaks at 30d (exactly at limit) \\u2705   \\u2551');",
+        "    console.log('\\u2551  Day 18: attestation reset \\u2192 age=1d \\u2192 fresh compliance signal      \\u2551');",
+        "    console.log('\\u255a\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u255d');",
+        "    console.log('Total events: ' + events.length);",
+        "    var mrds = events.filter(function(e){return e.type==='MRD';});",
+        "    if(mrds.length > 0){",
+        "        console.log('\\u2550\\u2550 COMPLIANCE EVENTS (score=0.0 = fully compliant) \\u2550\\u2550');",
+        "        mrds.forEach(function(m){ console.log('  '+m.time+' compositeBreachScore='+m.payoff.toFixed(4)); });",
+        "    }",
+        "});",
+        "pm.test('Events generated', function(){ pm.expect(pm.response.json()[0].events.length).to.be.above(0); });"
+      ]}}]
+    }
+  ]
+}

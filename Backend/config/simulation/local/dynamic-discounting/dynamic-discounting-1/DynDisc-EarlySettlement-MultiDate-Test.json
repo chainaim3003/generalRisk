@@ -1,0 +1,210 @@
+{
+  "info": {
+    "_postman_id": "dyndisc-es-multidate-001",
+    "name": "DynDisc-EarlySettlement-MultiDate-Test",
+    "description": "ACTUS Dynamic Discounting: MULTI-DATE SETTLEMENT TEST\n\nValidates the LINEAR discount curve by settling at 5 different dates.\nBuyer cash and hurdle rate are added once; the EarlySettlementModel and\nscenario are re-added before each simulation (re-add replaces the old\ninstance, resetting the settled flag).\n\nDiscount formula: discount(d) = 0.02 \u00d7 (1 - d/30)\n\nTest matrix:\n  Day  1 (Mar  2): discount=1.933%, payoff=$98,066.67\n  Day 10 (Mar 11): discount=1.333%, payoff=$98,666.67\n  Day 15 (Mar 16): discount=1.000%, payoff=$99,000.00\n  Day 25 (Mar 26): discount=0.333%, payoff=$99,666.67\n  Day 29 (Mar 30): discount=0.067%, payoff=$99,933.33\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Setup",
+      "item": [
+        {
+          "name": "0a. Add BUYER_CASH (constant $500K)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+            "body": {"mode": "raw", "raw": "{\"riskFactorID\":\"BUYER_CASH_01\",\"marketObjectCode\":\"BUYER_CASH\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":500000},{\"time\":\"2026-03-02T00:00:00\",\"value\":500000},{\"time\":\"2026-03-03T00:00:00\",\"value\":500000},{\"time\":\"2026-03-04T00:00:00\",\"value\":500000},{\"time\":\"2026-03-05T00:00:00\",\"value\":500000},{\"time\":\"2026-03-06T00:00:00\",\"value\":500000},{\"time\":\"2026-03-07T00:00:00\",\"value\":500000},{\"time\":\"2026-03-08T00:00:00\",\"value\":500000},{\"time\":\"2026-03-09T00:00:00\",\"value\":500000},{\"time\":\"2026-03-10T00:00:00\",\"value\":500000},{\"time\":\"2026-03-11T00:00:00\",\"value\":500000},{\"time\":\"2026-03-12T00:00:00\",\"value\":500000},{\"time\":\"2026-03-13T00:00:00\",\"value\":500000},{\"time\":\"2026-03-14T00:00:00\",\"value\":500000},{\"time\":\"2026-03-15T00:00:00\",\"value\":500000},{\"time\":\"2026-03-16T00:00:00\",\"value\":500000},{\"time\":\"2026-03-17T00:00:00\",\"value\":500000},{\"time\":\"2026-03-18T00:00:00\",\"value\":500000},{\"time\":\"2026-03-19T00:00:00\",\"value\":500000},{\"time\":\"2026-03-20T00:00:00\",\"value\":500000},{\"time\":\"2026-03-21T00:00:00\",\"value\":500000},{\"time\":\"2026-03-22T00:00:00\",\"value\":500000},{\"time\":\"2026-03-23T00:00:00\",\"value\":500000},{\"time\":\"2026-03-24T00:00:00\",\"value\":500000},{\"time\":\"2026-03-25T00:00:00\",\"value\":500000},{\"time\":\"2026-03-26T00:00:00\",\"value\":500000},{\"time\":\"2026-03-27T00:00:00\",\"value\":500000},{\"time\":\"2026-03-28T00:00:00\",\"value\":500000},{\"time\":\"2026-03-29T00:00:00\",\"value\":500000},{\"time\":\"2026-03-30T00:00:00\",\"value\":500000},{\"time\":\"2026-03-31T00:00:00\",\"value\":500000}]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('BUYER_CASH added', function(){","    pm.response.to.have.status(200);","    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');","    console.log('MULTI-DATE SETTLEMENT TEST: LINEAR discount, 5 settlement dates');","    console.log('  discount(d) = 0.02 \\u00d7 (1 - d/30)');","    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');","    console.log('\\u2705 BUYER_CASH_01: $500K (added once)');","});"]}}]
+        },
+        {
+          "name": "0b. Add HURDLE_RATE (constant 8% APR)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addReferenceIndex", "protocol": "http", "host": ["localhost:8082"], "path": ["addReferenceIndex"]},
+            "body": {"mode": "raw", "raw": "{\"riskFactorID\":\"HURDLE_RATE_01\",\"marketObjectCode\":\"HURDLE_RATE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.08},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.08},{\"time\":\"2026-03-31T00:00:00\",\"value\":0.08}]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('HURDLE_RATE added', function(){","    pm.response.to.have.status(200);","    console.log('\\u2705 HURDLE_RATE_01: 8% APR (added once)');","    console.log('');","});"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Test 1: Day 1 (Mar 2) \u2014 1.93% discount",
+      "item": [
+        {
+          "name": "1a. Add Model (settle Mar 2)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addEarlySettlementModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addEarlySettlementModel"]},
+            "body": {"mode": "raw", "raw": "{\"riskFactorId\":\"early_settle_inv001\",\"invoiceDate\":\"2026-03-01T00:00:00\",\"dueDate\":\"2026-03-31T00:00:00\",\"notionalAmount\":100000.0,\"maxDiscountRate\":0.02,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-02T00:00:00\"]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Model added for Day 1', function(){","    pm.response.to.have.status(200);","    console.log('\\u2500\\u2500 TEST 1: Day 1 (Mar 2) \\u2500\\u2500');","    console.log('   monitoring: [2026-03-02]');","});"]}}]
+        },
+        {
+          "name": "1b. Add Scenario",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost:8082"], "path": ["addScenario"]},
+            "body": {"mode": "raw", "raw": "{\"scenarioID\":\"dyndisc_linear_30d\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_inv001\",\"riskFactorType\":\"EarlySettlement\"}]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Scenario added', function(){ pm.response.to.have.status(200); });"]}}]
+        },
+        {
+          "name": "1c. Simulate Day 1",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost:8083"], "path": ["rf2", "scenarioSimulation"]},
+            "body": {"mode": "raw", "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"INV-2026-001\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"SupplierABC\",\"creatorID\":\"BuyerXYZ\",\"discountingModels\":[\"early_settle_inv001\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc_linear_30d\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["var EXPECTED_PAYOFF = 98066.67;","var EXPECTED_DISCOUNT_PCT = 1.93;","var DAY_LABEL = 'Day 1 (Mar 2)';","var TOLERANCE = 50;","","pm.test(DAY_LABEL + ': settlement payoff correct', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp.length).to.eql(1, 'Exactly one settlement PP');","    var payoff = Math.abs(pp[0].payoff);","    var diff = Math.abs(payoff - EXPECTED_PAYOFF);","    pm.expect(diff).to.be.below(TOLERANCE, 'Payoff ~$' + EXPECTED_PAYOFF);","    var discountAmt = 100000 - payoff;","    var discountPct = (discountAmt / 100000 * 100).toFixed(2);","    console.log('   \\u2705 ' + DAY_LABEL + ': payoff=$' + payoff.toFixed(2) + ' discount=' + discountPct + '% (expected ~' + EXPECTED_DISCOUNT_PCT + '%)');","});","","pm.test(DAY_LABEL + ': notional zeroed', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp[0].nominalValue).to.eql(0, 'Notional should be $0');","});","","pm.test(DAY_LABEL + ': MD payoff zero', function(){","    var md = pm.response.json()[0].events.filter(function(e){return e.type==='MD';});","    pm.expect(md[0].payoff).to.eql(0, 'MD should be $0');","});"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Test 2: Day 10 (Mar 11) \u2014 1.33% discount",
+      "item": [
+        {
+          "name": "2a. Add Model (settle Mar 11)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addEarlySettlementModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addEarlySettlementModel"]},
+            "body": {"mode": "raw", "raw": "{\"riskFactorId\":\"early_settle_inv001\",\"invoiceDate\":\"2026-03-01T00:00:00\",\"dueDate\":\"2026-03-31T00:00:00\",\"notionalAmount\":100000.0,\"maxDiscountRate\":0.02,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-11T00:00:00\"]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Model added for Day 10', function(){","    pm.response.to.have.status(200);","    console.log('');","    console.log('\\u2500\\u2500 TEST 2: Day 10 (Mar 11) \\u2500\\u2500');","    console.log('   monitoring: [2026-03-11]');","});"]}}]
+        },
+        {
+          "name": "2b. Add Scenario",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost:8082"], "path": ["addScenario"]},
+            "body": {"mode": "raw", "raw": "{\"scenarioID\":\"dyndisc_linear_30d\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_inv001\",\"riskFactorType\":\"EarlySettlement\"}]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Scenario added', function(){ pm.response.to.have.status(200); });"]}}]
+        },
+        {
+          "name": "2c. Simulate Day 10",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost:8083"], "path": ["rf2", "scenarioSimulation"]},
+            "body": {"mode": "raw", "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"INV-2026-001\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"SupplierABC\",\"creatorID\":\"BuyerXYZ\",\"discountingModels\":[\"early_settle_inv001\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc_linear_30d\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["var EXPECTED_PAYOFF = 98666.67;","var EXPECTED_DISCOUNT_PCT = 1.33;","var DAY_LABEL = 'Day 10 (Mar 11)';","var TOLERANCE = 50;","","pm.test(DAY_LABEL + ': settlement payoff correct', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp.length).to.eql(1, 'Exactly one settlement PP');","    var payoff = Math.abs(pp[0].payoff);","    var diff = Math.abs(payoff - EXPECTED_PAYOFF);","    pm.expect(diff).to.be.below(TOLERANCE, 'Payoff ~$' + EXPECTED_PAYOFF);","    var discountAmt = 100000 - payoff;","    var discountPct = (discountAmt / 100000 * 100).toFixed(2);","    console.log('   \\u2705 ' + DAY_LABEL + ': payoff=$' + payoff.toFixed(2) + ' discount=' + discountPct + '% (expected ~' + EXPECTED_DISCOUNT_PCT + '%)');","});","","pm.test(DAY_LABEL + ': notional zeroed', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp[0].nominalValue).to.eql(0);","});","","pm.test(DAY_LABEL + ': MD payoff zero', function(){","    var md = pm.response.json()[0].events.filter(function(e){return e.type==='MD';});","    pm.expect(md[0].payoff).to.eql(0);","});"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Test 3: Day 15 (Mar 16) \u2014 1.00% discount",
+      "item": [
+        {
+          "name": "3a. Add Model (settle Mar 16)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addEarlySettlementModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addEarlySettlementModel"]},
+            "body": {"mode": "raw", "raw": "{\"riskFactorId\":\"early_settle_inv001\",\"invoiceDate\":\"2026-03-01T00:00:00\",\"dueDate\":\"2026-03-31T00:00:00\",\"notionalAmount\":100000.0,\"maxDiscountRate\":0.02,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-16T00:00:00\"]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Model added for Day 15', function(){","    pm.response.to.have.status(200);","    console.log('');","    console.log('\\u2500\\u2500 TEST 3: Day 15 (Mar 16) \\u2500\\u2500');","    console.log('   monitoring: [2026-03-16]');","});"]}}]
+        },
+        {
+          "name": "3b. Add Scenario",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost:8082"], "path": ["addScenario"]},
+            "body": {"mode": "raw", "raw": "{\"scenarioID\":\"dyndisc_linear_30d\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_inv001\",\"riskFactorType\":\"EarlySettlement\"}]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Scenario added', function(){ pm.response.to.have.status(200); });"]}}]
+        },
+        {
+          "name": "3c. Simulate Day 15",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost:8083"], "path": ["rf2", "scenarioSimulation"]},
+            "body": {"mode": "raw", "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"INV-2026-001\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"SupplierABC\",\"creatorID\":\"BuyerXYZ\",\"discountingModels\":[\"early_settle_inv001\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc_linear_30d\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["var EXPECTED_PAYOFF = 99000.00;","var EXPECTED_DISCOUNT_PCT = 1.00;","var DAY_LABEL = 'Day 15 (Mar 16)';","var TOLERANCE = 50;","","pm.test(DAY_LABEL + ': settlement payoff correct', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp.length).to.eql(1, 'Exactly one settlement PP');","    var payoff = Math.abs(pp[0].payoff);","    var diff = Math.abs(payoff - EXPECTED_PAYOFF);","    pm.expect(diff).to.be.below(TOLERANCE, 'Payoff ~$' + EXPECTED_PAYOFF);","    var discountAmt = 100000 - payoff;","    var discountPct = (discountAmt / 100000 * 100).toFixed(2);","    console.log('   \\u2705 ' + DAY_LABEL + ': payoff=$' + payoff.toFixed(2) + ' discount=' + discountPct + '% (expected ~' + EXPECTED_DISCOUNT_PCT + '%)');","});","","pm.test(DAY_LABEL + ': notional zeroed', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp[0].nominalValue).to.eql(0);","});","","pm.test(DAY_LABEL + ': MD payoff zero', function(){","    var md = pm.response.json()[0].events.filter(function(e){return e.type==='MD';});","    pm.expect(md[0].payoff).to.eql(0);","});"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Test 4: Day 25 (Mar 26) \u2014 0.33% discount",
+      "item": [
+        {
+          "name": "4a. Add Model (settle Mar 26)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addEarlySettlementModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addEarlySettlementModel"]},
+            "body": {"mode": "raw", "raw": "{\"riskFactorId\":\"early_settle_inv001\",\"invoiceDate\":\"2026-03-01T00:00:00\",\"dueDate\":\"2026-03-31T00:00:00\",\"notionalAmount\":100000.0,\"maxDiscountRate\":0.02,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-26T00:00:00\"]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Model added for Day 25', function(){","    pm.response.to.have.status(200);","    console.log('');","    console.log('\\u2500\\u2500 TEST 4: Day 25 (Mar 26) \\u2500\\u2500');","    console.log('   monitoring: [2026-03-26]');","});"]}}]
+        },
+        {
+          "name": "4b. Add Scenario",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost:8082"], "path": ["addScenario"]},
+            "body": {"mode": "raw", "raw": "{\"scenarioID\":\"dyndisc_linear_30d\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_inv001\",\"riskFactorType\":\"EarlySettlement\"}]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Scenario added', function(){ pm.response.to.have.status(200); });"]}}]
+        },
+        {
+          "name": "4c. Simulate Day 25",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost:8083"], "path": ["rf2", "scenarioSimulation"]},
+            "body": {"mode": "raw", "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"INV-2026-001\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"SupplierABC\",\"creatorID\":\"BuyerXYZ\",\"discountingModels\":[\"early_settle_inv001\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc_linear_30d\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["var EXPECTED_PAYOFF = 99666.67;","var EXPECTED_DISCOUNT_PCT = 0.33;","var DAY_LABEL = 'Day 25 (Mar 26)';","var TOLERANCE = 50;","","pm.test(DAY_LABEL + ': settlement payoff correct', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp.length).to.eql(1, 'Exactly one settlement PP');","    var payoff = Math.abs(pp[0].payoff);","    var diff = Math.abs(payoff - EXPECTED_PAYOFF);","    pm.expect(diff).to.be.below(TOLERANCE, 'Payoff ~$' + EXPECTED_PAYOFF);","    var discountAmt = 100000 - payoff;","    var discountPct = (discountAmt / 100000 * 100).toFixed(2);","    console.log('   \\u2705 ' + DAY_LABEL + ': payoff=$' + payoff.toFixed(2) + ' discount=' + discountPct + '% (expected ~' + EXPECTED_DISCOUNT_PCT + '%)');","});","","pm.test(DAY_LABEL + ': notional zeroed', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp[0].nominalValue).to.eql(0);","});","","pm.test(DAY_LABEL + ': MD payoff zero', function(){","    var md = pm.response.json()[0].events.filter(function(e){return e.type==='MD';});","    pm.expect(md[0].payoff).to.eql(0);","});"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Test 5: Day 29 (Mar 30) \u2014 0.07% discount",
+      "item": [
+        {
+          "name": "5a. Add Model (settle Mar 30)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addEarlySettlementModel", "protocol": "http", "host": ["localhost:8082"], "path": ["addEarlySettlementModel"]},
+            "body": {"mode": "raw", "raw": "{\"riskFactorId\":\"early_settle_inv001\",\"invoiceDate\":\"2026-03-01T00:00:00\",\"dueDate\":\"2026-03-31T00:00:00\",\"notionalAmount\":100000.0,\"maxDiscountRate\":0.02,\"discountFunctionType\":\"LINEAR\",\"decayLambda\":0.0,\"powerAlpha\":1.0,\"stepDiscountSchedule\":null,\"hurdleRateAnnualized\":0.08,\"buyerCashMOC\":\"BUYER_CASH\",\"customDiscountMOC\":null,\"monitoringEventTimes\":[\"2026-03-30T00:00:00\"]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Model added for Day 29', function(){","    pm.response.to.have.status(200);","    console.log('');","    console.log('\\u2500\\u2500 TEST 5: Day 29 (Mar 30) \\u2500\\u2500');","    console.log('   monitoring: [2026-03-30]');","});"]}}]
+        },
+        {
+          "name": "5b. Add Scenario",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8082/addScenario", "protocol": "http", "host": ["localhost:8082"], "path": ["addScenario"]},
+            "body": {"mode": "raw", "raw": "{\"scenarioID\":\"dyndisc_linear_30d\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"BUYER_CASH_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"HURDLE_RATE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"early_settle_inv001\",\"riskFactorType\":\"EarlySettlement\"}]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Scenario added', function(){ pm.response.to.have.status(200); });"]}}]
+        },
+        {
+          "name": "5c. Simulate Day 29",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {"raw": "http://localhost:8083/rf2/scenarioSimulation", "protocol": "http", "host": ["localhost:8083"], "path": ["rf2", "scenarioSimulation"]},
+            "body": {"mode": "raw", "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"INV-2026-001\",\"cycleAnchorDateOfInterestPayment\":\"2026-03-31T00:00:00\",\"cycleOfInterestPayment\":\"P1ML0\",\"nominalInterestRate\":0.0,\"dayCountConvention\":\"AA\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-03-31T00:00:00\",\"notionalPrincipal\":100000,\"premiumDiscountAtIED\":0,\"counterpartyID\":\"SupplierABC\",\"creatorID\":\"BuyerXYZ\",\"discountingModels\":[\"early_settle_inv001\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"dyndisc_linear_30d\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-03-31T00:00:00\",\"monitoringTimes\":[]}", "options": {"raw": {"language": "json"}}}
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["var EXPECTED_PAYOFF = 99933.33;","var EXPECTED_DISCOUNT_PCT = 0.07;","var DAY_LABEL = 'Day 29 (Mar 30)';","var TOLERANCE = 50;","","pm.test(DAY_LABEL + ': settlement payoff correct', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp.length).to.eql(1, 'Exactly one settlement PP');","    var payoff = Math.abs(pp[0].payoff);","    var diff = Math.abs(payoff - EXPECTED_PAYOFF);","    pm.expect(diff).to.be.below(TOLERANCE, 'Payoff ~$' + EXPECTED_PAYOFF);","    var discountAmt = 100000 - payoff;","    var discountPct = (discountAmt / 100000 * 100).toFixed(2);","    console.log('   \\u2705 ' + DAY_LABEL + ': payoff=$' + payoff.toFixed(2) + ' discount=' + discountPct + '% (expected ~' + EXPECTED_DISCOUNT_PCT + '%)');","});","","pm.test(DAY_LABEL + ': notional zeroed', function(){","    var events = pm.response.json()[0].events;","    var pp = events.filter(function(e){return e.type==='PP' && Math.abs(e.payoff) > 0;});","    pm.expect(pp[0].nominalValue).to.eql(0);","});","","pm.test(DAY_LABEL + ': MD payoff zero', function(){","    var md = pm.response.json()[0].events.filter(function(e){return e.type==='MD';});","    pm.expect(md[0].payoff).to.eql(0);","});","","// Final summary","pm.test('All 5 settlement dates validated', function(){","    console.log('');","    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');","    console.log('SUMMARY: LINEAR discount curve validated at 5 points');","    console.log('  Day  1: ~1.93% discount \\u2192 ~$98,067');","    console.log('  Day 10: ~1.33% discount \\u2192 ~$98,667');","    console.log('  Day 15: ~1.00% discount \\u2192 ~$99,000');","    console.log('  Day 25: ~0.33% discount \\u2192 ~$99,667');","    console.log('  Day 29: ~0.07% discount \\u2192 ~$99,933');","    console.log('\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550\\u2550');","});"]}}]
+        }
+      ]
+    }
+  ]
+}

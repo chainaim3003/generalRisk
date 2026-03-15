@@ -1,0 +1,451 @@
+{
+  "info": {
+    "_postman_id": "swaps-what-if-2-cfo",
+    "name": "SWAPS What-If-2: Swap Now vs Wait - Deteriorating",
+    "description": "CFO Decision Support: Proves swapping NOW is better than waiting when conditions deteriorate. Configurable inputs drive corridor-specific, commodity-specific SOFR risk factor composition.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "exporter_country",
+      "value": "India",
+      "description": "Exporting country"
+    },
+    {
+      "key": "importer_country",
+      "value": "United States",
+      "description": "Importing country"
+    },
+    {
+      "key": "corridor_code",
+      "value": "IN-US",
+      "description": "Trade corridor identifier"
+    },
+    {
+      "key": "sovereign_stress_initial",
+      "value": "0.50",
+      "description": "Initial country risk premium (%) - India EM spread"
+    },
+    {
+      "key": "sovereign_stress_peak",
+      "value": "0.70",
+      "description": "Peak country risk premium (%) under deterioration"
+    },
+    {
+      "key": "commodity",
+      "value": "Textiles",
+      "description": "GTAP commodity sector"
+    },
+    {
+      "key": "commodity_code",
+      "value": "tex",
+      "description": "GTAP sector code"
+    },
+    {
+      "key": "armington_elasticity",
+      "value": "3.8",
+      "description": "GTAP Armington elasticity (\u03c3) - trade substitutability"
+    },
+    {
+      "key": "tariff_current",
+      "value": "0.50",
+      "description": "Current tariff rate (50%)"
+    },
+    {
+      "key": "tariff_peak",
+      "value": "0.60",
+      "description": "Peak tariff if conditions worsen (60%)"
+    },
+    {
+      "key": "tariff_pass_through",
+      "value": "0.20",
+      "description": "Pass-through coefficient"
+    },
+    {
+      "key": "loan_notional",
+      "value": "1000000",
+      "description": "Loan principal amount (USD)"
+    },
+    {
+      "key": "loan_type",
+      "value": "floating",
+      "description": "Original loan type"
+    },
+    {
+      "key": "loan_spread",
+      "value": "0.025",
+      "description": "Spread over reference rate (250 bps)"
+    },
+    {
+      "key": "swap_type",
+      "value": "fixed",
+      "description": "Swap hedges to fixed rate"
+    },
+    {
+      "key": "swap_now_rate",
+      "value": "0.052",
+      "description": "Fixed rate if swap now (5.2%)"
+    },
+    {
+      "key": "swap_later_rate",
+      "value": "0.058",
+      "description": "Fixed rate if swap later (5.8%)"
+    },
+    {
+      "key": "swap_delay_months",
+      "value": "3",
+      "description": "Months to wait in delayed scenario"
+    },
+    {
+      "key": "base_sofr_initial",
+      "value": "0.0425",
+      "description": "Base SOFR at start (Fed funds rate)"
+    },
+    {
+      "key": "wc_stress_initial",
+      "value": "0.0025",
+      "description": "Working capital stress initial"
+    },
+    {
+      "key": "wc_stress_peak",
+      "value": "0.0050",
+      "description": "Working capital stress peak"
+    }
+  ],
+  "item": [
+    {
+      "name": "A. Swap Now (March 2026)",
+      "item": [
+        {
+          "name": "A1-Swap-Now-Full-Hedge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://34.203.247.32:8083/eventsBatch",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\": [{\"contractType\": \"PAM\", \"contractID\": \"LOAN-FLOAT-A\", \"contractRole\": \"RPA\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"maturityDate\": \"2028-03-01T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"currency\": \"USD\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0725\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateSpread\": \"{{loan_spread}}\", \"rateMultiplier\": \"1.0\"}, {\"contractType\": \"SWAPS\", \"contractID\": \"SWAP-NOW-A\", \"contractRole\": \"PFL\", \"currency\": \"USD\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"deliverySettlement\": \"D\", \"contractStructure\": [{\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-A-FIXED\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-02-28T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"{{swap_now_rate}}\", \"maturityDate\": \"2028-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"FIL\"}, {\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-A-FLOAT\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-02-28T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0600\", \"maturityDate\": \"2028-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateMultiplier\": \"1.0\", \"rateSpread\": \"0.0\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"SEL\"}]}], \"riskFactors\": [{\"marketObjectCode\": \"DETERIORATING_SOFR\", \"base\": 1.0, \"data\": [{\"time\": \"2026-03-01T00:00:00\", \"value\": 0.06}, {\"time\": \"2026-06-01T00:00:00\", \"value\": 0.0635}, {\"time\": \"2026-09-01T00:00:00\", \"value\": 0.0665}, {\"time\": \"2026-12-01T00:00:00\", \"value\": 0.0695}, {\"time\": \"2027-03-01T00:00:00\", \"value\": 0.072}, {\"time\": \"2027-06-01T00:00:00\", \"value\": 0.073}, {\"time\": \"2027-09-01T00:00:00\", \"value\": 0.0745}, {\"time\": \"2027-12-01T00:00:00\", \"value\": 0.075}, {\"time\": \"2028-03-01T00:00:00\", \"value\": 0.075}]}]}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('A1-Success', function(){ pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "var loanTotal = 0, swapTotal = 0;",
+                  "data.forEach(function(c){",
+                  "    if(c.contractID === 'LOAN-FLOAT-A'){",
+                  "        c.events.filter(e => e.type === 'IP').forEach(e => { loanTotal += Math.abs(e.payoff); });",
+                  "    } else if(c.contractID === 'SWAP-NOW-A'){",
+                  "        c.events.filter(e => e.type === 'IP').forEach(e => { swapTotal += e.payoff; });",
+                  "    }",
+                  "});",
+                  "var total = loanTotal + swapTotal;",
+                  "console.log('\\n' + '='.repeat(70));",
+                  "console.log('SCENARIO A: SWAP NOW (March 2026)');",
+                  "console.log('='.repeat(70));",
+                  "console.log('Loan Interest Cost: $' + loanTotal.toFixed(0));",
+                  "console.log('Swap Net Cost/Gain: $' + swapTotal.toFixed(0));",
+                  "console.log('TOTAL HEDGED COST: $' + total.toFixed(0));",
+                  "console.log('='.repeat(70) + '\\n');",
+                  "pm.environment.set('A_total', total);",
+                  "pm.environment.set('A_loan', loanTotal);",
+                  "pm.environment.set('A_swap', swapTotal);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B. Wait & Swap Later (June 2026)",
+      "item": [
+        {
+          "name": "B1-Wait-Then-Swap",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://34.203.247.32:8083/eventsBatch",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contracts\": [{\"contractType\": \"PAM\", \"contractID\": \"LOAN-UNHEDGED-B\", \"contractRole\": \"RPA\", \"contractDealDate\": \"2026-02-28T00:00:00\", \"statusDate\": \"2026-02-28T00:00:00\", \"initialExchangeDate\": \"2026-03-01T00:00:00\", \"maturityDate\": \"2026-06-01T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"currency\": \"USD\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0725\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleAnchorDateOfInterestPayment\": \"2026-06-01T00:00:00\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-03-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateSpread\": \"{{loan_spread}}\", \"rateMultiplier\": \"1.0\"}, {\"contractType\": \"PAM\", \"contractID\": \"LOAN-HEDGED-B\", \"contractRole\": \"RPA\", \"contractDealDate\": \"2026-05-31T00:00:00\", \"statusDate\": \"2026-05-31T00:00:00\", \"initialExchangeDate\": \"2026-06-01T00:00:00\", \"maturityDate\": \"2028-03-01T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"currency\": \"USD\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0725\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleAnchorDateOfInterestPayment\": \"2026-09-01T00:00:00\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-06-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateSpread\": \"{{loan_spread}}\", \"rateMultiplier\": \"1.0\"}, {\"contractType\": \"SWAPS\", \"contractID\": \"SWAP-LATER-B\", \"contractRole\": \"PFL\", \"currency\": \"USD\", \"contractDealDate\": \"2026-05-31T00:00:00\", \"statusDate\": \"2026-05-31T00:00:00\", \"deliverySettlement\": \"D\", \"contractStructure\": [{\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-B-FIXED\", \"contractDealDate\": \"2026-05-31T00:00:00\", \"initialExchangeDate\": \"2026-06-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-05-31T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"{{swap_later_rate}}\", \"maturityDate\": \"2028-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-09-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"FIL\"}, {\"object\": {\"contractType\": \"PAM\", \"contractID\": \"SWAP-B-FLOAT\", \"contractDealDate\": \"2026-05-31T00:00:00\", \"initialExchangeDate\": \"2026-06-01T00:00:00\", \"currency\": \"USD\", \"statusDate\": \"2026-05-31T00:00:00\", \"notionalPrincipal\": \"{{loan_notional}}\", \"dayCountConvention\": \"30E360\", \"nominalInterestRate\": \"0.0635\", \"maturityDate\": \"2028-03-01T00:00:00\", \"cycleAnchorDateOfInterestPayment\": \"2026-09-01T00:00:00\", \"cycleOfInterestPayment\": \"P3ML1\", \"cycleOfRateReset\": \"P3ML1\", \"cycleAnchorDateOfRateReset\": \"2026-06-01T00:00:00\", \"marketObjectCodeOfRateReset\": \"DETERIORATING_SOFR\", \"rateMultiplier\": \"1.0\", \"rateSpread\": \"0.0\", \"premiumDiscountAtIED\": \"0\"}, \"referenceType\": \"CNT\", \"referenceRole\": \"SEL\"}]}], \"riskFactors\": [{\"marketObjectCode\": \"DETERIORATING_SOFR\", \"base\": 1.0, \"data\": [{\"time\": \"2026-03-01T00:00:00\", \"value\": 0.06}, {\"time\": \"2026-06-01T00:00:00\", \"value\": 0.0635}, {\"time\": \"2026-09-01T00:00:00\", \"value\": 0.0665}, {\"time\": \"2026-12-01T00:00:00\", \"value\": 0.0695}, {\"time\": \"2027-03-01T00:00:00\", \"value\": 0.072}, {\"time\": \"2027-06-01T00:00:00\", \"value\": 0.073}, {\"time\": \"2027-09-01T00:00:00\", \"value\": 0.0745}, {\"time\": \"2027-12-01T00:00:00\", \"value\": 0.075}, {\"time\": \"2028-03-01T00:00:00\", \"value\": 0.075}]}]}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('B1-Success', function(){ pm.response.to.have.status(200); });",
+                  "var data = pm.response.json();",
+                  "var unhedgedTotal = 0, hedgedLoanTotal = 0, swapTotal = 0;",
+                  "data.forEach(function(c){",
+                  "    if(c.contractID === 'LOAN-UNHEDGED-B'){",
+                  "        c.events.filter(e => e.type === 'IP').forEach(e => { unhedgedTotal += Math.abs(e.payoff); });",
+                  "    } else if(c.contractID === 'LOAN-HEDGED-B'){",
+                  "        c.events.filter(e => e.type === 'IP').forEach(e => { hedgedLoanTotal += Math.abs(e.payoff); });",
+                  "    } else if(c.contractID === 'SWAP-LATER-B'){",
+                  "        c.events.filter(e => e.type === 'IP').forEach(e => { swapTotal += e.payoff; });",
+                  "    }",
+                  "});",
+                  "var total = unhedgedTotal + hedgedLoanTotal + swapTotal;",
+                  "console.log('\\n' + '='.repeat(70));",
+                  "console.log('SCENARIO B: WAIT & SWAP LATER (June 2026)');",
+                  "console.log('='.repeat(70));",
+                  "console.log('Phase 1 (3mo UNHEDGED): $' + unhedgedTotal.toFixed(0));",
+                  "console.log('Phase 2 Loan Interest:  $' + hedgedLoanTotal.toFixed(0));",
+                  "console.log('Phase 2 Swap Net:       $' + swapTotal.toFixed(0));",
+                  "console.log('TOTAL COST:             $' + total.toFixed(0));",
+                  "console.log('='.repeat(70) + '\\n');",
+                  "pm.environment.set('B_total', total);",
+                  "pm.environment.set('B_unhedged', unhedgedTotal);",
+                  "pm.environment.set('B_hedged_loan', hedgedLoanTotal);",
+                  "pm.environment.set('B_swap', swapTotal);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "C. Input Parameters & SOFR Composition",
+      "item": [
+        {
+          "name": "C1-Display-Parameters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://34.203.247.32:8083/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "console.log('\\n' + '\u2550'.repeat(80));",
+                  "console.log('INPUT PARAMETERS & RISK FACTOR COMPOSITION');",
+                  "console.log('\u2550'.repeat(80));",
+                  "",
+                  "console.log('\\n\ud83d\udccd TRADE CORRIDOR:');",
+                  "console.log('  Exporter: ' + pm.collectionVariables.get('exporter_country'));",
+                  "console.log('  Importer: ' + pm.collectionVariables.get('importer_country'));",
+                  "console.log('  Corridor: ' + pm.collectionVariables.get('corridor_code'));",
+                  "console.log('  Commodity: ' + pm.collectionVariables.get('commodity') + ' (GTAP: ' + pm.collectionVariables.get('commodity_code') + ')');",
+                  "console.log('  Armington Elasticity (\u03c3): ' + pm.collectionVariables.get('armington_elasticity'));",
+                  "",
+                  "console.log('\\n\ud83d\udcca TARIFF SCENARIO:');",
+                  "console.log('  Current Tariff: ' + (parseFloat(pm.collectionVariables.get('tariff_current'))*100).toFixed(0) + '%');",
+                  "console.log('  Peak Tariff: ' + (parseFloat(pm.collectionVariables.get('tariff_peak'))*100).toFixed(0) + '%');",
+                  "console.log('  Pass-Through: ' + pm.collectionVariables.get('tariff_pass_through'));",
+                  "",
+                  "var tariffCurrent = parseFloat(pm.collectionVariables.get('tariff_current'));",
+                  "var tariffPeak = parseFloat(pm.collectionVariables.get('tariff_peak'));",
+                  "var sigma = parseFloat(pm.collectionVariables.get('armington_elasticity'));",
+                  "var passThrough = parseFloat(pm.collectionVariables.get('tariff_pass_through'));",
+                  "var tariffImpactInit = tariffCurrent * sigma * passThrough;",
+                  "var tariffImpactPeak = tariffPeak * sigma * passThrough;",
+                  "",
+                  "console.log('\\n\ud83e\uddee CALCULATED TARIFF IMPACT:');",
+                  "console.log('  Initial: ' + (tariffCurrent*100).toFixed(0) + '% \u00d7 ' + sigma + ' \u00d7 ' + passThrough + ' = ' + (tariffImpactInit*100).toFixed(2) + '%');",
+                  "console.log('  Peak:    ' + (tariffPeak*100).toFixed(0) + '% \u00d7 ' + sigma + ' \u00d7 ' + passThrough + ' = ' + (tariffImpactPeak*100).toFixed(2) + '%');",
+                  "",
+                  "console.log('\\n\ud83d\udcb0 FINANCING TERMS:');",
+                  "console.log('  Loan Amount: $' + parseFloat(pm.collectionVariables.get('loan_notional')).toLocaleString());",
+                  "console.log('  Loan Spread: ' + (parseFloat(pm.collectionVariables.get('loan_spread'))*100).toFixed(0) + ' bps');",
+                  "console.log('  Swap Now Rate: ' + (parseFloat(pm.collectionVariables.get('swap_now_rate'))*100).toFixed(1) + '%');",
+                  "console.log('  Swap Later Rate: ' + (parseFloat(pm.collectionVariables.get('swap_later_rate'))*100).toFixed(1) + '%');",
+                  "console.log('  Delay Period: ' + pm.collectionVariables.get('swap_delay_months') + ' months');",
+                  "",
+                  "var baseSofr = parseFloat(pm.collectionVariables.get('base_sofr_initial'));",
+                  "var sovInit = parseFloat(pm.collectionVariables.get('sovereign_stress_initial'));",
+                  "var sovPeak = parseFloat(pm.collectionVariables.get('sovereign_stress_peak'));",
+                  "var wcInit = parseFloat(pm.collectionVariables.get('wc_stress_initial'));",
+                  "var wcPeak = parseFloat(pm.collectionVariables.get('wc_stress_peak'));",
+                  "",
+                  "console.log('\\n\ud83d\udcc8 DETERIORATING SOFR PATH COMPOSITION:');",
+                  "console.log('');",
+                  "console.log('  Component        | Initial | Peak   | Driver');",
+                  "console.log('  -----------------|---------|--------|------------------------');",
+                  "console.log('  Base SOFR        | ' + (baseSofr*100).toFixed(2) + '%  | 4.80%  | Fed policy tightening');",
+                  "console.log('  Tariff Impact    | ' + (tariffImpactInit*100).toFixed(2) + '%  | ' + (tariffImpactPeak*100).toFixed(2) + '%  | ' + (tariffCurrent*100).toFixed(0) + '% \u2192 ' + (tariffPeak*100).toFixed(0) + '% tariff');",
+                  "console.log('  Country Risk     | ' + sovInit + '%  | ' + sovPeak + '%  | India EM spread widens');",
+                  "console.log('  WC Stress        | ' + (wcInit*100).toFixed(2) + '%  | ' + (wcPeak*100).toFixed(2) + '%  | Textile liquidity crunch');",
+                  "console.log('  -----------------|---------|--------|------------------------');",
+                  "var totalInit = baseSofr + (tariffImpactInit) + (sovInit/100) + wcInit;",
+                  "var totalPeak = 0.048 + (tariffImpactPeak) + (sovPeak/100) + wcPeak;",
+                  "console.log('  TOTAL            | ' + (totalInit*100).toFixed(2) + '%  | ' + (totalPeak*100).toFixed(2) + '%  | (Sum of components)');",
+                  "console.log('');",
+                  "console.log('  \ud83d\udccc Swap Now locks at:   ' + (parseFloat(pm.collectionVariables.get('swap_now_rate'))*100).toFixed(1) + '% (priced at ' + (totalInit*100).toFixed(2) + '% environment)');",
+                  "console.log('  \ud83d\udccc Swap Later locks at: ' + (parseFloat(pm.collectionVariables.get('swap_later_rate'))*100).toFixed(1) + '% (priced at 6.35% environment)');",
+                  "console.log('');",
+                  "console.log('\u2550'.repeat(80) + '\\n');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "D. Cost Comparison",
+      "item": [
+        {
+          "name": "D1-Calculate-Opportunity-Cost",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://34.203.247.32:8083/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var A_total = parseFloat(pm.environment.get('A_total')) || 0;",
+                  "var B_total = parseFloat(pm.environment.get('B_total')) || 0;",
+                  "var A_loan = parseFloat(pm.environment.get('A_loan')) || 0;",
+                  "var A_swap = parseFloat(pm.environment.get('A_swap')) || 0;",
+                  "var B_unhedged = parseFloat(pm.environment.get('B_unhedged')) || 0;",
+                  "var B_hedged_loan = parseFloat(pm.environment.get('B_hedged_loan')) || 0;",
+                  "var B_swap = parseFloat(pm.environment.get('B_swap')) || 0;",
+                  "",
+                  "console.log('\\n' + '\u2550'.repeat(80));",
+                  "console.log('COST COMPARISON: SWAP NOW vs WAIT');",
+                  "console.log('\u2550'.repeat(80));",
+                  "",
+                  "console.log('\\n\ud83d\udcb5 SCENARIO A: SWAP NOW (March 2026)');",
+                  "console.log('  \u251c\u2500 Loan Interest:     $' + A_loan.toFixed(0));",
+                  "console.log('  \u251c\u2500 Swap Net Cost:     $' + A_swap.toFixed(0));",
+                  "console.log('  \u2514\u2500 TOTAL:             $' + A_total.toFixed(0));",
+                  "console.log('     Strategy: Lock at 5.2% immediately, fully hedged for 24 months');",
+                  "",
+                  "console.log('\\n\ud83d\udcb5 SCENARIO B: WAIT & SWAP LATER (June 2026)');",
+                  "console.log('  \u251c\u2500 Phase 1 Unhedged:  $' + B_unhedged.toFixed(0) + ' (3 months at rising rates)');",
+                  "console.log('  \u251c\u2500 Phase 2 Loan:      $' + B_hedged_loan.toFixed(0));",
+                  "console.log('  \u251c\u2500 Phase 2 Swap:      $' + B_swap.toFixed(0));",
+                  "console.log('  \u2514\u2500 TOTAL:             $' + B_total.toFixed(0));",
+                  "console.log('     Strategy: Wait 3 months, then lock at 5.8% for 21 months');",
+                  "",
+                  "if(A_total > 0 && B_total > 0){",
+                  "    var diff = B_total - A_total;",
+                  "    var perMonth = diff / 24;",
+                  "    var bps = (diff / parseFloat(pm.collectionVariables.get('loan_notional'))) * 10000 / 2;",
+                  "    console.log('\\n' + '\u2500'.repeat(80));",
+                  "    console.log('\ud83d\udcca OPPORTUNITY COST OF WAITING:');",
+                  "    console.log('\u2500'.repeat(80));",
+                  "    console.log('  Total Extra Cost:     $' + Math.abs(diff).toFixed(0));",
+                  "    console.log('  Per Month:            $' + Math.abs(perMonth).toFixed(0));",
+                  "    console.log('  Equivalent to:        ~' + Math.abs(bps).toFixed(0) + ' bps higher all-in cost');",
+                  "    console.log('');",
+                  "    if(diff > 0){",
+                  "        console.log('  \u2705 VERDICT: Swapping NOW saves $' + diff.toFixed(0));",
+                  "        console.log('  \u2705 Waiting costs you 60bps higher fixed rate (5.8% vs 5.2%)');",
+                  "        console.log('  \u2705 PLUS 3 months of unhedged exposure to deteriorating rates');",
+                  "    } else {",
+                  "        console.log('  \u26a0\ufe0f  Waiting would save money (unexpected - check inputs)');",
+                  "    }",
+                  "}",
+                  "console.log('\\n' + '\u2550'.repeat(80) + '\\n');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "E. CFO Decision Recommendation",
+      "item": [
+        {
+          "name": "E1-Final-Recommendation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://34.203.247.32:8083/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var A_total = parseFloat(pm.environment.get('A_total')) || 0;",
+                  "var B_total = parseFloat(pm.environment.get('B_total')) || 0;",
+                  "var diff = B_total - A_total;",
+                  "",
+                  "console.log('\\n' + '\u2554' + '\u2550'.repeat(78) + '\u2557');",
+                  "console.log('\u2551' + ' '.repeat(20) + 'CFO DECISION SUPPORT SUMMARY' + ' '.repeat(30) + '\u2551');",
+                  "console.log('\u2551' + ' '.repeat(15) + pm.collectionVariables.get('corridor_code') + ' ' + pm.collectionVariables.get('commodity') + ' Exporter' + ' '.repeat(32) + '\u2551');",
+                  "console.log('\u255a' + '\u2550'.repeat(78) + '\u255d');",
+                  "",
+                  "console.log('\\n\ud83d\udccb SITUATION:');",
+                  "console.log('  \u2022 Corridor: ' + pm.collectionVariables.get('exporter_country') + ' \u2192 ' + pm.collectionVariables.get('importer_country'));",
+                  "console.log('  \u2022 Commodity: ' + pm.collectionVariables.get('commodity') + ' (\u03c3=' + pm.collectionVariables.get('armington_elasticity') + ')');",
+                  "console.log('  \u2022 Current Tariff: ' + (parseFloat(pm.collectionVariables.get('tariff_current'))*100).toFixed(0) + '%, worsening to ' + (parseFloat(pm.collectionVariables.get('tariff_peak'))*100).toFixed(0) + '%');",
+                  "console.log('  \u2022 SOFR Environment: Deteriorating from 6.0% \u2192 7.5% over 24 months');",
+                  "console.log('  \u2022 Financing Need: $' + parseFloat(pm.collectionVariables.get('loan_notional')).toLocaleString() + ' floating rate loan');",
+                  "",
+                  "console.log('\\n\u2696\ufe0f  DECISION:');",
+                  "console.log('  Option A: Swap to fixed NOW at 5.2%');",
+                  "console.log('  Option B: Wait 3 months, swap later at 5.8%');",
+                  "",
+                  "console.log('\\n\ud83d\udcb0 FINANCIAL IMPACT:');",
+                  "console.log('  Swap Now Cost:      $' + A_total.toFixed(0));",
+                  "console.log('  Wait & Swap Cost:   $' + B_total.toFixed(0));",
+                  "console.log('  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+                  "console.log('  Waiting COSTS:      $' + Math.abs(diff).toFixed(0) + ' MORE');",
+                  "",
+                  "console.log('\\n\ud83c\udfaf RECOMMENDATION:');",
+                  "console.log('  \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557');",
+                  "console.log('  \u2551  \u2705 EXECUTE SWAP IMMEDIATELY (March 2026)                  \u2551');",
+                  "console.log('  \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d');",
+                  "",
+                  "console.log('\\n\ud83d\udccc RATIONALE:');",
+                  "console.log('  1. Deteriorating Conditions:');",
+                  "console.log('     \u2022 Tariff rising ' + (parseFloat(pm.collectionVariables.get('tariff_current'))*100).toFixed(0) + '% \u2192 ' + (parseFloat(pm.collectionVariables.get('tariff_peak'))*100).toFixed(0) + '%');",
+                  "console.log('     \u2022 Country risk widening ' + pm.collectionVariables.get('sovereign_stress_initial') + '% \u2192 ' + pm.collectionVariables.get('sovereign_stress_peak') + '%');",
+                  "console.log('     \u2022 SOFR base rising 4.25% \u2192 4.80%');",
+                  "console.log('     \u2022 Working capital stress intensifying');",
+                  "",
+                  "console.log('  2. Lock-in Rate Penalty:');",
+                  "console.log('     \u2022 Waiting forces 60bps higher fixed rate (5.8% vs 5.2%)');",
+                  "console.log('     \u2022 Market pricing reflects expected deterioration');",
+                  "",
+                  "console.log('  3. Unhedged Exposure:');",
+                  "console.log('     \u2022 3-month delay = 3 months at rising floating rates');",
+                  "console.log('     \u2022 No hedge protection during steepest deterioration period');",
+                  "",
+                  "console.log('  4. Total Cost Impact:');",
+                  "console.log('     \u2022 Waiting costs $' + Math.abs(diff).toFixed(0) + ' more over 2 years');",
+                  "console.log('     \u2022 Equivalent to ~' + (Math.abs(diff)/(24*parseFloat(pm.collectionVariables.get('loan_notional')))*100).toFixed(2) + '% annual cost increase');",
+                  "",
+                  "console.log('\\n\u23f0 URGENCY: HIGH');",
+                  "console.log('  \u2022 Every month of delay locks in progressively worse terms');",
+                  "console.log('  \u2022 Current 5.2% rate window may not remain available');",
+                  "console.log('  \u2022 First-quarter tariff impact already priced in');",
+                  "",
+                  "console.log('\\n' + '\u2550'.repeat(80));",
+                  "console.log('End of Analysis');",
+                  "console.log('\u2550'.repeat(80) + '\\n');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

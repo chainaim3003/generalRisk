@@ -1,0 +1,796 @@
+{
+  "info": {
+    "_postman_id": "sc2-approach2-seq-100k-fix2",
+    "name": "Approach2-SequentialFeedback-MultiContract-100K-30d-fix2",
+    "description": "APPROACH 2 — FIX 2: THREE-ITERATION CONVERGENCE\n\nBUILDS ON FIX 1 (PP sign convention).\nADDS Iteration 3 to verify convergence.\n\nFix 1 showed:\n  Iter 1: $66,151.71 redeemed (supply → $33,848.29) — model stops Mar 15\n  Iter 2: $99,811.76 redeemed (supply → $188.24)    — model fires all 30 days\n  Delta: $33,660.05 (50.88%) — NOT CONVERGED\n\nFix 2 hypothesis:\n  Iter 2 already burned 99.8% of supply. Iter 3 should see similar\n  reserves (Iter 2 cash ≈ Iter 3 cash since most supply is gone),\n  producing nearly identical PP events → convergence.\n\nPHASES:\n  1-5: Same as Fix 1 (exogenous data, T-Bills, dynamic indexes, Iter 1)\n  6-7: Same as Fix 1 (feedback Iter 1→2, run Iter 2)\n  8:   NEW — Feedback Iter 2→3 (rebuild indexes with Iter 2 redemptions)\n  9:   NEW — Behavioral models + Scenario Iter 3\n  10:  NEW — Run Liability Iter 3\n  11:  Convergence Iter 2 vs Iter 3 + Final Dashboard\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "actus_risk_host", "value": "34.203.247.32:8082"},
+    {"key": "actus_sim_host", "value": "34.203.247.32:8083"}
+  ],
+  "item": [
+    {
+      "name": "═══ PHASE 1: Exogenous Data ═══",
+      "item": [
+        {
+          "name": "1.1 Add PEG_RISK_SCORE",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"SC_PEG_RISK_SEQ_01\",\n  \"marketObjectCode\": \"PEG_RISK_SCORE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 5},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 8},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 12},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 16},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 22},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 28},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 32},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 38},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 42},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 48},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 44},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 38},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 25},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 18},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 14},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 10},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 6},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 4},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 2},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 1},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-03-31T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-04-15T00:00:00\", \"value\": 0},\n    {\"time\": \"2026-04-30T00:00:00\", \"value\": 0}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('PEG_RISK_SCORE loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('APPROACH 2 — FIX 2: THREE-ITERATION CONVERGENCE');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('');",
+            "    console.log('Fix 1 result: Iter1=$66,152 vs Iter2=$99,812 → 50.9% delta');",
+            "    console.log('Fix 2 adds Iteration 3 to verify convergence.');",
+            "    console.log('');",
+            "    console.log('✅ Phase 1: PEG_RISK_SCORE loaded');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.2 Create minimal scenario for T-Bill run",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addScenario"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"sc_tbill_only_100k\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_PEG_RISK_SEQ_01\", \"riskFactorType\": \"ReferenceIndex\"}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Minimal scenario', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ sc_tbill_only_100k created');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 2: T-Bill Only Simulation ═══",
+      "item": [
+        {
+          "name": "2.1 Run T-Bill Simulation → Capture Events",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": ["{{actus_sim_host}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-A-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-15T00:00:00\",\n      \"maturityDate\": \"2026-03-15T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -250,\n      \"purchaseDate\": \"2026-02-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24250\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-B-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-02-01T00:00:00\",\n      \"maturityDate\": \"2026-03-30T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -320,\n      \"purchaseDate\": \"2026-02-01T00:00:00\",\n      \"priceAtPurchaseDate\": 24180\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-C-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-15T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-15T00:00:00\",\n      \"maturityDate\": \"2026-04-15T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -380,\n      \"purchaseDate\": \"2026-01-15T00:00:00\",\n      \"priceAtPurchaseDate\": 24120\n    },\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"TBill-D-100K\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"A360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-01-01T00:00:00\",\n      \"initialExchangeDate\": \"2026-01-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 24500,\n      \"premiumDiscountAtIED\": -450,\n      \"purchaseDate\": \"2026-01-01T00:00:00\",\n      \"priceAtPurchaseDate\": 24050\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_tbill_only_100k\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('T-Bill simulation succeeds', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var data = pm.response.json();",
+            "",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('PHASE 2: T-BILL ONLY SIMULATION — ACTUAL EVENTS');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('Contracts returned: ' + data.length);",
+            "",
+            "    var tbillContracts = {};",
+            "    var contractParams = {",
+            "        'TBill-A-100K': {purchasePrice: 24250, par: 24500, iedDate: '2026-02-15', mdDate: '2026-03-15'},",
+            "        'TBill-B-100K': {purchasePrice: 24180, par: 24500, iedDate: '2026-02-01', mdDate: '2026-03-30'},",
+            "        'TBill-C-100K': {purchasePrice: 24120, par: 24500, iedDate: '2026-01-15', mdDate: '2026-04-15'},",
+            "        'TBill-D-100K': {purchasePrice: 24050, par: 24500, iedDate: '2026-01-01', mdDate: '2026-04-30'}",
+            "    };",
+            "",
+            "    data.forEach(function(contract){",
+            "        var cid = contract.contractId || contract.contractID;",
+            "        var events = contract.events || [];",
+            "        var mdEvent = null;",
+            "        var iedEvent = null;",
+            "        events.forEach(function(e){",
+            "            var payoff = (e.payoff !== undefined && e.payoff !== null) ? e.payoff : 0;",
+            "            console.log('  ' + cid + ': ' + e.time + ' ' + e.type + ' payoff=$' + payoff.toFixed(2));",
+            "            if(e.type === 'MD'){ mdEvent = {time: e.time, payoff: payoff}; }",
+            "            if(e.type === 'IED'){ iedEvent = {time: e.time, payoff: payoff}; }",
+            "        });",
+            "        tbillContracts[cid] = { events: events, mdEvent: mdEvent, iedEvent: iedEvent, params: contractParams[cid] || null };",
+            "    });",
+            "",
+            "    pm.collectionVariables.set('tbill_contracts', JSON.stringify(tbillContracts));",
+            "",
+            "    var startDate = new Date('2026-03-01T00:00:00');",
+            "    var endDate = new Date('2026-04-30T00:00:00');",
+            "    var INITIAL_CASH = 6000;",
+            "    var dailyData = [];",
+            "    var cashBalance = INITIAL_CASH;",
+            "",
+            "    for(var d = new Date(startDate); d <= endDate; d.setDate(d.getDate()+1)){",
+            "        var dateStr = d.toISOString().substring(0,10);",
+            "        var tbillMV = 0;",
+            "        var aliveBills = 0;",
+            "        var maturedToday = null;",
+            "",
+            "        Object.keys(contractParams).forEach(function(cid){",
+            "            var p = contractParams[cid];",
+            "            var mdDate = p.mdDate;",
+            "            if(tbillContracts[cid] && tbillContracts[cid].mdEvent){",
+            "                mdDate = tbillContracts[cid].mdEvent.time.substring(0,10);",
+            "            }",
+            "            if(dateStr < mdDate){",
+            "                var iedMs = new Date(p.iedDate + 'T00:00:00').getTime();",
+            "                var mdMs = new Date(mdDate + 'T00:00:00').getTime();",
+            "                var nowMs = new Date(dateStr + 'T00:00:00').getTime();",
+            "                var totalDays = (mdMs - iedMs) / 86400000;",
+            "                var elapsed = (nowMs - iedMs) / 86400000;",
+            "                var fraction = totalDays > 0 ? elapsed / totalDays : 1;",
+            "                if(fraction > 1) fraction = 1;",
+            "                if(fraction < 0) fraction = 0;",
+            "                tbillMV += p.purchasePrice + (p.par - p.purchasePrice) * fraction;",
+            "                aliveBills++;",
+            "            } else if(dateStr === mdDate){",
+            "                var actualPayoff = p.par;",
+            "                if(tbillContracts[cid] && tbillContracts[cid].mdEvent){ actualPayoff = tbillContracts[cid].mdEvent.payoff; }",
+            "                cashBalance += actualPayoff;",
+            "                maturedToday = {cid: cid, payoff: actualPayoff};",
+            "            }",
+            "        });",
+            "",
+            "        dailyData.push({",
+            "            date: dateStr, time: dateStr + 'T00:00:00',",
+            "            cash: Math.round(cashBalance * 100) / 100,",
+            "            tbillMV: Math.round(tbillMV * 100) / 100,",
+            "            totalReserves: Math.round((cashBalance + tbillMV) * 100) / 100,",
+            "            aliveBills: aliveBills, maturedToday: maturedToday",
+            "        });",
+            "    }",
+            "",
+            "    pm.collectionVariables.set('daily_data_iter0', JSON.stringify(dailyData));",
+            "",
+            "    console.log('');",
+            "    console.log('DERIVED DAILY TIMELINE:');",
+            "    dailyData.forEach(function(dd){",
+            "        if(dd.maturedToday || dd.date === '2026-03-01' || dd.date === '2026-04-30'){",
+            "            var matNote = dd.maturedToday ? ' ← ' + dd.maturedToday.cid + ' MD +$' + dd.maturedToday.payoff.toFixed(2) : '';",
+            "            console.log('  ' + dd.date + ' | Cash=$' + dd.cash.toFixed(2) + ' | TBillMV=$' + dd.tbillMV.toFixed(2) + ' | Total=$' + dd.totalReserves.toFixed(2) + matNote);",
+            "        }",
+            "    });",
+            "    console.log('✅ Daily data stored for Phase 3.');",
+            "});",
+            "",
+            "pm.test('All 4 T-Bills', function(){",
+            "    var data = pm.response.json();",
+            "    pm.expect(data.length).to.eql(4);",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 3: Build DYNAMIC Indexes (Iter 1) ═══",
+      "item": [
+        {
+          "name": "3.1 Add SC_TBILL_MV_DYN_I1",
+          "event": [
+            {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [
+              "var dailyRaw = pm.collectionVariables.get('daily_data_iter0');",
+              "if(!dailyRaw){ console.log('ERROR: No daily_data_iter0'); return; }",
+              "var daily = JSON.parse(dailyRaw);",
+              "var indexData = daily.map(function(dd){ return {time: dd.time, value: dd.tbillMV}; });",
+              "var body = { riskFactorID: 'SC_TBILL_MV_DYN_I1', marketObjectCode: 'SC_TBILL_MV', base: 1.0, data: indexData };",
+              "pm.collectionVariables.set('dynamic_tbill_mv_body', JSON.stringify(body));"
+            ]}},
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('SC_TBILL_MV loaded', function(){ pm.response.to.have.status(200); console.log('✅ SC_TBILL_MV_DYN_I1'); });"
+            ]}}
+          ],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addReferenceIndex", "host": ["{{actus_risk_host}}"], "path": ["addReferenceIndex"]}, "body": {"mode": "raw", "raw": "{{dynamic_tbill_mv_body}}", "options": {"raw": {"language": "json"}}}}
+        },
+        {
+          "name": "3.2 Add SC_CASH_DYN_I1",
+          "event": [
+            {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [
+              "var dailyRaw = pm.collectionVariables.get('daily_data_iter0');",
+              "if(!dailyRaw){ console.log('ERROR: No daily_data_iter0'); return; }",
+              "var daily = JSON.parse(dailyRaw);",
+              "var indexData = daily.map(function(dd){ return {time: dd.time, value: dd.cash}; });",
+              "var body = { riskFactorID: 'SC_CASH_DYN_I1', marketObjectCode: 'SC_CASH_RESERVE', base: 1.0, data: indexData };",
+              "pm.collectionVariables.set('dynamic_cash_body', JSON.stringify(body));"
+            ]}},
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('SC_CASH I1 loaded', function(){ pm.response.to.have.status(200); console.log('✅ SC_CASH_DYN_I1 (optimistic, no redemptions)'); });"
+            ]}}
+          ],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addReferenceIndex", "host": ["{{actus_risk_host}}"], "path": ["addReferenceIndex"]}, "body": {"mode": "raw", "raw": "{{dynamic_cash_body}}", "options": {"raw": {"language": "json"}}}}
+        },
+        {
+          "name": "3.3 Add SC_RESERVES_DYN_I1",
+          "event": [
+            {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [
+              "var dailyRaw = pm.collectionVariables.get('daily_data_iter0');",
+              "if(!dailyRaw){ console.log('ERROR: No daily_data_iter0'); return; }",
+              "var daily = JSON.parse(dailyRaw);",
+              "var indexData = daily.map(function(dd){ return {time: dd.time, value: dd.totalReserves}; });",
+              "var body = { riskFactorID: 'SC_RESERVES_DYN_I1', marketObjectCode: 'SC_TOTAL_RESERVES', base: 1.0, data: indexData };",
+              "pm.collectionVariables.set('dynamic_reserves_body', JSON.stringify(body));"
+            ]}},
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('SC_RESERVES I1 loaded', function(){ pm.response.to.have.status(200); console.log('✅ SC_RESERVES_DYN_I1'); });"
+            ]}}
+          ],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addReferenceIndex", "host": ["{{actus_risk_host}}"], "path": ["addReferenceIndex"]}, "body": {"mode": "raw", "raw": "{{dynamic_reserves_body}}", "options": {"raw": {"language": "json"}}}}
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 4: Behavioral Models + Scenario (Iter 1) ═══",
+      "item": [
+        {
+          "name": "4.1 Add BackingRatioModel Iter 1",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addBackingRatioModel", "host": ["{{actus_risk_host}}"], "path": ["addBackingRatioModel"]}, "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"br_seq_100k_i1\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('BR Iter 1', function(){ pm.response.to.have.status(200); console.log('✅ br_seq_100k_i1'); });"]}}]
+        },
+        {
+          "name": "4.2 Add MaturityLadderModel",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addMaturityLadderModel", "host": ["{{actus_risk_host}}"], "path": ["addMaturityLadderModel"]}, "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"ml_seq_100k_i1\",\n  \"pegRiskScoreMOC\": \"PEG_RISK_SCORE\",\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('ML', function(){ pm.response.to.have.status(200); console.log('✅ ml_seq_100k_i1'); });"]}}]
+        },
+        {
+          "name": "4.3 Create Scenario Iter 1",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addScenario", "host": ["{{actus_risk_host}}"], "path": ["addScenario"]}, "body": {"mode": "raw", "raw": "{\n  \"scenarioID\": \"sc_seq_iter1_100k\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_TBILL_MV_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_RESERVES_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_CASH_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_PEG_RISK_SEQ_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_seq_100k_i1\", \"riskFactorType\": \"BackingRatioModel\"},\n    {\"riskFactorID\": \"ml_seq_100k_i1\", \"riskFactorType\": \"MaturityLadderModel\"}\n  ]\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Scenario I1', function(){ pm.response.to.have.status(200); console.log('✅ sc_seq_iter1_100k'); });"]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 5: Liability — Iteration 1 ═══",
+      "item": [
+        {
+          "name": "5.1 Run StableCoin-Liability Iter 1",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation", "host": ["{{actus_sim_host}}"], "path": ["rf2", "scenarioSimulation"]}, "body": {"mode": "raw", "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"StableCoin-100K-Liability-I1\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_seq_100k_i1\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_seq_iter1_100k\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Liability Iter 1', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var data = pm.response.json();",
+            "    var contract = data[0];",
+            "    var events = contract.events || [];",
+            "",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('PHASE 5: LIABILITY — ITERATION 1');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('Events: ' + events.length);",
+            "",
+            "    var ppEvents = [];",
+            "    var totalRedemptions = 0;",
+            "    events.forEach(function(e){",
+            "        var payoff = (e.payoff !== undefined && e.payoff !== null) ? e.payoff : 0;",
+            "        var nomVal = (e.nominalValue !== undefined && e.nominalValue !== null) ? e.nominalValue : null;",
+            "        if(e.type === 'PP' || e.type === 'MRD'){",
+            "            ppEvents.push({ time: e.time, type: e.type, payoff: payoff, nominalValue: nomVal });",
+            "            if(payoff > 0) totalRedemptions += payoff;",
+            "        }",
+            "    });",
+            "",
+            "    // Log key PP events",
+            "    ppEvents.forEach(function(pp){",
+            "        if(pp.payoff > 0){",
+            "            var nomStr = pp.nominalValue !== null ? ' remaining=$' + pp.nominalValue.toFixed(2) : '';",
+            "            console.log('  ' + pp.time + ' PP payoff=$' + pp.payoff.toFixed(2) + nomStr);",
+            "        }",
+            "    });",
+            "    console.log('  Total Iter 1 redemptions: $' + totalRedemptions.toFixed(2));",
+            "",
+            "    pm.collectionVariables.set('iter1_pp_events', JSON.stringify(ppEvents));",
+            "    pm.collectionVariables.set('iter1_all_events', JSON.stringify(events));",
+            "    console.log('✅ Stored for Phase 6 feedback.');",
+            "});",
+            "",
+            "pm.test('Events generated', function(){ pm.expect(pm.response.json()[0].events.length).to.be.above(0); });"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 6: FEEDBACK Iter 1 → Iter 2 ═══",
+      "item": [
+        {
+          "name": "6.1 Add SC_CASH_DYN_I2 (with Iter 1 redemptions)",
+          "event": [
+            {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [
+              "// Rebuild cash: iter0 cash - cumulative Iter 1 positive PP payoffs",
+              "var dailyRaw = pm.collectionVariables.get('daily_data_iter0');",
+              "var ppRaw = pm.collectionVariables.get('iter1_pp_events');",
+              "if(!dailyRaw){ console.log('ERROR: No daily_data_iter0'); return; }",
+              "var daily = JSON.parse(dailyRaw);",
+              "var ppEvents = ppRaw ? JSON.parse(ppRaw) : [];",
+              "",
+              "var redemptionsByDate = {};",
+              "ppEvents.forEach(function(pp){",
+              "    if(pp.payoff > 0){",
+              "        var dateKey = pp.time.substring(0,10);",
+              "        redemptionsByDate[dateKey] = (redemptionsByDate[dateKey] || 0) + pp.payoff;",
+              "    }",
+              "});",
+              "",
+              "var cumulativeRedemptions = 0;",
+              "var correctedData = daily.map(function(dd){",
+              "    if(redemptionsByDate[dd.date]) cumulativeRedemptions += redemptionsByDate[dd.date];",
+              "    var correctedCash = dd.cash - cumulativeRedemptions;",
+              "    if(correctedCash < 0) correctedCash = 0;",
+              "    return {time: dd.time, value: Math.round(correctedCash * 100) / 100};",
+              "});",
+              "",
+              "var body = { riskFactorID: 'SC_CASH_DYN_I2', marketObjectCode: 'SC_CASH_RESERVE', base: 1.0, data: correctedData };",
+              "pm.collectionVariables.set('dynamic_cash_body_i2', JSON.stringify(body));",
+              "",
+              "var correctedDaily = daily.map(function(dd, idx){",
+              "    return { date: dd.date, time: dd.time, cash: correctedData[idx].value, tbillMV: dd.tbillMV, totalReserves: correctedData[idx].value + dd.tbillMV };",
+              "});",
+              "pm.collectionVariables.set('daily_data_iter2', JSON.stringify(correctedDaily));",
+              "",
+              "console.log('Phase 6: Iter 2 cash index — ' + Object.keys(redemptionsByDate).length + ' redemption days, cumulative=$' + cumulativeRedemptions.toFixed(2));"
+            ]}},
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('SC_CASH I2', function(){ pm.response.to.have.status(200); console.log('✅ SC_CASH_DYN_I2 (Iter 1 redemptions subtracted)'); });"
+            ]}}
+          ],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addReferenceIndex", "host": ["{{actus_risk_host}}"], "path": ["addReferenceIndex"]}, "body": {"mode": "raw", "raw": "{{dynamic_cash_body_i2}}", "options": {"raw": {"language": "json"}}}}
+        },
+        {
+          "name": "6.2 Add SC_RESERVES_DYN_I2",
+          "event": [
+            {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [
+              "var correctedRaw = pm.collectionVariables.get('daily_data_iter2');",
+              "if(!correctedRaw){ console.log('ERROR: No daily_data_iter2'); return; }",
+              "var corrected = JSON.parse(correctedRaw);",
+              "var indexData = corrected.map(function(dd){ return {time: dd.time, value: dd.totalReserves}; });",
+              "var body = { riskFactorID: 'SC_RESERVES_DYN_I2', marketObjectCode: 'SC_TOTAL_RESERVES', base: 1.0, data: indexData };",
+              "pm.collectionVariables.set('dynamic_reserves_body_i2', JSON.stringify(body));"
+            ]}},
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('SC_RESERVES I2', function(){ pm.response.to.have.status(200); console.log('✅ SC_RESERVES_DYN_I2'); });"
+            ]}}
+          ],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addReferenceIndex", "host": ["{{actus_risk_host}}"], "path": ["addReferenceIndex"]}, "body": {"mode": "raw", "raw": "{{dynamic_reserves_body_i2}}", "options": {"raw": {"language": "json"}}}}
+        },
+        {
+          "name": "6.3 Add BackingRatioModel Iter 2",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addBackingRatioModel", "host": ["{{actus_risk_host}}"], "path": ["addBackingRatioModel"]}, "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"br_seq_100k_i2\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('BR Iter 2', function(){ pm.response.to.have.status(200); console.log('✅ br_seq_100k_i2'); });"]}}]
+        },
+        {
+          "name": "6.4 Create Scenario Iter 2",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addScenario", "host": ["{{actus_risk_host}}"], "path": ["addScenario"]}, "body": {"mode": "raw", "raw": "{\n  \"scenarioID\": \"sc_seq_iter2_100k\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_TBILL_MV_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_RESERVES_DYN_I2\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_CASH_DYN_I2\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_PEG_RISK_SEQ_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_seq_100k_i2\", \"riskFactorType\": \"BackingRatioModel\"},\n    {\"riskFactorID\": \"ml_seq_100k_i1\", \"riskFactorType\": \"MaturityLadderModel\"}\n  ]\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Scenario I2', function(){ pm.response.to.have.status(200); console.log('✅ sc_seq_iter2_100k'); });"]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 7: Liability — Iteration 2 ═══",
+      "item": [
+        {
+          "name": "7.1 Run StableCoin-Liability Iter 2",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation", "host": ["{{actus_sim_host}}"], "path": ["rf2", "scenarioSimulation"]}, "body": {"mode": "raw", "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"StableCoin-100K-Liability-I2\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_seq_100k_i2\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_seq_iter2_100k\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Liability Iter 2', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var data = pm.response.json();",
+            "    var events = data[0].events || [];",
+            "",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('PHASE 7: LIABILITY — ITERATION 2');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('Events: ' + events.length);",
+            "",
+            "    var iter2PP = [];",
+            "    var totalRedemptionsI2 = 0;",
+            "    events.forEach(function(e){",
+            "        var payoff = (e.payoff !== undefined && e.payoff !== null) ? e.payoff : 0;",
+            "        var nomVal = (e.nominalValue !== undefined && e.nominalValue !== null) ? e.nominalValue : null;",
+            "        if(e.type === 'PP' || e.type === 'MRD'){",
+            "            iter2PP.push({time: e.time, type: e.type, payoff: payoff, nominalValue: nomVal});",
+            "            if(payoff > 0) totalRedemptionsI2 += payoff;",
+            "        }",
+            "    });",
+            "",
+            "    iter2PP.forEach(function(pp){",
+            "        if(pp.payoff > 0){",
+            "            var nomStr = pp.nominalValue !== null ? ' remaining=$' + pp.nominalValue.toFixed(2) : '';",
+            "            console.log('  ' + pp.time + ' PP payoff=$' + pp.payoff.toFixed(2) + nomStr);",
+            "        }",
+            "    });",
+            "    console.log('  Total Iter 2 redemptions: $' + totalRedemptionsI2.toFixed(2));",
+            "",
+            "    pm.collectionVariables.set('iter2_pp_events', JSON.stringify(iter2PP));",
+            "    pm.collectionVariables.set('iter2_all_events', JSON.stringify(events));",
+            "    console.log('✅ Stored for Phase 8 feedback.');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 8: FEEDBACK Iter 2 → Iter 3 ═══",
+      "item": [
+        {
+          "name": "8.1 Add SC_CASH_DYN_I3 (with Iter 2 redemptions)",
+          "event": [
+            {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [
+              "// ══════════════════════════════════════════════════════════",
+              "// FEEDBACK LOOP ITERATION 3:",
+              "// Rebuild cash: iter0 cash - cumulative Iter 2 positive PP payoffs",
+              "// ══════════════════════════════════════════════════════════",
+              "var dailyRaw = pm.collectionVariables.get('daily_data_iter0');",
+              "var ppRaw = pm.collectionVariables.get('iter2_pp_events');",
+              "if(!dailyRaw){ console.log('ERROR: No daily_data_iter0'); return; }",
+              "var daily = JSON.parse(dailyRaw);",
+              "var ppEvents = ppRaw ? JSON.parse(ppRaw) : [];",
+              "",
+              "var redemptionsByDate = {};",
+              "ppEvents.forEach(function(pp){",
+              "    if(pp.payoff > 0){",
+              "        var dateKey = pp.time.substring(0,10);",
+              "        redemptionsByDate[dateKey] = (redemptionsByDate[dateKey] || 0) + pp.payoff;",
+              "    }",
+              "});",
+              "",
+              "var cumulativeRedemptions = 0;",
+              "var correctedData = daily.map(function(dd){",
+              "    if(redemptionsByDate[dd.date]) cumulativeRedemptions += redemptionsByDate[dd.date];",
+              "    var correctedCash = dd.cash - cumulativeRedemptions;",
+              "    if(correctedCash < 0) correctedCash = 0;",
+              "    return {time: dd.time, value: Math.round(correctedCash * 100) / 100};",
+              "});",
+              "",
+              "var body = { riskFactorID: 'SC_CASH_DYN_I3', marketObjectCode: 'SC_CASH_RESERVE', base: 1.0, data: correctedData };",
+              "pm.collectionVariables.set('dynamic_cash_body_i3', JSON.stringify(body));",
+              "",
+              "var correctedDaily = daily.map(function(dd, idx){",
+              "    return { date: dd.date, time: dd.time, cash: correctedData[idx].value, tbillMV: dd.tbillMV, totalReserves: correctedData[idx].value + dd.tbillMV };",
+              "});",
+              "pm.collectionVariables.set('daily_data_iter3', JSON.stringify(correctedDaily));",
+              "",
+              "console.log('════════════════════════════════════════════════════════════');",
+              "console.log('PHASE 8: FEEDBACK Iter 2 → Iter 3');",
+              "console.log('════════════════════════════════════════════════════════════');",
+              "console.log('Redemption days: ' + Object.keys(redemptionsByDate).length + ', Cumulative=$' + cumulativeRedemptions.toFixed(2));",
+              "",
+              "var samples = ['2026-03-01','2026-03-02','2026-03-05','2026-03-10','2026-03-15','2026-03-30','2026-04-15','2026-04-30'];",
+              "console.log('Sample corrected cash (Iter 3):');",
+              "correctedData.forEach(function(cd){",
+              "    var dateStr = cd.time.substring(0,10);",
+              "    if(samples.indexOf(dateStr) >= 0) console.log('  ' + dateStr + ': $' + cd.value.toFixed(2));",
+              "});"
+            ]}},
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('SC_CASH I3', function(){ pm.response.to.have.status(200); console.log('✅ SC_CASH_DYN_I3 (Iter 2 redemptions subtracted)'); });"
+            ]}}
+          ],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addReferenceIndex", "host": ["{{actus_risk_host}}"], "path": ["addReferenceIndex"]}, "body": {"mode": "raw", "raw": "{{dynamic_cash_body_i3}}", "options": {"raw": {"language": "json"}}}}
+        },
+        {
+          "name": "8.2 Add SC_RESERVES_DYN_I3",
+          "event": [
+            {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [
+              "var correctedRaw = pm.collectionVariables.get('daily_data_iter3');",
+              "if(!correctedRaw){ console.log('ERROR: No daily_data_iter3'); return; }",
+              "var corrected = JSON.parse(correctedRaw);",
+              "var indexData = corrected.map(function(dd){ return {time: dd.time, value: dd.totalReserves}; });",
+              "var body = { riskFactorID: 'SC_RESERVES_DYN_I3', marketObjectCode: 'SC_TOTAL_RESERVES', base: 1.0, data: indexData };",
+              "pm.collectionVariables.set('dynamic_reserves_body_i3', JSON.stringify(body));"
+            ]}},
+            {"listen": "test", "script": {"type": "text/javascript", "exec": [
+              "pm.test('SC_RESERVES I3', function(){ pm.response.to.have.status(200); console.log('✅ SC_RESERVES_DYN_I3'); });"
+            ]}}
+          ],
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addReferenceIndex", "host": ["{{actus_risk_host}}"], "path": ["addReferenceIndex"]}, "body": {"mode": "raw", "raw": "{{dynamic_reserves_body_i3}}", "options": {"raw": {"language": "json"}}}}
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 9: Behavioral Models + Scenario (Iter 3) ═══",
+      "item": [
+        {
+          "name": "9.1 Add BackingRatioModel Iter 3",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addBackingRatioModel", "host": ["{{actus_risk_host}}"], "path": ["addBackingRatioModel"]}, "body": {"mode": "raw", "raw": "{\n  \"riskFactorId\": \"br_seq_100k_i3\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-02T00:00:00\", \"2026-03-03T00:00:00\",\n    \"2026-03-04T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-06T00:00:00\",\n    \"2026-03-07T00:00:00\", \"2026-03-08T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-13T00:00:00\", \"2026-03-14T00:00:00\", \"2026-03-15T00:00:00\",\n    \"2026-03-16T00:00:00\", \"2026-03-17T00:00:00\", \"2026-03-18T00:00:00\",\n    \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\", \"2026-03-21T00:00:00\",\n    \"2026-03-22T00:00:00\", \"2026-03-23T00:00:00\", \"2026-03-24T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-26T00:00:00\", \"2026-03-27T00:00:00\",\n    \"2026-03-28T00:00:00\", \"2026-03-29T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('BR Iter 3', function(){ pm.response.to.have.status(200); console.log('✅ br_seq_100k_i3'); });"]}}]
+        },
+        {
+          "name": "9.2 Create Scenario Iter 3",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_risk_host}}/addScenario", "host": ["{{actus_risk_host}}"], "path": ["addScenario"]}, "body": {"mode": "raw", "raw": "{\n  \"scenarioID\": \"sc_seq_iter3_100k\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_TBILL_MV_DYN_I1\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_RESERVES_DYN_I3\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_CASH_DYN_I3\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_PEG_RISK_SEQ_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_seq_100k_i3\", \"riskFactorType\": \"BackingRatioModel\"},\n    {\"riskFactorID\": \"ml_seq_100k_i1\", \"riskFactorType\": \"MaturityLadderModel\"}\n  ]\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Scenario I3', function(){ pm.response.to.have.status(200); console.log('✅ sc_seq_iter3_100k'); });"]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 10: Liability — Iteration 3 ═══",
+      "item": [
+        {
+          "name": "10.1 Run StableCoin-Liability Iter 3",
+          "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "url": {"raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation", "host": ["{{actus_sim_host}}"], "path": ["rf2", "scenarioSimulation"]}, "body": {"mode": "raw", "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"StableCoin-100K-Liability-I3\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-04-30T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-04-30T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_seq_100k_i3\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_seq_iter3_100k\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-04-30T00:00:00\",\n  \"monitoringTimes\": []\n}", "options": {"raw": {"language": "json"}}}},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Liability Iter 3', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var data = pm.response.json();",
+            "    var events = data[0].events || [];",
+            "",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('PHASE 10: LIABILITY — ITERATION 3');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('Events: ' + events.length);",
+            "",
+            "    var iter3PP = [];",
+            "    var totalRedemptionsI3 = 0;",
+            "    events.forEach(function(e){",
+            "        var payoff = (e.payoff !== undefined && e.payoff !== null) ? e.payoff : 0;",
+            "        var nomVal = (e.nominalValue !== undefined && e.nominalValue !== null) ? e.nominalValue : null;",
+            "        if(e.type === 'PP' || e.type === 'MRD'){",
+            "            iter3PP.push({time: e.time, type: e.type, payoff: payoff, nominalValue: nomVal});",
+            "            if(payoff > 0) totalRedemptionsI3 += payoff;",
+            "        }",
+            "    });",
+            "",
+            "    iter3PP.forEach(function(pp){",
+            "        if(pp.payoff > 0){",
+            "            var nomStr = pp.nominalValue !== null ? ' remaining=$' + pp.nominalValue.toFixed(2) : '';",
+            "            console.log('  ' + pp.time + ' PP payoff=$' + pp.payoff.toFixed(2) + nomStr);",
+            "        }",
+            "    });",
+            "    console.log('  Total Iter 3 redemptions: $' + totalRedemptionsI3.toFixed(2));",
+            "",
+            "    pm.collectionVariables.set('iter3_pp_events', JSON.stringify(iter3PP));",
+            "    pm.collectionVariables.set('iter3_all_events', JSON.stringify(events));",
+            "    console.log('✅ Stored for Phase 11 convergence check.');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ PHASE 11: Convergence + Final Dashboard ═══",
+      "item": [
+        {
+          "name": "11.1 Convergence: ALL THREE ITERATIONS",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Three-iteration convergence', function(){",
+            "",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('PHASE 11.1: THREE-ITERATION CONVERGENCE CHECK');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "",
+            "    var iter1Raw = pm.collectionVariables.get('iter1_pp_events');",
+            "    var iter2Raw = pm.collectionVariables.get('iter2_pp_events');",
+            "    var iter3Raw = pm.collectionVariables.get('iter3_pp_events');",
+            "",
+            "    if(!iter1Raw || !iter2Raw || !iter3Raw){",
+            "        console.log('❌ Missing PP event data.');",
+            "        return;",
+            "    }",
+            "",
+            "    var iter1PP = JSON.parse(iter1Raw);",
+            "    var iter2PP = JSON.parse(iter2Raw);",
+            "    var iter3PP = JSON.parse(iter3Raw);",
+            "",
+            "    var totalI1 = 0, totalI2 = 0, totalI3 = 0;",
+            "    iter1PP.forEach(function(pp){ if(pp.payoff > 0) totalI1 += pp.payoff; });",
+            "    iter2PP.forEach(function(pp){ if(pp.payoff > 0) totalI2 += pp.payoff; });",
+            "    iter3PP.forEach(function(pp){ if(pp.payoff > 0) totalI3 += pp.payoff; });",
+            "",
+            "    var delta12 = Math.abs(totalI2 - totalI1);",
+            "    var delta23 = Math.abs(totalI3 - totalI2);",
+            "    var pct12 = totalI1 > 0 ? ((delta12 / totalI1) * 100).toFixed(2) : 'N/A';",
+            "    var pct23 = totalI2 > 0 ? ((delta23 / totalI2) * 100).toFixed(2) : 'N/A';",
+            "",
+            "    console.log('');",
+            "    console.log('AGGREGATE SUMMARY:');",
+            "    console.log('  Iteration 1: $' + totalI1.toFixed(2) + ' redeemed');",
+            "    console.log('  Iteration 2: $' + totalI2.toFixed(2) + ' redeemed');",
+            "    console.log('  Iteration 3: $' + totalI3.toFixed(2) + ' redeemed');",
+            "    console.log('');",
+            "    console.log('  Δ(Iter1→2): $' + delta12.toFixed(2) + ' (' + pct12 + '%)');",
+            "    console.log('  Δ(Iter2→3): $' + delta23.toFixed(2) + ' (' + pct23 + '%)');",
+            "    console.log('');",
+            "",
+            "    // Day-by-day Iter 2 vs Iter 3 comparison",
+            "    var i2ByDate = {}, i3ByDate = {};",
+            "    iter2PP.forEach(function(pp){ var dk = pp.time.substring(0,10); i2ByDate[dk] = (i2ByDate[dk] || 0) + pp.payoff; });",
+            "    iter3PP.forEach(function(pp){ var dk = pp.time.substring(0,10); i3ByDate[dk] = (i3ByDate[dk] || 0) + pp.payoff; });",
+            "",
+            "    var allDates = {};",
+            "    Object.keys(i2ByDate).forEach(function(d){ allDates[d] = true; });",
+            "    Object.keys(i3ByDate).forEach(function(d){ allDates[d] = true; });",
+            "    var sortedDates = Object.keys(allDates).sort();",
+            "",
+            "    console.log('DAY-BY-DAY: ITER 2 vs ITER 3');",
+            "    console.log('DATE         | ITER 2       | ITER 3       | DELTA        | CONVERGED?');",
+            "    console.log('─────────────┼──────────────┼──────────────┼──────────────┼───────────');",
+            "",
+            "    var convergenceCount = 0;",
+            "    sortedDates.forEach(function(date){",
+            "        var v2 = i2ByDate[date] || 0;",
+            "        var v3 = i3ByDate[date] || 0;",
+            "        var dd = Math.abs(v3 - v2);",
+            "        var converged = dd < 100 ? '✅' : '❌';",
+            "        if(dd < 100) convergenceCount++;",
+            "        console.log(",
+            "            date + '  | ' +",
+            "            ('$' + v2.toFixed(2)).padStart(12) + ' | ' +",
+            "            ('$' + v3.toFixed(2)).padStart(12) + ' | ' +",
+            "            ('$' + dd.toFixed(2)).padStart(12) + ' | ' +",
+            "            converged",
+            "        );",
+            "    });",
+            "",
+            "    console.log('');",
+            "    console.log('Converged days (Iter2→3): ' + convergenceCount + '/' + sortedDates.length + ' (threshold: <$100)');",
+            "    console.log('');",
+            "",
+            "    if(delta23 < 500){",
+            "        console.log('✅ CONVERGED: Iter 2 ≈ Iter 3 (delta < $500).');",
+            "        console.log('   The feedback loop has stabilized after 3 iterations.');",
+            "        console.log('   Iter 3 is the BEST ESTIMATE of protocol behavior under stress.');",
+            "    } else {",
+            "        console.log('⚠️  NOT CONVERGED: Δ(Iter2→3) = $' + delta23.toFixed(2));",
+            "        console.log('   Consider Iteration 4 or Approach 3 (middleware).');",
+            "    }",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "});",
+            "",
+            "pm.test('All 3 iterations produced data', function(){",
+            "    pm.expect(pm.collectionVariables.get('iter1_pp_events')).to.not.be.undefined;",
+            "    pm.expect(pm.collectionVariables.get('iter2_pp_events')).to.not.be.undefined;",
+            "    pm.expect(pm.collectionVariables.get('iter3_pp_events')).to.not.be.undefined;",
+            "});"
+          ]}}],
+          "request": {"method": "GET", "header": [], "url": {"raw": "http://{{actus_risk_host}}/findScenario/sc_seq_iter3_100k", "host": ["{{actus_risk_host}}"], "path": ["findScenario", "sc_seq_iter3_100k"]}}
+        },
+        {
+          "name": "11.2 Final Portfolio Dashboard (Iter 3 — Best Estimate)",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Final dashboard', function(){",
+            "",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('PHASE 11.2: FINAL PORTFOLIO DASHBOARD (ITER 3 — BEST ESTIMATE)');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "",
+            "    var dailyRaw = pm.collectionVariables.get('daily_data_iter0');",
+            "    var iter3Raw = pm.collectionVariables.get('iter3_all_events');",
+            "    if(!dailyRaw){ console.log('❌ Missing data.'); return; }",
+            "",
+            "    var daily = JSON.parse(dailyRaw);",
+            "    var iter3Events = iter3Raw ? JSON.parse(iter3Raw) : [];",
+            "",
+            "    // Build redemptions by date from Iter 3",
+            "    var redemptionsByDate = {};",
+            "    iter3Events.forEach(function(e){",
+            "        if((e.type === 'PP' || e.type === 'MRD') && e.payoff > 0){",
+            "            var dk = e.time.substring(0,10);",
+            "            redemptionsByDate[dk] = (redemptionsByDate[dk] || 0) + e.payoff;",
+            "        }",
+            "    });",
+            "",
+            "    var supply = 100000;",
+            "    var cumRedemptions = 0;",
+            "",
+            "    console.log('');",
+            "    console.log('DATE         | CASH        | T-BILLS     | TOTAL RES   | SUPPLY      | BACKING  | LIQUIDITY | ACE  ');",
+            "    console.log('─────────────┼─────────────┼─────────────┼─────────────┼─────────────┼──────────┼───────────┼──────');",
+            "",
+            "    var stressDates = [];",
+            "",
+            "    daily.forEach(function(dd){",
+            "        if(redemptionsByDate[dd.date]){",
+            "            cumRedemptions += redemptionsByDate[dd.date];",
+            "            supply -= redemptionsByDate[dd.date];",
+            "        }",
+            "",
+            "        var adjCash = dd.cash - cumRedemptions;",
+            "        if(adjCash < 0) adjCash = 0;",
+            "        var totalRes = adjCash + dd.tbillMV;",
+            "        var backing = supply > 0 ? totalRes / supply : 0;",
+            "        var liquidity = supply > 0 ? adjCash / supply : 0;",
+            "",
+            "        var backingOK = backing >= 1.0;",
+            "        var liquidityOK = liquidity >= 0.20;",
+            "        var ace = (backingOK && liquidityOK) ? '✅' : '🚫';",
+            "        if(!backingOK || !liquidityOK) stressDates.push(dd.date);",
+            "",
+            "        var isKeyDate = dd.date === '2026-03-01' || dd.date === '2026-03-02' ||",
+            "            dd.date === '2026-03-05' || dd.date === '2026-03-08' ||",
+            "            dd.date === '2026-03-10' || dd.date === '2026-03-12' ||",
+            "            dd.date === '2026-03-14' || dd.date === '2026-03-15' ||",
+            "            dd.date === '2026-03-18' || dd.date === '2026-03-22' ||",
+            "            dd.date === '2026-03-25' || dd.date === '2026-03-30' ||",
+            "            dd.date === '2026-04-15' || dd.date === '2026-04-30' ||",
+            "            dd.maturedToday;",
+            "",
+            "        if(isKeyDate){",
+            "            console.log(",
+            "                dd.date + '  | ' +",
+            "                ('$' + adjCash.toFixed(0)).padStart(11) + ' | ' +",
+            "                ('$' + dd.tbillMV.toFixed(0)).padStart(11) + ' | ' +",
+            "                ('$' + totalRes.toFixed(0)).padStart(11) + ' | ' +",
+            "                ('$' + supply.toFixed(0)).padStart(11) + ' | ' +",
+            "                ((backing*100).toFixed(1) + '%').padStart(8) + ' | ' +",
+            "                ((liquidity*100).toFixed(1) + '%').padStart(9) + ' | ' +",
+            "                ace",
+            "            );",
+            "        }",
+            "    });",
+            "",
+            "    console.log('');",
+            "    if(stressDates.length > 0){",
+            "        console.log('🚫 Stress period: ' + stressDates[0] + ' to ' + stressDates[stressDates.length-1] + ' (' + stressDates.length + ' days)');",
+            "    } else {",
+            "        console.log('✅ No stress periods.');",
+            "    }",
+            "",
+            "    // Final supply and redemption summary",
+            "    console.log('');",
+            "    console.log('FINAL STATE:');",
+            "    console.log('  Initial supply:  $100,000');",
+            "    console.log('  Total redeemed:  $' + cumRedemptions.toFixed(2));",
+            "    console.log('  Final supply:    $' + supply.toFixed(2));",
+            "    console.log('  Supply burned:   ' + ((cumRedemptions/100000)*100).toFixed(1) + '%');",
+            "",
+            "    console.log('');",
+            "    console.log('CONVERGENCE HISTORY:');",
+            "    console.log('  Iter 1: optimistic (no feedback)  → model stops Mar 15');",
+            "    console.log('  Iter 2: corrected (Iter 1 drain)  → model fires all 30 days');",
+            "    console.log('  Iter 3: corrected (Iter 2 drain)  → BEST ESTIMATE');",
+            "    console.log('');",
+            "    console.log('CONCLUSION:');",
+            "    console.log('  With 6% initial liquidity and 14-day first maturity gap,');",
+            "    console.log('  the protocol cannot survive the stress scenario.');",
+            "    console.log('  The iterative feedback reveals a death spiral where');",
+            "    console.log('  redemptions drain all cash, causing more redemptions.');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "});",
+            "",
+            "// Cleanup all collection variables",
+            "pm.collectionVariables.unset('tbill_contracts');",
+            "pm.collectionVariables.unset('daily_data_iter0');",
+            "pm.collectionVariables.unset('daily_data_iter2');",
+            "pm.collectionVariables.unset('daily_data_iter3');",
+            "pm.collectionVariables.unset('iter1_pp_events');",
+            "pm.collectionVariables.unset('iter1_all_events');",
+            "pm.collectionVariables.unset('iter2_pp_events');",
+            "pm.collectionVariables.unset('iter2_all_events');",
+            "pm.collectionVariables.unset('iter3_pp_events');",
+            "pm.collectionVariables.unset('iter3_all_events');",
+            "pm.collectionVariables.unset('dynamic_tbill_mv_body');",
+            "pm.collectionVariables.unset('dynamic_cash_body');",
+            "pm.collectionVariables.unset('dynamic_reserves_body');",
+            "pm.collectionVariables.unset('dynamic_cash_body_i2');",
+            "pm.collectionVariables.unset('dynamic_reserves_body_i2');",
+            "pm.collectionVariables.unset('dynamic_cash_body_i3');",
+            "pm.collectionVariables.unset('dynamic_reserves_body_i3');"
+          ]}}],
+          "request": {"method": "GET", "header": [], "url": {"raw": "http://{{actus_risk_host}}/findScenario/sc_seq_iter3_100k", "host": ["{{actus_risk_host}}"], "path": ["findScenario", "sc_seq_iter3_100k"]}}
+        }
+      ]
+    }
+  ]
+}

@@ -41,10 +41,10 @@ export class ACTUSClient {
       riskFactors: []
     };
 
-    console.log('\n=== CALLING ACTUS API WITH POST-PROCESSING ===');
-    console.log(`URL: ${this.baseUrl}`);
-    console.log(`Sending ${cleanedContracts.length} contracts`);
-    console.log('Contract IDs:', cleanedContracts.map(c => c.contractID));
+    console.error('\n=== CALLING ACTUS API WITH POST-PROCESSING ===');
+    console.error(`URL: ${this.baseUrl}`);
+    console.error(`Sending ${cleanedContracts.length} contracts`);
+    console.error('Contract IDs:', cleanedContracts.map(c => c.contractID));
 
     try {
       const response = await axios.post(this.baseUrl, requestData, {
@@ -62,7 +62,7 @@ export class ACTUSClient {
       // (EXACT check from ACTUSDataProcessor.ts line 283)
       // ----------------------------------------------------------------
       if (rawData && Array.isArray(rawData.inflow) && rawData.monthsCount > 0) {
-        console.log('✅ Response already in expected format with proper periods');
+        console.error('✅ Response already in expected format with proper periods');
         return {
           inflow: rawData.inflow,
           outflow: rawData.outflow,
@@ -82,7 +82,7 @@ export class ACTUSClient {
       // Transform and apply post-processing
       // (Uses standardized ACTUSDataProcessor logic)
       // ----------------------------------------------------------------
-      console.log('⚠️ Response is raw contract events - applying post-processing...');
+      console.error('⚠️ Response is raw contract events - applying post-processing...');
 
       // Transform the API response to match the format expected by processRawACTUSData
       const transformedData = rawData.map((contractResponse: any) => ({
@@ -96,8 +96,8 @@ export class ACTUSClient {
       const processedData = processRawACTUSData(transformedData);
       const actusResponse = this.convertToACTUSResponse(processedData);
 
-      console.log(`✅ Post-processing complete: ${actusResponse.periodsCount} periods generated`);
-      console.log('=== END ACTUS API CALL WITH POST-PROCESSING ===\n');
+      console.error(`✅ Post-processing complete: ${actusResponse.periodsCount} periods generated`);
+      console.error('=== END ACTUS API CALL WITH POST-PROCESSING ===\n');
 
       return actusResponse;
 
@@ -172,13 +172,13 @@ export class ACTUSClient {
         throw new Error('Invalid portfolio format: missing contracts array');
       }
 
-      console.log(`📁 Loaded portfolio from: ${portfolioPath}`);
+      console.error(`📁 Loaded portfolio from: ${portfolioPath}`);
       if (portfolioConfig.portfolioMetadata) {
-        console.log(`   Portfolio ID   : ${portfolioConfig.portfolioMetadata.portfolioId}`);
-        console.log(`   Total Notional : ${portfolioConfig.portfolioMetadata.totalNotional}`);
-        console.log(`   Currency       : ${portfolioConfig.portfolioMetadata.currency}`);
+        console.error(`   Portfolio ID   : ${portfolioConfig.portfolioMetadata.portfolioId}`);
+        console.error(`   Total Notional : ${portfolioConfig.portfolioMetadata.totalNotional}`);
+        console.error(`   Currency       : ${portfolioConfig.portfolioMetadata.currency}`);
       }
-      console.log(`   Contracts: ${portfolioConfig.contracts.length}`);
+      console.error(`   Contracts: ${portfolioConfig.contracts.length}`);
 
       return portfolioConfig.contracts;
 

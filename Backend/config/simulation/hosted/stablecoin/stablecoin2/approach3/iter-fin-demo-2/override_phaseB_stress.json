@@ -1,0 +1,50 @@
+{
+  "overrideActive": true,
+  "description": "PHASE B — STRESSED: Cash drained from 3 of 5 banks. Operator bought $120K corporate bond (NOT GENIUS-permitted). Supply doubled from 100K to 200K (100K circulating + 100K new mint ask).",
+  "tokenSupplyOverride": 200000,
+  "portfolioAdjustments": [
+    {
+      "contractID": "cash-bnym-001",
+      "newNotionalPrincipal": 5000,
+      "reason": "Emergency compliance payment — drained from $68K to $5K"
+    },
+    {
+      "contractID": "cash-jpm-001",
+      "newNotionalPrincipal": 5000,
+      "reason": "Emergency compliance payment — drained from $68K to $5K"
+    },
+    {
+      "contractID": "cash-state-001",
+      "newNotionalPrincipal": 0,
+      "reason": "Account emptied — full withdrawal under stress"
+    },
+    {
+      "contractID": "cash-citi-001",
+      "newNotionalPrincipal": 0,
+      "reason": "Account emptied — full withdrawal under stress"
+    },
+    {
+      "contractID": "cash-operating-001",
+      "newNotionalPrincipal": 0,
+      "reason": "Operating account emptied — emergency cash needs"
+    }
+  ],
+  "earlyLiquidations": [],
+  "contracts": [
+    {
+      "contractType": "PAM",
+      "contractID": "corp-bond-distressed-001",
+      "contractRole": "RPA",
+      "contractDealDate": "2026-03-07T00:00:00",
+      "initialExchangeDate": "2026-03-07T00:00:00",
+      "statusDate": "2026-03-07T00:00:00",
+      "maturityDate": "2027-03-07T00:00:00",
+      "notionalPrincipal": 120000,
+      "nominalInterestRate": 0.065,
+      "currency": "USD",
+      "dayCountConvention": "A365",
+      "reserveCategory": "corp-bond",
+      "description": "Distressed corporate bond — NOT a GENIUS Act permitted reserve asset. Operator bought seeking yield under stress. 365 days to maturity. Violates GENIUS Act §4(a)(1)(A)."
+    }
+  ]
+}

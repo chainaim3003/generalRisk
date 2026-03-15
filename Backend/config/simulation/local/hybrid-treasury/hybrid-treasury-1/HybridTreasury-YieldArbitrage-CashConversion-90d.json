@@ -1,0 +1,232 @@
+{
+  "info": {
+    "_postman_id": "ht-ya-ccc-90d-001",
+    "name": "HybridTreasury-YieldArbitrage-CashConversion-90d",
+    "description": "ACTUS Hybrid Treasury: YIELD ARBITRAGE + CASH CONVERSION CYCLE (90-day, weekly).\n\nTWO hybrid treasury behavioral models run simultaneously:\n  1. YieldArbitrageModel (5.5) — compares T-bill, staking, lending yields → triggers reallocation\n  2. CashConversionCycleModel (5.6) — bridges treasury + AR/AP → triggers early payment when discount APR > treasury yield\n\nScenario: DeFi yield surge + supplier discount opportunities:\n  T-bill yield: 4.25% → 3.80% (Fed easing) → steady\n  ETH staking yield: 2.81% → 5.50% peak (Merge anniversary staking surge) → 3.20%\n  Aave USDC lending: 3.50% → 8.20% peak (demand spike) → 4.00%\n  Supplier discount APR: 0% (no offers) → 15% (2/10 net 30) → 12% → 0%\n\nKEY DYNAMICS:\n  Weeks 1-3:  T-bill 4.25% > staking 2.81%, lending 3.50% → no arbitrage\n  Week 4:     Staking surges to 4.80% (risk-adj 4.08% at 0.85 factor)\n              Still below T-bill 4.25% → no action\n  Week 5:     Staking 5.20% (risk-adj 4.42%) > T-bill 4.10% → ARBITRAGE (>50bps)\n  Week 6:     Lending 8.20% (risk-adj 6.56%) >>> T-bill 3.90% → STRONG ARBITRAGE\n  Week 7:     Supplier offers 2/10 net 30 → discount APR = 36.5%\n              Treasury yield 3.9% → spread = 32.6% → CCC FIRES HARD\n  Week 8:     More discounts at 1.5/15 net 45 → APR = 18.25% → CCC still fires\n  Weeks 9-13: Yields normalize, discounts expire → both models return to 0.0\n\nContracts: PAM for T-bill + CSH for idle cash\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add TBILL_YIELD (Fed easing trajectory)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"TBILL_YIELD_01\",\"marketObjectCode\":\"TBILL_YIELD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0425},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.0425},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.0420},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.0415},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.0410},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.0400},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.0390},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.0385},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.0380},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.0380},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.0380},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.0380},{\"time\":\"2026-05-24T00:00:00\",\"value\":0.0380},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.0380}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('TBILL_YIELD added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ TBILL_YIELD_01: 4.25% → 3.80% (Fed easing trajectory)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "2. Add ETH_STAKING_YIELD (surge event)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"ETH_STAKE_01\",\"marketObjectCode\":\"ETH_STAKING_YIELD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0281},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.0290},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.0320},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.0380},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.0480},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.0520},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.0550},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.0500},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.0420},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.0380},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.0350},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.0330},{\"time\":\"2026-05-24T00:00:00\",\"value\":0.0320},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.0320}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('ETH_STAKING_YIELD added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ ETH_STAKE_01: 2.81% → 5.50% peak → 3.20%');",
+        "    console.log('   Risk-adj (×0.85): 2.39% → 4.68% peak → 2.72%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "3. Add AAVE_LENDING_YIELD (demand spike)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"AAVE_LEND_01\",\"marketObjectCode\":\"AAVE_LENDING_YIELD\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0350},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.0360},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.0400},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.0480},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.0580},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.0720},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.0820},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.0650},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.0520},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.0450},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.0420},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.0410},{\"time\":\"2026-05-24T00:00:00\",\"value\":0.0400},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.0400}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('AAVE_LENDING_YIELD added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ AAVE_LEND_01: 3.50% → 8.20% peak → 4.00%');",
+        "    console.log('   Risk-adj (×0.80): 2.80% → 6.56% peak → 3.20%');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "4. Add DISCOUNT_APR_AVAILABLE (supplier early-pay offers)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addReferenceIndex",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addReferenceIndex"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorID\":\"DISC_APR_01\",\"marketObjectCode\":\"DISCOUNT_APR_AVAILABLE\",\"base\":1.0,\"data\":[{\"time\":\"2026-03-01T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-08T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-15T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-22T00:00:00\",\"value\":0.0},{\"time\":\"2026-03-29T00:00:00\",\"value\":0.0},{\"time\":\"2026-04-05T00:00:00\",\"value\":0.0},{\"time\":\"2026-04-12T00:00:00\",\"value\":0.15},{\"time\":\"2026-04-19T00:00:00\",\"value\":0.365},{\"time\":\"2026-04-26T00:00:00\",\"value\":0.1825},{\"time\":\"2026-05-03T00:00:00\",\"value\":0.12},{\"time\":\"2026-05-10T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-17T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-24T00:00:00\",\"value\":0.0},{\"time\":\"2026-05-31T00:00:00\",\"value\":0.0}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('DISCOUNT_APR_AVAILABLE added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ DISC_APR_01: Supplier discount opportunities');",
+        "    console.log('   Week 7: 15% APR (1/10 net 30)');",
+        "    console.log('   Week 8: 36.5% APR (2/10 net 30) → MASSIVE vs 3.9% treasury');",
+        "    console.log('   Week 9: 18.25% APR (1.5/15 net 45)');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "5. Add YieldArbitrageModel (ya_tr01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addYieldArbitrageModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addYieldArbitrageModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ya_tr01\",\"tbillYieldMOC\":\"TBILL_YIELD\",\"stakingYieldMOC\":\"ETH_STAKING_YIELD\",\"lendingYieldMOC\":\"AAVE_LENDING_YIELD\",\"minSpreadBps\":50,\"riskAdjustmentFactor\":0.85,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-29T00:00:00\",\"2026-04-05T00:00:00\",\"2026-04-12T00:00:00\",\"2026-04-19T00:00:00\",\"2026-04-26T00:00:00\",\"2026-05-03T00:00:00\",\"2026-05-10T00:00:00\",\"2026-05-17T00:00:00\",\"2026-05-24T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('YieldArbitrageModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ya_tr01: YieldArbitrageModel (14 weekly checkpoints)');",
+        "    console.log('   minSpread=50bps, riskAdjFactor=0.85');",
+        "    console.log('   Compares risk-adj DeFi yields vs T-bill benchmark');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "6. Add CashConversionCycleModel (ccc_tr01)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addCashConversionCycleModel",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addCashConversionCycleModel"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"riskFactorId\":\"ccc_tr01\",\"discountAPRMOC\":\"DISCOUNT_APR_AVAILABLE\",\"treasuryYieldMOC\":\"TBILL_YIELD\",\"availableDiscountsMOC\":\"DISCOUNT_APR_AVAILABLE\",\"minArbitrageSpread\":0.02,\"monitoringEventTimes\":[\"2026-03-01T00:00:00\",\"2026-03-08T00:00:00\",\"2026-03-15T00:00:00\",\"2026-03-22T00:00:00\",\"2026-03-29T00:00:00\",\"2026-04-05T00:00:00\",\"2026-04-12T00:00:00\",\"2026-04-19T00:00:00\",\"2026-04-26T00:00:00\",\"2026-05-03T00:00:00\",\"2026-05-10T00:00:00\",\"2026-05-17T00:00:00\",\"2026-05-24T00:00:00\",\"2026-05-31T00:00:00\"]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('CashConversionCycleModel added', function(){",
+        "    pm.response.to.have.status(200);",
+        "    console.log('✅ ccc_tr01: CashConversionCycleModel (14 weekly checkpoints)');",
+        "    console.log('   minArbitrageSpread=2% (discount APR must exceed treasury yield by >2%)');",
+        "    console.log('   Bridges treasury domain ↔ dynamic discounting domain');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "7. Add Yield+CCC Scenario",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8082/addScenario",
+          "protocol": "http",
+          "host": ["localhost:8082"],
+          "path": ["addScenario"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scenarioID\":\"ht_yield_ccc_scn01\",\"riskFactorDescriptors\":[{\"riskFactorID\":\"TBILL_YIELD_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ETH_STAKE_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"AAVE_LEND_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"DISC_APR_01\",\"riskFactorType\":\"ReferenceIndex\"},{\"riskFactorID\":\"ya_tr01\",\"riskFactorType\":\"YieldArbitrageModel\"},{\"riskFactorID\":\"ccc_tr01\",\"riskFactorType\":\"CashConversionCycleModel\"}]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Yield+CCC scenario created', function(){",
+        "    pm.response.to.have.status(200);",
+        "    pm.expect(pm.response.text()).to.include('Successfully');",
+        "    console.log('✅ ht_yield_ccc_scn01: 4 indexes + 2 behavioral models');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "8. Run Yield+CCC 90-Day Simulation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {
+          "raw": "http://localhost:8083/rf2/scenarioSimulation",
+          "protocol": "http",
+          "host": ["localhost:8083"],
+          "path": ["rf2", "scenarioSimulation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contracts\":[{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"PAM\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"TBill-4wk-500K\",\"cycleAnchorDateOfInterestPayment\":\"2026-05-31T00:00:00\",\"cycleOfInterestPayment\":\"P3ML0\",\"nominalInterestRate\":0.0425,\"dayCountConvention\":\"A360\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":500000,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"ya_tr01\",\"ccc_tr01\"]},{\"calendar\":\"NC\",\"businessDayConvention\":\"SCF\",\"contractType\":\"CSH\",\"statusDate\":\"2026-02-28T00:00:00\",\"contractRole\":\"RPA\",\"contractID\":\"IdleCash-3M\",\"currency\":\"USD\",\"contractDealDate\":\"2026-02-28T00:00:00\",\"initialExchangeDate\":\"2026-03-01T00:00:00\",\"maturityDate\":\"2026-05-31T00:00:00\",\"notionalPrincipal\":3000000,\"premiumDiscountAtIED\":0,\"treasuryModels\":[\"ya_tr01\",\"ccc_tr01\"]}],\"scenarioDescriptor\":{\"scenarioID\":\"ht_yield_ccc_scn01\",\"scenarioType\":\"scenario\"},\"simulateTo\":\"2026-05-31T00:00:00\",\"monitoringTimes\":[]}",
+          "options": {"raw": {"language": "json"}}
+        }
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Yield+CCC simulation', function(){",
+        "    pm.response.to.have.status(200);",
+        "    var data = pm.response.json();",
+        "    console.log('═'.repeat(72));",
+        "    console.log('YIELD ARBITRAGE + CASH CONVERSION CYCLE (90 days)');",
+        "    console.log('  T-bill: 4.25%→3.80% | ETH staking: 2.81%→5.50% | Aave: 3.50%→8.20%');",
+        "    console.log('  Supplier discounts: 15%→36.5% APR (2/10 net 30)');",
+        "    console.log('═'.repeat(72));",
+        "    data.forEach(function(c, i){",
+        "        console.log('CONTRACT '+(i+1)+': '+c.contractId+' ('+c.status+')');",
+        "        console.log('  Events: '+c.events.length);",
+        "        c.events.forEach(function(e){",
+        "            console.log('    '+e.time.substring(0,10)+' '+e.type+' payoff='+e.payoff.toFixed(2));",
+        "        });",
+        "    });",
+        "    console.log('═'.repeat(72));",
+        "});",
+        "pm.test('Both contracts simulated', function(){",
+        "    pm.expect(pm.response.json().length).to.eql(2);",
+        "});"
+      ]}}]
+    }
+  ]
+}

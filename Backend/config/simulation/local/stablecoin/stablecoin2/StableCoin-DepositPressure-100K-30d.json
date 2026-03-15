@@ -1,0 +1,198 @@
+{
+  "info": {
+    "_postman_id": "sc2-dp-100k-001",
+    "name": "StableCoin-DepositPressure-100K-30d",
+    "description": "ACTUS: DEPOSIT DEMAND / MINT PRESSURE ($100K Reserve)\n\nGAP ADDRESSED: §11.3 — Existing simulations model OUTFLOWS (redemptions)\nbut none model INFLOWS (new deposits requesting minting).\n\nSCENARIO: What happens when deposit demand surges while reserves are stressed.\n  Day 1-9:   Baseline $500/day in new deposits\n  Day 10:    $10,000 deposit spike (large mint request)\n  Day 15-19: Sustained demand: $5,000/day\n\nCombined with treasury-backed portfolio, answers:\n  'If we honor this $10,000 mint, does backing drop below 100%?'\n  'Should the system auto-block this specific mint?'\n\nThis is the scenario CRE Workflow 2 (reserve-health-check) handles.\n\nContract: PAM representing stablecoin liability\n\nOpen Postman Console (Ctrl+Alt+C) before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "actus_risk_host", "value": "localhost:8082"},
+    {"key": "actus_sim_host", "value": "localhost:8083"}
+  ],
+  "item": [
+    {
+      "name": "═══ SETUP: Reference Indexes ═══",
+      "item": [
+        {
+          "name": "1.1 Add SC_DEPOSIT — Deposit demand curve (mint pressure)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"SC_DEPOSIT_100K_01\",\n  \"marketObjectCode\": \"SC_DEPOSIT_DEMAND\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-02T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-03T00:00:00\", \"value\": 600},\n    {\"time\": \"2026-03-04T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 700},\n    {\"time\": \"2026-03-06T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-07T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-08T00:00:00\", \"value\": 800},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 1200},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 10000},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 3000},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 2000},\n    {\"time\": \"2026-03-13T00:00:00\", \"value\": 1500},\n    {\"time\": \"2026-03-14T00:00:00\", \"value\": 1000},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 5000},\n    {\"time\": \"2026-03-16T00:00:00\", \"value\": 5000},\n    {\"time\": \"2026-03-17T00:00:00\", \"value\": 5000},\n    {\"time\": \"2026-03-18T00:00:00\", \"value\": 5000},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 5000},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 2000},\n    {\"time\": \"2026-03-21T00:00:00\", \"value\": 1500},\n    {\"time\": \"2026-03-22T00:00:00\", \"value\": 1000},\n    {\"time\": \"2026-03-23T00:00:00\", \"value\": 800},\n    {\"time\": \"2026-03-24T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-26T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-27T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-28T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-29T00:00:00\", \"value\": 500},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 500}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('SC_DEPOSIT_DEMAND loaded', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ SC_DEPOSIT_100K_01: Deposit demand / mint pressure');",
+            "    console.log('   Day 1-9:   Baseline $500/day');",
+            "    console.log('   Day 10:    SPIKE! $10,000 single deposit request');",
+            "    console.log('   Day 15-19: Sustained $5,000/day demand');",
+            "    console.log('   Day 20+:   Normalizing to $500/day');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.2 Add SC_TOTAL_RESERVES (deposit-pressure scenario)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"SC_RESERVES_DP_100K_01\",\n  \"marketObjectCode\": \"SC_TOTAL_RESERVES\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 104000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 106500},\n    {\"time\": \"2026-03-09T00:00:00\", \"value\": 108200},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 118200},\n    {\"time\": \"2026-03-11T00:00:00\", \"value\": 121200},\n    {\"time\": \"2026-03-12T00:00:00\", \"value\": 123200},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 128700},\n    {\"time\": \"2026-03-19T00:00:00\", \"value\": 148700},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 150700},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 153200},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 155700}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Reserves loaded (deposit pressure)', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ SC_RESERVES_DP_100K_01: Reserves growing with deposits');",
+            "    console.log('   Reserves increase as new deposits come in');",
+            "    console.log('   But if supply grows faster than reserves → backing drops');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "1.3 Add SC_CASH_RESERVE (deposit scenario)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addReferenceIndex",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addReferenceIndex"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorID\": \"SC_CASH_DP_100K_01\",\n  \"marketObjectCode\": \"SC_CASH_RESERVE\",\n  \"base\": 1.0,\n  \"data\": [\n    {\"time\": \"2026-03-01T00:00:00\", \"value\": 6000},\n    {\"time\": \"2026-03-05T00:00:00\", \"value\": 8500},\n    {\"time\": \"2026-03-10T00:00:00\", \"value\": 18500},\n    {\"time\": \"2026-03-15T00:00:00\", \"value\": 12000},\n    {\"time\": \"2026-03-20T00:00:00\", \"value\": 15000},\n    {\"time\": \"2026-03-25T00:00:00\", \"value\": 16000},\n    {\"time\": \"2026-03-30T00:00:00\", \"value\": 17000}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Cash loaded (deposit pressure)', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ SC_CASH_DP_100K_01: Cash under deposit pressure');",
+            "    console.log('   Day 10: +$10K deposit → cash spikes to $18.5K');",
+            "    console.log('   Cash then deployed to T-bill purchases (outflow)');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ SETUP: Models + Scenario ═══",
+      "item": [
+        {
+          "name": "2.1 Add BackingRatioModel (deposit pressure)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addBackingRatioModel",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addBackingRatioModel"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"riskFactorId\": \"br_dp_100k_01\",\n  \"totalReservesMOC\": \"SC_TOTAL_RESERVES\",\n  \"cashReserveMOC\": \"SC_CASH_RESERVE\",\n  \"backingThreshold\": 1.0,\n  \"liquidityThreshold\": 0.20,\n  \"monitoringEventTimes\": [\n    \"2026-03-01T00:00:00\", \"2026-03-05T00:00:00\", \"2026-03-09T00:00:00\",\n    \"2026-03-10T00:00:00\", \"2026-03-11T00:00:00\", \"2026-03-12T00:00:00\",\n    \"2026-03-15T00:00:00\", \"2026-03-19T00:00:00\", \"2026-03-20T00:00:00\",\n    \"2026-03-25T00:00:00\", \"2026-03-30T00:00:00\"\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('BackingRatioModel added (deposit)', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ br_dp_100k_01: BackingRatioModel for deposit pressure');",
+            "});"
+          ]}}]
+        },
+        {
+          "name": "2.2 Create Deposit Pressure Scenario",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_risk_host}}/addScenario",
+              "host": ["{{actus_risk_host}}"],
+              "path": ["addScenario"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenarioID\": \"sc_deposit_pressure_100k_01\",\n  \"riskFactorDescriptors\": [\n    {\"riskFactorID\": \"SC_DEPOSIT_100K_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_RESERVES_DP_100K_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"SC_CASH_DP_100K_01\", \"riskFactorType\": \"ReferenceIndex\"},\n    {\"riskFactorID\": \"br_dp_100k_01\", \"riskFactorType\": \"BackingRatioModel\"}\n  ]\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Deposit pressure scenario created', function(){",
+            "    pm.response.to.have.status(200);",
+            "    console.log('✅ sc_deposit_pressure_100k_01 created');",
+            "});"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "═══ SIMULATION: Deposit/Mint Pressure ═══",
+      "item": [
+        {
+          "name": "3.1 Run Deposit Pressure Simulation (30 days)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "http://{{actus_sim_host}}/rf2/scenarioSimulation",
+              "host": ["{{actus_sim_host}}"],
+              "path": ["rf2", "scenarioSimulation"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contracts\": [\n    {\n      \"calendar\": \"NC\",\n      \"businessDayConvention\": \"SCF\",\n      \"contractType\": \"PAM\",\n      \"statusDate\": \"2026-02-28T00:00:00\",\n      \"contractRole\": \"RPA\",\n      \"contractID\": \"StableCoin-100K-DepositPressure\",\n      \"cycleAnchorDateOfInterestPayment\": \"2026-03-31T00:00:00\",\n      \"cycleOfInterestPayment\": \"P1ML0\",\n      \"nominalInterestRate\": 0.0,\n      \"dayCountConvention\": \"30E360\",\n      \"currency\": \"USD\",\n      \"contractDealDate\": \"2026-02-28T00:00:00\",\n      \"initialExchangeDate\": \"2026-03-01T00:00:00\",\n      \"maturityDate\": \"2026-03-31T00:00:00\",\n      \"notionalPrincipal\": 100000,\n      \"premiumDiscountAtIED\": 0,\n      \"stablecoinModels\": [\"br_dp_100k_01\"]\n    }\n  ],\n  \"scenarioDescriptor\": {\n    \"scenarioID\": \"sc_deposit_pressure_100k_01\",\n    \"scenarioType\": \"scenario\"\n  },\n  \"simulateTo\": \"2026-03-31T00:00:00\",\n  \"monitoringTimes\": []\n}",
+              "options": {"raw": {"language": "json"}}
+            }
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+            "pm.test('Deposit pressure simulation', function(){",
+            "    pm.response.to.have.status(200);",
+            "    var data = pm.response.json();",
+            "    pm.expect(data[0].status).to.eql('Success');",
+            "    var events = data[0].events;",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('DEPOSIT PRESSURE / MINT DEMAND ($100K Reserve)');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "    console.log('Events generated: ' + events.length);",
+            "    events.forEach(function(e){",
+            "        console.log('  ' + e.time + ' ' + e.type + ' payoff=$' + (e.payoff||0).toFixed(2) + ' nominal=$' + (e.nominalValue||0).toFixed(2));",
+            "    });",
+            "    console.log('');",
+            "    console.log('📊 DEPOSIT PRESSURE ANALYSIS:');",
+            "    console.log('   Day 1-9:  $500/day deposits. Supply grows slowly.');",
+            "    console.log('   Day 10:   $10K DEPOSIT SPIKE!');",
+            "    console.log('             Pre-mint check: reserves=$108.2K, supply=$104.8K');",
+            "    console.log('             Post-mint: supply would be $114.8K');",
+            "    console.log('             Backing = $118.2K/$114.8K = 103.0% ✅');",
+            "    console.log('             → mint(depositor, 10000) → SUCCEEDS');",
+            "    console.log('   Day 15-19: $5K/day sustained. Each mint checked.');",
+            "    console.log('   Day 20+:  Normalizing. Treasury buys new T-bills.');",
+            "    console.log('');",
+            "    console.log('   CRE Workflow 2 runs pre-flight check for each mint.');",
+            "    console.log('   ACTUS simulates: does the proposed mint keep us ≥100%?');",
+            "    console.log('════════════════════════════════════════════════════════════');",
+            "});"
+          ]}}]
+        }
+      ]
+    }
+  ]
+}
