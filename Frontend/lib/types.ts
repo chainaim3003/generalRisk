@@ -166,6 +166,7 @@ export type DashboardMode =
   | "buffer-v5"
   | "issuer"
   | "holder"
+  | "vlei"
 
 export type Jurisdiction = "eu-mica" | "us-genius" | "custom"
 

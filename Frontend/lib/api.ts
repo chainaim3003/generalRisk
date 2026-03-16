@@ -250,3 +250,51 @@ export const scenariosFetcher = () => getScenarios()
 export const portfoliosFetcher = () => getPortfolios()
 export const healthFetcher = () => checkHealth()
 export const stimulationsFetcher = () => getStimulations()
+
+// ════════════════════════════════════════════════════════════════════
+// vLEI Credential Signing API
+// ════════════════════════════════════════════════════════════════════
+
+/**
+ * Run the Jupiter Seller vLEI credential signing workflow.
+ * Calls KERIA via docker compose to issue a real self-attested
+ * invoice credential with cryptographic digital signature.
+ *
+ * NO mocks. NO fake data. Real KERIA response.
+ */
+export async function runVleiWorkflow(): Promise<any> {
+  const res = await fetch(`${API_BASE}/vlei/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  })
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => "Unknown error")
+    throw new Error(`VLEI Run Error ${res.status}: ${errorBody}`)
+  }
+  return res.json()
+}
+
+/**
+ * Query existing credentials from KERIA for jupiterSellerAgent.
+ * Returns all credentials including OOR and Invoice credentials
+ * with full digital signature data.
+ */
+export async function queryVleiCredentials(): Promise<any> {
+  return fetchApi<any>("/vlei/query")
+}
+
+/**
+ * Check health/readiness of vLEI Docker containers
+ * (KERIA, schema server, tsx-shell) and agent data files.
+ */
+export async function checkVleiStatus(): Promise<any> {
+  try {
+    return await fetchApi<any>("/vlei/status")
+  } catch {
+    return {
+      status: "error",
+      ready: false,
+      error: "Cannot reach backend. Is the server running on port 4000?",
+    }
+  }
+}

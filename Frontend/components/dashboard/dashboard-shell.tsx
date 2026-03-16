@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Building2,
   User,
+  KeyRound,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +25,7 @@ import { Badge } from "@/components/ui/badge"
 // import { ModeDefiConfig } from "./mode-defi-config"
 // import { BufferDashboardShell } from "./defi-newdashboard1"
 import { ConfigSimulationMode } from "./mode-config"
+import { VleiPanel } from "./vlei-panel"
 import type { DashboardMode, HealthStatus } from "@/lib/types"
 import { checkHealth } from "@/lib/api"
 import { cn } from "@/lib/utils"
@@ -47,6 +49,8 @@ const modeDescriptions: Record<DashboardMode, string> = {
     "Issuer simulation — adjust regulatory thresholds (GENIUS / MiCA / Conservative) and run ACTUS behavioral models",
   holder:
     "Holder simulation — configure portfolio & risk thresholds, simulate 45-day USD ↔ USDC allocation strategy",
+  vlei:
+    "vLEI Credential Signing — Jupiter Seller Agent self-attested invoice credential with digital signature via KERIA",
 }
 
 export function DashboardShell() {
@@ -205,6 +209,16 @@ export function DashboardShell() {
                 <span className="hidden sm:inline">Holder</span>
                 <span className="sm:hidden">HOL</span>
               </TabsTrigger>
+
+              {/* ── vLEI ── */}
+              <TabsTrigger
+                value="vlei"
+                className="gap-1.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-800 data-[state=active]:border-emerald-200"
+              >
+                <KeyRound className="h-4 w-4" />
+                <span className="hidden sm:inline">vLEI</span>
+                <span className="sm:hidden">vLEI</span>
+              </TabsTrigger>
             </TabsList>
 
             <p className="hidden text-xs text-muted-foreground lg:block">
@@ -238,6 +252,21 @@ export function DashboardShell() {
                 transition={{ duration: 0.25 }}
               >
                 <ConfigSimulationMode entityType="holder" />
+              </motion.div>
+            )}
+          </TabsContent>
+
+          {/* ── vLEI Tab ── */}
+          <TabsContent value="vlei" className="mt-0">
+            {mode === "vlei" && (
+              <motion.div
+                key="vlei-content"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <VleiPanel />
               </motion.div>
             )}
           </TabsContent>

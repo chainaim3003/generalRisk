@@ -13,6 +13,7 @@ import type { EnvironmentConfig } from './api/SimulationRunner.js';
 import simulationRoutes from './routes/simulation.routes.js';
 import defiSimulationRoutes from './routes/defi-simulation.routes.js';
 import claudeAiRoutes from './routes/claude-ai.routes.js';
+import vleiRoutes from './routes/vlei.routes.js';
 
 const app = express();
 const PORT = 4000;
@@ -27,6 +28,8 @@ app.use('/api', simulationRoutes);
 app.use('/api', defiSimulationRoutes);
 // Register claude.ai GET routes (enables web_fetch from claude.ai browser)
 app.use('/api', claudeAiRoutes);
+// Register vLEI credential signing routes
+app.use('/api', vleiRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (_req, res) => {
@@ -278,6 +281,10 @@ app.listen(PORT, () => {
   console.error(`   Verify MiCA:   GET http://localhost:${PORT}/api/claude/verify/:filename/eu-mica`);
   console.error(`   DeFi List:     GET http://localhost:${PORT}/api/claude/defi-simulations`);
   console.error(`   DeFi Run:      GET http://localhost:${PORT}/api/claude/defi-simulate/:category/:filename`);
+  console.error('  ─────────────── vLEI Credential Signing ─────────────────────');
+  console.error(`   VLEI Run:      POST http://localhost:${PORT}/api/vlei/run`);
+  console.error(`   VLEI Query:    GET  http://localhost:${PORT}/api/vlei/query`);
+  console.error(`   VLEI Status:   GET  http://localhost:${PORT}/api/vlei/status`);
   console.error('  ─────────────── Stimulation Endpoints ───────────────────────');
   console.error(`   Environments:  http://localhost:${PORT}/api/environments`);
   console.error(`   Stimulations:  http://localhost:${PORT}/api/stimulations`);
